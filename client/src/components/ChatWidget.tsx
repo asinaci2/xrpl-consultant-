@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -157,7 +156,7 @@ export function ChatWidget() {
               </div>
             ) : (
               <>
-                <ScrollArea className="flex-1 p-4 bg-background" style={{ height: "300px" }}>
+                <div className="flex-1 p-4 bg-background overflow-y-auto" style={{ height: "300px" }}>
                   {localMessages.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                       <p data-testid="text-empty-chat">Send a message to start the conversation!</p>
@@ -184,7 +183,7 @@ export function ChatWidget() {
                       <div ref={messagesEndRef} />
                     </div>
                   )}
-                </ScrollArea>
+                </div>
 
                 <div className="p-3 border-t border-border flex gap-2">
                   <Input
