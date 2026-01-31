@@ -14,8 +14,9 @@ import { eq } from "drizzle-orm";
 
 export interface IStorage {
   createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
-  createChatSession(session: InsertChatSession): Promise<ChatSession>;
+  createChatSession(session: InsertChatSession & { matrixRoomId?: string }): Promise<ChatSession>;
   getChatSession(sessionId: string): Promise<ChatSession | undefined>;
+  updateChatSessionMatrixRoom(sessionId: string, matrixRoomId: string): Promise<void>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessages(sessionId: string): Promise<ChatMessage[]>;
 }
@@ -29,7 +30,7 @@ export class DatabaseStorage implements IStorage {
     return inquiry;
   }
 
-  async createChatSession(session: InsertChatSession): Promise<ChatSession> {
+  async createChatSession(session: InsertChatSession & { matrixRoomId?: string }): Promise<ChatSession> {
     const [created] = await db
       .insert(chatSessions)
       .values(session)
@@ -43,6 +44,13 @@ export class DatabaseStorage implements IStorage {
       .from(chatSessions)
       .where(eq(chatSessions.sessionId, sessionId));
     return session;
+  }
+
+  async updateChatSessionMatrixRoom(sessionId: string, matrixRoomId: string): Promise<void> {
+    await db
+      .update(chatSessions)
+      .set({ matrixRoomId })
+      .where(eq(chatSessions.sessionId, sessionId));
   }
 
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {

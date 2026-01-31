@@ -22,6 +22,7 @@ export type Inquiry = typeof inquiries.$inferSelect;
 export const chatSessions = pgTable("chat_sessions", {
   id: serial("id").primaryKey(),
   sessionId: text("session_id").notNull().unique(),
+  matrixRoomId: text("matrix_room_id"),
   visitorName: text("visitor_name"),
   visitorEmail: text("visitor_email"),
   createdAt: timestamp("created_at").defaultNow(),

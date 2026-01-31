@@ -5,6 +5,7 @@ import { api } from "@shared/routes";
 import { insertChatSessionSchema, insertChatMessageSchema } from "@shared/schema";
 import { z } from "zod";
 import { WebSocketServer, WebSocket } from "ws";
+import { createChatRoom, sendMatrixMessage } from "./matrix";
 
 const clients = new Map<string, Set<WebSocket>>();
 
@@ -63,12 +64,27 @@ export async function registerRoutes(
   app.post(api.chat.createSession.path, async (req, res) => {
     try {
       const input = insertChatSessionSchema.parse(req.body);
-      const session = await storage.createChatSession(input);
+      
+      let matrixRoomId: string | undefined;
+      try {
+        const visitorName = input.visitorName || "Website Visitor";
+        matrixRoomId = await createChatRoom(visitorName, input.visitorEmail || undefined);
+        console.log(`Created Matrix room: ${matrixRoomId}`);
+      } catch (matrixError) {
+        console.error("Failed to create Matrix room:", matrixError);
+      }
+      
+      const session = await storage.createChatSession({
+        ...input,
+        matrixRoomId,
+      });
+      
       res.status(201).json({ id: session.id, sessionId: session.sessionId });
     } catch (err) {
       if (err instanceof z.ZodError) {
         res.status(400).json({ message: err.errors[0].message });
       } else {
+        console.error("Session creation error:", err);
         res.status(500).json({ message: "Internal Server Error" });
       }
     }
@@ -96,6 +112,15 @@ export async function registerRoutes(
         isFromVisitor: input.isFromVisitor ?? true
       });
 
+      const session = await storage.getChatSession(sessionId);
+      if (session?.matrixRoomId) {
+        try {
+          await sendMatrixMessage(session.matrixRoomId, input.content, input.isFromVisitor ?? true);
+        } catch (matrixError) {
+          console.error("Failed to send to Matrix:", matrixError);
+        }
+      }
+
       broadcastToSession(sessionId, message);
 
       res.status(201).json(message);
@@ -103,6 +128,7 @@ export async function registerRoutes(
       if (err instanceof z.ZodError) {
         res.status(400).json({ message: err.errors[0].message });
       } else {
+        console.error("Message creation error:", err);
         res.status(500).json({ message: "Internal Server Error" });
       }
     }

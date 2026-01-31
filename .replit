@@ -37,3 +37,9 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[userenv]
+
+[userenv.shared]
+USER = "@rP9jGcAaVjpdqcdHbEckLtRoCYjETxXosj:synapse.textrp.io"
+ACCESS_TOKEN = "syt_clA5akdjQWFWanBkcWNkSGJFY2tMdFJvQ1lqRVR4WG9zag_EIhLWEVMfhbEIGMViXTg_3bRWB9"
