@@ -75,30 +75,92 @@ export async function sendMatrixMessage(roomId: string, content: string, isFromV
   }
 }
 
-export async function getMatrixMessages(roomId: string): Promise<Array<{ content: string; isFromVisitor: boolean; timestamp: number }>> {
+export async function getMatrixMessages(roomId: string, since?: string): Promise<{ messages: Array<{ content: string; isFromVisitor: boolean; timestamp: number; eventId: string }>; nextBatch?: string }> {
   const client = await getMatrixClient();
   
   try {
-    const response = await client.roomInitialSync(roomId, 50);
-    const messages: Array<{ content: string; isFromVisitor: boolean; timestamp: number }> = [];
+    // Ensure we're in the room
+    try {
+      await client.joinRoom(roomId);
+    } catch (e) {
+      // Ignore join errors
+    }
     
-    if (response.messages?.chunk) {
-      for (const event of response.messages.chunk) {
+    const messages: Array<{ content: string; isFromVisitor: boolean; timestamp: number; eventId: string }> = [];
+    
+    // Use messages endpoint to get room messages
+    const response = await client.createMessagesRequest(roomId, since || null, 50, "b");
+    
+    if (response.chunk) {
+      for (const event of response.chunk) {
         if (event.type === "m.room.message" && event.content?.msgtype === "m.text") {
           const body = event.content.body as string;
+          // Messages starting with [Visitor]: are from visitors
           const isFromVisitor = body.startsWith("[Visitor]: ");
           messages.push({
             content: isFromVisitor ? body.replace("[Visitor]: ", "") : body,
             isFromVisitor,
             timestamp: event.origin_server_ts || Date.now(),
+            eventId: event.event_id,
           });
         }
       }
     }
     
-    return messages.sort((a, b) => a.timestamp - b.timestamp);
+    return {
+      messages: messages.sort((a, b) => a.timestamp - b.timestamp),
+      nextBatch: response.end,
+    };
   } catch (error) {
     console.error("Failed to get Matrix messages:", error);
+    return { messages: [] };
+  }
+}
+
+// Track processed event IDs to avoid duplicates
+const processedEvents = new Set<string>();
+
+export async function getNewReplies(roomId: string): Promise<Array<{ content: string; timestamp: number; eventId: string }>> {
+  const client = await getMatrixClient();
+  
+  try {
+    // Ensure we're in the room
+    try {
+      await client.joinRoom(roomId);
+    } catch (e) {
+      // Ignore join errors
+    }
+    
+    const replies: Array<{ content: string; timestamp: number; eventId: string }> = [];
+    
+    // Get recent messages from the room
+    const response = await client.createMessagesRequest(roomId, null, 20, "b");
+    
+    if (response.chunk) {
+      for (const event of response.chunk) {
+        if (event.type === "m.room.message" && event.content?.msgtype === "m.text") {
+          const body = event.content.body as string;
+          const eventId = event.event_id;
+          
+          // Skip visitor messages and already processed events
+          if (body.startsWith("[Visitor]: ") || processedEvents.has(eventId)) {
+            continue;
+          }
+          
+          // This is a reply from the recipient
+          processedEvents.add(eventId);
+          replies.push({
+            content: body,
+            timestamp: event.origin_server_ts || Date.now(),
+            eventId,
+          });
+        }
+      }
+    }
+    
+    return replies.sort((a, b) => a.timestamp - b.timestamp);
+  } catch (error) {
+    console.error("Failed to get Matrix replies:", error);
     return [];
   }
 }

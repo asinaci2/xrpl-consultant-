@@ -5,7 +5,7 @@ import { api } from "@shared/routes";
 import { insertChatSessionSchema, insertChatMessageSchema } from "@shared/schema";
 import { z } from "zod";
 import { WebSocketServer, WebSocket } from "ws";
-import { createChatRoom, sendMatrixMessage } from "./matrix";
+import { createChatRoom, sendMatrixMessage, getNewReplies } from "./matrix";
 
 const clients = new Map<string, Set<WebSocket>>();
 
@@ -46,6 +46,39 @@ export async function registerRoutes(
       });
     }
   }
+
+  // Poll for Matrix replies and broadcast to connected clients
+  async function pollMatrixReplies() {
+    // Get all active sessions with connected clients
+    for (const [sessionId, sessionClients] of clients.entries()) {
+      if (sessionClients.size === 0) continue;
+      
+      try {
+        const session = await storage.getChatSession(sessionId);
+        if (!session?.matrixRoomId) continue;
+        
+        const replies = await getNewReplies(session.matrixRoomId);
+        
+        for (const reply of replies) {
+          // Save reply to database
+          const message = await storage.createChatMessage({
+            sessionId,
+            content: reply.content,
+            isFromVisitor: false
+          });
+          
+          // Broadcast to connected clients
+          broadcastToSession(sessionId, message);
+          console.log(`New reply received for session ${sessionId}: ${reply.content.substring(0, 50)}...`);
+        }
+      } catch (error) {
+        console.error(`Error polling Matrix for session ${sessionId}:`, error);
+      }
+    }
+  }
+
+  // Start polling every 3 seconds
+  setInterval(pollMatrixReplies, 3000);
 
   app.post(api.inquiries.create.path, async (req, res) => {
     try {
