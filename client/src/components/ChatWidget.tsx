@@ -122,7 +122,7 @@ export function ChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-6 w-80 sm:w-96 bg-card border border-border rounded-lg shadow-xl z-50 flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-6 w-80 sm:w-96 bg-background border border-border rounded-lg shadow-xl z-50 flex flex-col overflow-hidden"
             style={{ maxHeight: "500px" }}
             data-testid="chat-widget-container"
           >
@@ -157,7 +157,7 @@ export function ChatWidget() {
               </div>
             ) : (
               <>
-                <ScrollArea className="flex-1 p-4" style={{ height: "300px" }}>
+                <ScrollArea className="flex-1 p-4 bg-background" style={{ height: "300px" }}>
                   {localMessages.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                       <p data-testid="text-empty-chat">Send a message to start the conversation!</p>
@@ -173,7 +173,7 @@ export function ChatWidget() {
                             className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${
                               msg.isFromVisitor
                                 ? "bg-primary text-primary-foreground"
-                                : "bg-muted text-foreground"
+                                : "bg-secondary text-secondary-foreground"
                             }`}
                             data-testid={`chat-message-${msg.id}`}
                           >
