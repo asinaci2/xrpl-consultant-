@@ -3,6 +3,7 @@ import * as sdk from "matrix-js-sdk";
 const MATRIX_HOMESERVER = "https://synapse.textrp.io";
 const MATRIX_USER_ID = process.env.USER || "";
 const MATRIX_ACCESS_TOKEN = process.env.ACCESS_TOKEN || "";
+const MATRIX_RECIPIENT = process.env.RECIPIENT || "";
 
 let matrixClient: sdk.MatrixClient | null = null;
 
@@ -31,9 +32,15 @@ export async function createChatRoom(visitorName: string, visitorEmail?: string)
       topic: visitorEmail ? `Visitor email: ${visitorEmail}` : "Website visitor chat",
       visibility: sdk.Visibility.Private,
       preset: sdk.Preset.PrivateChat,
+      invite: MATRIX_RECIPIENT ? [MATRIX_RECIPIENT] : [],
     });
     
     console.log(`Matrix room created: ${response.room_id}`);
+    
+    if (MATRIX_RECIPIENT) {
+      console.log(`Invited ${MATRIX_RECIPIENT} to room ${response.room_id}`);
+    }
+    
     return response.room_id;
   } catch (error) {
     console.error("Failed to create Matrix room:", error);
