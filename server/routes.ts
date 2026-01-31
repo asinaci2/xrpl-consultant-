@@ -116,8 +116,29 @@ export async function registerRoutes(
       if (session?.matrixRoomId) {
         try {
           await sendMatrixMessage(session.matrixRoomId, input.content, input.isFromVisitor ?? true);
-        } catch (matrixError) {
+        } catch (matrixError: any) {
           console.error("Failed to send to Matrix:", matrixError);
+          // If forbidden (user not in room), create a new room
+          if (matrixError?.errcode === 'M_FORBIDDEN') {
+            try {
+              const newRoomId = await createChatRoom(session.visitorName || "Website Visitor", session.visitorEmail || undefined);
+              await storage.updateChatSessionMatrixRoom(sessionId, newRoomId);
+              await sendMatrixMessage(newRoomId, input.content, input.isFromVisitor ?? true);
+              console.log(`Recreated Matrix room: ${newRoomId}`);
+            } catch (retryError) {
+              console.error("Failed to recreate Matrix room:", retryError);
+            }
+          }
+        }
+      } else if (session) {
+        // No Matrix room yet, create one
+        try {
+          const newRoomId = await createChatRoom(session.visitorName || "Website Visitor", session.visitorEmail || undefined);
+          await storage.updateChatSessionMatrixRoom(sessionId, newRoomId);
+          await sendMatrixMessage(newRoomId, input.content, input.isFromVisitor ?? true);
+          console.log(`Created Matrix room for existing session: ${newRoomId}`);
+        } catch (matrixError) {
+          console.error("Failed to create Matrix room:", matrixError);
         }
       }
 

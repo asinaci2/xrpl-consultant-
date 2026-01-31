@@ -57,6 +57,16 @@ export async function sendMatrixMessage(roomId: string, content: string, isFromV
   };
 
   try {
+    // Ensure we're in the room before sending
+    try {
+      await client.joinRoom(roomId);
+    } catch (joinError: any) {
+      // Ignore if already in room or other join issues
+      if (joinError?.errcode !== 'M_FORBIDDEN') {
+        console.log(`Join attempt for ${roomId}: ${joinError?.message || 'OK'}`);
+      }
+    }
+    
     await client.sendMessage(roomId, messageContent);
     console.log(`Matrix message sent to room ${roomId}`);
   } catch (error) {
