@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertInquirySchema } from './schema';
+import { insertInquirySchema, insertChatSessionSchema, insertChatMessageSchema } from './schema';
 
 export const api = {
   inquiries: {
@@ -8,7 +8,46 @@ export const api = {
       path: '/api/inquiries',
       input: insertInquirySchema,
       responses: {
-        201: insertInquirySchema, // Returns the created object (simplified for now)
+        201: insertInquirySchema,
+        400: z.object({ message: z.string() })
+      }
+    }
+  },
+  chat: {
+    createSession: {
+      method: 'POST' as const,
+      path: '/api/chat/sessions',
+      input: insertChatSessionSchema,
+      responses: {
+        201: z.object({ id: z.number(), sessionId: z.string() }),
+        400: z.object({ message: z.string() })
+      }
+    },
+    getMessages: {
+      method: 'GET' as const,
+      path: '/api/chat/sessions/:sessionId/messages',
+      responses: {
+        200: z.array(z.object({
+          id: z.number(),
+          sessionId: z.string(),
+          content: z.string(),
+          isFromVisitor: z.boolean().nullable(),
+          createdAt: z.string().nullable()
+        }))
+      }
+    },
+    sendMessage: {
+      method: 'POST' as const,
+      path: '/api/chat/sessions/:sessionId/messages',
+      input: z.object({ content: z.string(), isFromVisitor: z.boolean().optional() }),
+      responses: {
+        201: z.object({
+          id: z.number(),
+          sessionId: z.string(),
+          content: z.string(),
+          isFromVisitor: z.boolean().nullable(),
+          createdAt: z.string().nullable()
+        }),
         400: z.object({ message: z.string() })
       }
     }
