@@ -23,13 +23,19 @@ export function ChatWidget() {
   const [inputValue, setInputValue] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
+  const [visitorName, setVisitorName] = useState("");
+  const [visitorEmail, setVisitorEmail] = useState("");
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("chat_session_id");
+    const storedName = localStorage.getItem("chat_visitor_name");
     if (stored) {
       setSessionId(stored);
+    }
+    if (storedName) {
+      setVisitorName(storedName);
     }
   }, []);
 
@@ -70,13 +76,18 @@ export function ChatWidget() {
   }, [localMessages]);
 
   const createSessionMutation = useMutation({
-    mutationFn: async (newSessionId: string) => {
-      const res = await apiRequest("POST", "/api/chat/sessions", { sessionId: newSessionId });
+    mutationFn: async ({ newSessionId, name, email }: { newSessionId: string; name: string; email: string }) => {
+      const res = await apiRequest("POST", "/api/chat/sessions", { 
+        sessionId: newSessionId,
+        visitorName: name,
+        visitorEmail: email
+      });
       return res.json();
     },
-    onSuccess: (_, newSessionId) => {
+    onSuccess: (_, { newSessionId, name }) => {
       setSessionId(newSessionId);
       localStorage.setItem("chat_session_id", newSessionId);
+      localStorage.setItem("chat_visitor_name", name);
     },
   });
 
@@ -93,10 +104,22 @@ export function ChatWidget() {
     },
   });
 
-  const startSession = () => {
+  const startSession = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!visitorName.trim() || !visitorEmail.trim()) return;
     const newSessionId = generateSessionId();
-    createSessionMutation.mutate(newSessionId);
+    createSessionMutation.mutate({ 
+      newSessionId, 
+      name: visitorName.trim(), 
+      email: visitorEmail.trim() 
+    });
   };
+
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const canStartChat = visitorName.trim().length > 0 && isValidEmail(visitorEmail);
 
   const sendMessage = () => {
     if (!inputValue.trim() || !sessionId) return;
@@ -141,19 +164,49 @@ export function ChatWidget() {
             </div>
 
             {!sessionId ? (
-              <div className="p-6 flex flex-col items-center justify-center flex-1">
-                <MessageCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-center text-muted-foreground mb-4" data-testid="text-chat-welcome">
+              <form onSubmit={startSession} className="p-6 flex flex-col flex-1">
+                <MessageCircle className="h-10 w-10 text-muted-foreground mb-3 mx-auto" />
+                <p className="text-center text-muted-foreground mb-4 text-sm" data-testid="text-chat-welcome">
                   Hi! Start a conversation with Edwin.
                 </p>
+                <div className="space-y-3 mb-4">
+                  <div>
+                    <label htmlFor="visitor-name" className="text-sm font-medium mb-1 block">
+                      Name
+                    </label>
+                    <Input
+                      id="visitor-name"
+                      value={visitorName}
+                      onChange={(e) => setVisitorName(e.target.value)}
+                      placeholder="Your name"
+                      required
+                      data-testid="input-visitor-name"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="visitor-email" className="text-sm font-medium mb-1 block">
+                      Email
+                    </label>
+                    <Input
+                      id="visitor-email"
+                      type="email"
+                      value={visitorEmail}
+                      onChange={(e) => setVisitorEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      required
+                      data-testid="input-visitor-email"
+                    />
+                  </div>
+                </div>
                 <Button 
-                  onClick={startSession} 
-                  disabled={createSessionMutation.isPending}
+                  type="submit"
+                  disabled={!canStartChat || createSessionMutation.isPending}
+                  className="w-full"
                   data-testid="button-start-chat"
                 >
                   {createSessionMutation.isPending ? "Starting..." : "Start Chat"}
                 </Button>
-              </div>
+              </form>
             ) : (
               <>
                 <div className="flex-1 p-4 bg-background overflow-y-auto" style={{ height: "300px" }}>
