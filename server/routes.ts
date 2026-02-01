@@ -340,6 +340,10 @@ export async function registerRoutes(
       res.status(201).json(story);
     } catch (err) {
       console.error("Story creation error:", err);
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid story data", errors: err.errors });
+        return;
+      }
       res.status(500).json({ message: "Failed to create story" });
     }
   });

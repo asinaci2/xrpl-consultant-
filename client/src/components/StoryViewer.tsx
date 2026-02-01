@@ -172,7 +172,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
               size="icon"
               variant="ghost"
               onClick={onClose}
-              className="text-green-400 hover:text-green-300 hover:bg-green-900/30"
+              className="text-green-400"
               data-testid="button-close-story"
             >
               <X className="w-5 h-5" />
