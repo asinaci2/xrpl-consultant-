@@ -1,0 +1,31 @@
+Build a complete Flutter web app that is a Matrix chat client similar to Twake Chat (twake-on-matrix from Linagora on GitHub). 
+
+Key features to include:
+- Connect to any Matrix homeserver (default to matrix.org, but allow custom URL input on login screen)
+- User registration and login with Matrix credentials
+- End-to-end encryption support (use matrix Dart SDK for E2EE, emoji verification, and cross-signing basics)
+- List of rooms/chats (direct messages and group rooms)
+- Real-time messaging in rooms with text, emojis, file/image uploads, and basic markdown support
+- Ephemeral "Stories" feature: A dedicated feed/section showing 24-hour disappearing status updates or visual stories from contacts (implement as a special room type or custom UI layer on top of Matrix events; make posts ephemeral by auto-deleting after 24h or using short-lived events)
+- Sidebar navigation for rooms, direct chats, spaces, and a Stories header/feed like WhatsApp/Instagram
+- User presence indicators, typing notifications, read receipts
+- Dark/light theme toggle
+- Responsive design for web (mobile-friendly layout)
+
+Use the official matrix-dart-sdk (https://pub.dev/packages/matrix) as the core library for Matrix protocol handling.
+
+Project setup:
+- Flutter version latest stable
+- Target Flutter web first (enable web support: flutter config --enable-web)
+- Add necessary dependencies in pubspec.yaml: matrix, flutter_secure_storage (for session saving), url_launcher, image_picker (for web-compatible uploads), flutter_markdown, etc.
+- Include a simple login screen with homeserver field, username, password
+- After login, show main chat interface with bottom navigation or sidebar: Chats, Stories, Settings
+- Handle session persistence so users stay logged in on refresh
+- Add basic error handling and loading indicators
+- Make it deployable as a Flutter web app with one-click hosting in Replit (use flutter build web and serve the build/web folder)
+
+If possible, fork or import code structure from https://github.com/linagora/twake-on-matrix as a starting point (clone relevant lib/ folders like chat UI, stories implementation if it exists, matrix utils), but adapt for Replit constraints.
+
+Start by generating the full project structure, pubspec.yaml, main.dart, and key screens (login, home with stories feed, chat room). Then guide me on running flutter pub get, enabling web, and previewing/deploying.
+
+Ask follow-up questions if needed for custom homeserver, specific features, or authentication tweaks.
