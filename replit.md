@@ -94,3 +94,15 @@ shared/           # Shared code between client/server
 - **Animation**: Canvas-based Matrix rain effect with green cascading characters
 - **Features**: Auto-rotating tweet carousel (5-second intervals), navigation dots, engagement stats
 - **Performance**: Uses requestAnimationFrame with canvas rendering instead of React state updates
+
+### Stories Feature (WhatsApp/Instagram-style)
+- **Components**: 
+  - `StoriesHeader.tsx` - Horizontal scrollable row of circular story bubbles with green glow effects
+  - `StoryViewer.tsx` - Full-screen modal with progress bars, keyboard navigation, tap-to-pause
+  - `Stories.tsx` - Section wrapper integrating header and viewer
+- **Database**: `stories` table with content, imageUrl, authorName, authorImage, createdAt, expiresAt
+- **Expiration**: Stories auto-expire after 24 hours
+- **Endpoints**:
+  - `GET /api/stories` - Returns active (non-expired) stories
+  - `POST /api/stories` - Creates new story with optional image upload to Matrix
+- **Styling**: Matrix cyberpunk theme with green glows, dark gradients, monospace fonts
