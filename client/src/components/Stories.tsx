@@ -40,14 +40,14 @@ export function Stories() {
 
   return (
     <>
-      <section 
-        className="py-4 bg-gradient-to-b from-[#0a0a0a] to-background border-b border-green-500/10"
+      <div 
+        className="bg-gradient-to-r from-[#0a0a0a] via-[#0d1f0d] to-[#0a0a0a] border-b border-green-500/20"
         data-testid="stories-section"
       >
-        <div className="container mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <StoriesHeader onStoryClick={handleStoryClick} />
         </div>
-      </section>
+      </div>
 
       {viewerState.isOpen && (
         <StoryViewer

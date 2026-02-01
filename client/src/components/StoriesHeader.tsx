@@ -50,7 +50,7 @@ export default function StoriesHeader({ onStoryClick }: StoriesHeaderProps) {
 
   return (
     <div 
-      className="flex gap-4 overflow-x-auto py-4 px-2 scrollbar-hide"
+      className="flex gap-3 overflow-x-auto py-3 px-2 scrollbar-hide"
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       data-testid="stories-header"
     >
@@ -66,13 +66,13 @@ export default function StoriesHeader({ onStoryClick }: StoriesHeaderProps) {
             data-testid={`story-bubble-${authorName.replace(/\s+/g, "-").toLowerCase()}`}
           >
             <div 
-              className={`relative w-16 h-16 rounded-full p-[3px] transition-all duration-300 group-hover:scale-105 ${
+              className={`relative w-14 h-14 rounded-full p-[2px] transition-all duration-300 group-hover:scale-105 ${
                 hasMultiple 
                   ? "bg-gradient-to-tr from-green-400 via-green-500 to-emerald-400" 
                   : "bg-gradient-to-tr from-green-500 to-green-400"
               }`}
               style={{
-                boxShadow: "0 0 15px rgba(74, 222, 128, 0.4), 0 0 30px rgba(74, 222, 128, 0.2)",
+                boxShadow: "0 0 12px rgba(74, 222, 128, 0.4), 0 0 24px rgba(74, 222, 128, 0.2)",
               }}
             >
               <div className="w-full h-full rounded-full bg-[#0a0a0a] p-[2px] overflow-hidden">

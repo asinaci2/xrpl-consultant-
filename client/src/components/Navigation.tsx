@@ -2,6 +2,7 @@ import { Link } from "react-scroll";
 import { useState, useEffect } from "react";
 import { Menu, X, Hexagon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Stories } from "./Stories";
 
 export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -102,6 +103,9 @@ export function Navigation() {
           </div>
         </div>
       )}
+
+      {/* Stories Sub-header */}
+      <Stories />
     </nav>
   );
 }
