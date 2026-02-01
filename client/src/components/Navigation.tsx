@@ -16,9 +16,9 @@ export function Navigation() {
   }, []);
 
   const navLinks = [
-    { name: "About", to: "about" },
     { name: "Services", to: "services" },
-    { name: "Expertise", to: "expertise" },
+    { name: "Projects", to: "projects" },
+    { name: "About", to: "about" },
   ];
 
   return (
@@ -30,7 +30,11 @@ export function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <div 
+            className="flex-shrink-0 flex items-center gap-2 cursor-pointer" 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            data-testid="button-logo-home"
+          >
             <Hexagon className="w-8 h-8 text-secondary fill-secondary/20" />
             <span className="font-display font-bold text-xl tracking-tight text-primary">
               Edwin Gutierrez
@@ -46,12 +50,13 @@ export function Navigation() {
                 smooth={true}
                 duration={500}
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                data-testid={`link-nav-${link.to}`}
               >
                 {link.name}
               </Link>
             ))}
-            <Link to="contact" smooth={true} duration={500}>
-              <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6">
+            <Link to="contact" smooth={true} duration={500} data-testid="link-nav-contact">
+              <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6" data-testid="button-consultation">
                 Consultation
               </Button>
             </Link>
@@ -62,6 +67,7 @@ export function Navigation() {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="text-primary hover:text-primary/80 transition-colors"
+              data-testid="button-mobile-menu"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -71,7 +77,7 @@ export function Navigation() {
 
       {/* Mobile Nav */}
       {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-20 left-0 w-full bg-background border-b border-border shadow-lg">
+        <div className="md:hidden absolute top-20 left-0 w-full bg-background border-b border-border shadow-lg" data-testid="mobile-menu">
           <div className="px-4 pt-2 pb-6 space-y-2">
             {navLinks.map((link) => (
               <Link
@@ -81,13 +87,14 @@ export function Navigation() {
                 duration={500}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block px-3 py-3 text-base font-medium text-foreground hover:bg-muted rounded-lg cursor-pointer"
+                data-testid={`link-mobile-nav-${link.to}`}
               >
                 {link.name}
               </Link>
             ))}
             <div className="pt-4">
-              <Link to="contact" smooth={true} duration={500} onClick={() => setIsMobileMenuOpen(false)}>
-                <Button className="w-full bg-primary text-white rounded-lg">
+              <Link to="contact" smooth={true} duration={500} onClick={() => setIsMobileMenuOpen(false)} data-testid="link-mobile-nav-contact">
+                <Button className="w-full bg-primary text-white rounded-lg" data-testid="button-mobile-consultation">
                   Book Consultation
                 </Button>
               </Link>
