@@ -5,7 +5,7 @@ import { api } from "@shared/routes";
 import { insertChatSessionSchema, insertChatMessageSchema, insertStorySchema } from "@shared/schema";
 import { z } from "zod";
 import { WebSocketServer, WebSocket } from "ws";
-import { createChatRoom, sendMatrixMessage, getNewReplies, uploadFileToMatrix } from "./matrix";
+import { createChatRoom, sendMatrixMessage, getNewReplies, uploadFileToMatrix, uploadMediaToMatrix } from "./matrix";
 import { getUserTweets, searchTweets } from "./twitter";
 import multer from "multer";
 
@@ -315,7 +315,7 @@ export async function registerRoutes(
       
       let imageUrl: string | undefined;
       if (req.file) {
-        const mxcUrl = await uploadFileToMatrix(
+        const mxcUrl = await uploadMediaToMatrix(
           req.file.buffer,
           req.file.originalname,
           req.file.mimetype

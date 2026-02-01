@@ -120,6 +120,27 @@ export async function getMatrixMessages(roomId: string, since?: string): Promise
 // Track processed event IDs to avoid duplicates
 const processedEvents = new Set<string>();
 
+export async function uploadMediaToMatrix(
+  fileBuffer: Buffer, 
+  fileName: string, 
+  mimeType: string
+): Promise<string> {
+  const client = await getMatrixClient();
+  
+  try {
+    const uploadResponse = await client.uploadContent(fileBuffer, {
+      name: fileName,
+      type: mimeType,
+    });
+    
+    console.log(`Media uploaded to Matrix: ${fileName} -> ${uploadResponse.content_uri}`);
+    return uploadResponse.content_uri;
+  } catch (error) {
+    console.error("Matrix media upload error:", error);
+    throw new Error("Failed to upload media to Matrix");
+  }
+}
+
 export async function uploadFileToMatrix(
   roomId: string, 
   fileBuffer: Buffer, 
