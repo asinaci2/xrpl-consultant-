@@ -81,10 +81,11 @@ shared/           # Shared code between client/server
 
 ### Twitter Integration
 - **API Service**: `server/twitter.ts` - Twitter API v2 integration with OAuth 1.0a
-- **Rate Limiting**: 5-minute cache with 15-minute backoff after 429 errors
+- **Database Caching**: Tweets stored in `cached_tweets` table with 2-hour refresh interval
+- **Rate Limiting**: 15-minute backoff after 429 errors
 - **Fallback Data**: Pre-configured tweets display when API is unavailable
 - **Endpoints**: 
-  - `GET /api/twitter/tweets?count=N` - Fetch user timeline
+  - `GET /api/twitter/tweets?count=N` - Fetch user timeline (from cache or API)
   - `GET /api/twitter/search?q=query` - Search tweets
 - **Required Secrets**: TWITTER_BEARER_TOKEN, TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET
 
