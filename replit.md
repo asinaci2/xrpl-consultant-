@@ -78,3 +78,18 @@ shared/           # Shared code between client/server
 
 ### Fonts
 - Google Fonts: Outfit (display), DM Sans (body)
+
+### Twitter Integration
+- **API Service**: `server/twitter.ts` - Twitter API v2 integration with OAuth 1.0a
+- **Rate Limiting**: 5-minute cache with 15-minute backoff after 429 errors
+- **Fallback Data**: Pre-configured tweets display when API is unavailable
+- **Endpoints**: 
+  - `GET /api/twitter/tweets?count=N` - Fetch user timeline
+  - `GET /api/twitter/search?q=query` - Search tweets
+- **Required Secrets**: TWITTER_BEARER_TOKEN, TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET
+
+### Matrix-Style Display
+- **Component**: `client/src/components/MatrixTweets.tsx`
+- **Animation**: Canvas-based Matrix rain effect with green cascading characters
+- **Features**: Auto-rotating tweet carousel (5-second intervals), navigation dots, engagement stats
+- **Performance**: Uses requestAnimationFrame with canvas rendering instead of React state updates
