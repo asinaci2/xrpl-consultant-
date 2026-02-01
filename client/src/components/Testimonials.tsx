@@ -34,13 +34,13 @@ export function Testimonials() {
             className="text-3xl md:text-5xl font-display font-bold text-primary mb-6"
             data-testid="text-testimonials-title"
           >
-            Shoutouts from the XRPL Fam
+            Stay Connected
           </h3>
           <p 
             className="text-lg text-muted-foreground"
             data-testid="text-testimonials-description"
           >
-            Live feed of appreciation from the community - auto-updates as new thanks roll in
+            Follow along with the latest updates, community shoutouts, and XRPL ecosystem news
           </p>
         </motion.div>
 
@@ -56,10 +56,10 @@ export function Testimonials() {
             className="twitter-timeline" 
             data-height="600" 
             data-theme="dark" 
-            href="https://twitter.com/search?q=%40AsiNaci2%20(thanks%20OR%20appreciate)&src=typed_query"
+            href="https://twitter.com/AsiNaci2"
             data-testid="link-twitter-timeline"
           >
-            Tweets about @AsiNaci2
+            Tweets by @AsiNaci2
           </a>
         </motion.div>
       </div>
