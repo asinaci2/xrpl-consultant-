@@ -5,10 +5,18 @@ import { api } from "@shared/routes";
 import { insertChatSessionSchema, insertChatMessageSchema } from "@shared/schema";
 import { z } from "zod";
 import { WebSocketServer, WebSocket } from "ws";
-import { createChatRoom, sendMatrixMessage, getNewReplies } from "./matrix";
+import { createChatRoom, sendMatrixMessage, getNewReplies, uploadFileToMatrix } from "./matrix";
 import { getUserTweets, searchTweets } from "./twitter";
+import multer from "multer";
 
 const clients = new Map<string, Set<WebSocket>>();
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+});
 
 export async function registerRoutes(
   httpServer: Server,
@@ -51,7 +59,7 @@ export async function registerRoutes(
   // Poll for Matrix replies and broadcast to connected clients
   async function pollMatrixReplies() {
     // Get all active sessions with connected clients
-    for (const [sessionId, sessionClients] of clients.entries()) {
+    for (const [sessionId, sessionClients] of Array.from(clients.entries())) {
       if (sessionClients.size === 0) continue;
       
       try {
@@ -186,6 +194,77 @@ export async function registerRoutes(
         console.error("Message creation error:", err);
         res.status(500).json({ message: "Internal Server Error" });
       }
+    }
+  });
+
+  app.post("/api/chat/sessions/:sessionId/upload", upload.single("file"), async (req, res) => {
+    try {
+      const sessionId = req.params.sessionId as string;
+      const file = req.file;
+      
+      if (!file) {
+        res.status(400).json({ message: "No file uploaded" });
+        return;
+      }
+      
+      let session = await storage.getChatSession(sessionId);
+      if (!session) {
+        res.status(400).json({ message: "Chat session not found" });
+        return;
+      }
+      
+      // Create Matrix room if it doesn't exist
+      if (!session.matrixRoomId) {
+        try {
+          const newRoomId = await createChatRoom(session.visitorName || "Website Visitor", session.visitorEmail || undefined);
+          await storage.updateChatSessionMatrixRoom(sessionId, newRoomId);
+          session = { ...session, matrixRoomId: newRoomId };
+          console.log(`Created Matrix room for file upload: ${newRoomId}`);
+        } catch (matrixError) {
+          console.error("Failed to create Matrix room for upload:", matrixError);
+          res.status(500).json({ message: "Failed to initialize chat room" });
+          return;
+        }
+      }
+      
+      const { mxcUrl } = await uploadFileToMatrix(
+        session.matrixRoomId!,
+        file.buffer,
+        file.originalname,
+        file.mimetype
+      );
+      
+      const isImage = file.mimetype.startsWith("image/");
+      const displayContent = isImage 
+        ? `[Image: ${file.originalname}]` 
+        : `[File: ${file.originalname}]`;
+      
+      // Convert mxc:// URL to downloadable HTTPS URL
+      const downloadUrl = mxcUrl.replace(
+        "mxc://",
+        "https://synapse.textrp.io/_matrix/media/v3/download/"
+      );
+      
+      const message = await storage.createChatMessage({
+        sessionId,
+        content: displayContent,
+        isFromVisitor: true,
+        fileUrl: downloadUrl,
+        fileName: file.originalname,
+        mimeType: file.mimetype
+      });
+      
+      broadcastToSession(sessionId, message);
+      
+      res.status(201).json({ 
+        message, 
+        mxcUrl,
+        fileName: file.originalname,
+        mimeType: file.mimetype
+      });
+    } catch (err) {
+      console.error("File upload error:", err);
+      res.status(500).json({ message: "Failed to upload file" });
     }
   });
 

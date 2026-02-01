@@ -120,6 +120,60 @@ export async function getMatrixMessages(roomId: string, since?: string): Promise
 // Track processed event IDs to avoid duplicates
 const processedEvents = new Set<string>();
 
+export async function uploadFileToMatrix(
+  roomId: string, 
+  fileBuffer: Buffer, 
+  fileName: string, 
+  mimeType: string
+): Promise<{ mxcUrl: string; eventId: string }> {
+  const client = await getMatrixClient();
+  
+  try {
+    // Ensure we're in the room
+    try {
+      await client.joinRoom(roomId);
+    } catch (e) {
+      // Ignore join errors
+    }
+    
+    // Upload the file to Matrix content repository
+    const uploadResponse = await client.uploadContent(fileBuffer, {
+      name: fileName,
+      type: mimeType,
+    });
+    
+    const mxcUrl = uploadResponse.content_uri;
+    
+    // Determine message type based on mime type
+    const isImage = mimeType.startsWith("image/");
+    const msgtype = isImage ? "m.image" : "m.file";
+    
+    // Send file message to room
+    const messageContent: any = {
+      msgtype,
+      body: `[Visitor]: ${fileName}`,
+      filename: fileName,
+      url: mxcUrl,
+      info: {
+        mimetype: mimeType,
+        size: fileBuffer.length,
+      },
+    };
+    
+    const sendResponse = await client.sendMessage(roomId, messageContent);
+    
+    console.log(`File uploaded to Matrix: ${fileName} -> ${mxcUrl}`);
+    
+    return {
+      mxcUrl,
+      eventId: sendResponse.event_id,
+    };
+  } catch (error) {
+    console.error("Failed to upload file to Matrix:", error);
+    throw error;
+  }
+}
+
 export async function getNewReplies(roomId: string): Promise<Array<{ content: string; timestamp: number; eventId: string }>> {
   const client = await getMatrixClient();
   

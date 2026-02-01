@@ -33,6 +33,9 @@ export const chatMessages = pgTable("chat_messages", {
   sessionId: text("session_id").notNull(),
   content: text("content").notNull(),
   isFromVisitor: boolean("is_from_visitor").default(true),
+  fileUrl: text("file_url"),
+  fileName: text("file_name"),
+  mimeType: text("mime_type"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -46,6 +49,9 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
   sessionId: true,
   content: true,
   isFromVisitor: true,
+  fileUrl: true,
+  fileName: true,
+  mimeType: true,
 });
 
 export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
