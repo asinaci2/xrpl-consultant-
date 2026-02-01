@@ -6,6 +6,7 @@ import { insertChatSessionSchema, insertChatMessageSchema } from "@shared/schema
 import { z } from "zod";
 import { WebSocketServer, WebSocket } from "ws";
 import { createChatRoom, sendMatrixMessage, getNewReplies } from "./matrix";
+import { getUserTweets, searchTweets } from "./twitter";
 
 const clients = new Map<string, Set<WebSocket>>();
 
@@ -185,6 +186,35 @@ export async function registerRoutes(
         console.error("Message creation error:", err);
         res.status(500).json({ message: "Internal Server Error" });
       }
+    }
+  });
+
+  app.get("/api/twitter/tweets", async (req, res) => {
+    try {
+      const count = parseInt(req.query.count as string) || 10;
+      const tweets = await getUserTweets(count);
+      res.json(tweets);
+    } catch (err) {
+      console.error("Twitter fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch tweets" });
+    }
+  });
+
+  app.get("/api/twitter/search", async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      const count = parseInt(req.query.count as string) || 10;
+      
+      if (!query) {
+        res.status(400).json({ message: "Search query required" });
+        return;
+      }
+      
+      const tweets = await searchTweets(query, count);
+      res.json(tweets);
+    } catch (err) {
+      console.error("Twitter search error:", err);
+      res.status(500).json({ message: "Failed to search tweets" });
     }
   });
 

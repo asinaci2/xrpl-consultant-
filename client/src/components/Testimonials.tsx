@@ -1,22 +1,11 @@
 import { motion } from "framer-motion";
-import { useEffect } from "react";
+import { MatrixTweets } from "./MatrixTweets";
+import { SiX } from "react-icons/si";
 
 export function Testimonials() {
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://platform.twitter.com/widgets.js";
-    script.async = true;
-    script.charset = "utf-8";
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
   return (
-    <section id="testimonials" className="section-padding bg-muted" data-testid="section-testimonials">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="testimonials" className="section-padding bg-black" data-testid="section-testimonials">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -24,23 +13,24 @@ export function Testimonials() {
           viewport={{ once: true }}
           className="text-center mb-8"
         >
-          <h2 
-            className="text-secondary font-semibold tracking-wide uppercase text-sm mb-3"
-            data-testid="text-testimonials-subtitle"
+          <div 
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm font-semibold mb-4"
+            data-testid="badge-testimonials"
           >
-            Community Voices
-          </h2>
-          <h3 
-            className="text-3xl md:text-5xl font-display font-bold text-primary mb-6"
+            <SiX className="w-4 h-4" />
+            Live Feed
+          </div>
+          <h2 
+            className="text-3xl md:text-5xl font-display font-bold text-white mb-4"
             data-testid="text-testimonials-title"
           >
-            Stay Connected
-          </h3>
+            Enter the <span className="text-green-400">Matrix</span>
+          </h2>
           <p 
-            className="text-lg text-muted-foreground"
+            className="text-lg text-gray-400 max-w-2xl mx-auto"
             data-testid="text-testimonials-description"
           >
-            Follow along with the latest updates, community shoutouts, and XRPL ecosystem news
+            Real-time updates from the XRPL ecosystem. Follow the white rabbit.
           </p>
         </motion.div>
 
@@ -49,17 +39,27 @@ export function Testimonials() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           viewport={{ once: true }}
-          className="rounded-md overflow-hidden"
-          data-testid="container-twitter-timeline"
+          data-testid="container-matrix-feed"
         >
-          <a 
-            className="twitter-timeline" 
-            data-height="600" 
-            data-theme="dark" 
+          <MatrixTweets />
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+          viewport={{ once: true }}
+          className="mt-6 text-center"
+        >
+          <a
             href="https://twitter.com/AsiNaci2"
-            data-testid="link-twitter-timeline"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-green-500/10 border border-green-500/30 rounded-full text-green-400 hover:bg-green-500/20 transition-colors font-medium"
+            data-testid="link-follow-twitter"
           >
-            Tweets by @AsiNaci2
+            <SiX className="w-4 h-4" />
+            Follow @AsiNaci2
           </a>
         </motion.div>
       </div>
