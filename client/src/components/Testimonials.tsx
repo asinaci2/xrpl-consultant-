@@ -56,7 +56,7 @@ export function Testimonials() {
             className="twitter-timeline" 
             data-height="600" 
             data-theme="dark" 
-            href="https://twitter.com/search?q=%40AsiNaci2%20(thanks%20OR%20appreciate)&src=typed_query&f=live"
+            href="https://twitter.com/search?q=%40AsiNaci2%20(thanks%20OR%20appreciate)&src=typed_query"
             data-testid="link-twitter-timeline"
           >
             Tweets about @AsiNaci2
