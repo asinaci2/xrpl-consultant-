@@ -1,3 +1,7 @@
+import { db } from "./db";
+import { cachedTweets } from "@shared/schema";
+import { desc } from "drizzle-orm";
+
 interface Tweet {
   id: string;
   text: string;
@@ -90,36 +94,92 @@ const FALLBACK_TWEETS: FormattedTweet[] = [
   },
 ];
 
-let cachedTweets: FormattedTweet[] = [];
-let lastFetchTime = 0;
-let lastRateLimitTime = 0;
-const CACHE_DURATION = 300000; // 5 minute cache
-const RATE_LIMIT_BACKOFF = 900000; // 15 minute backoff after rate limit
+// 2 hours in milliseconds
+const CACHE_DURATION = 2 * 60 * 60 * 1000;
+// 15 minute backoff after rate limit
+const RATE_LIMIT_BACKOFF = 15 * 60 * 1000;
 
-function getAvailableTweets(count: number): FormattedTweet[] {
-  if (cachedTweets.length > 0) {
-    return cachedTweets.slice(0, count);
+let lastRateLimitTime = 0;
+
+async function getCachedTweetsFromDb(): Promise<FormattedTweet[]> {
+  try {
+    const tweets = await db.select().from(cachedTweets).orderBy(desc(cachedTweets.fetchedAt));
+    return tweets.map(t => ({
+      id: t.tweetId,
+      text: t.text,
+      createdAt: t.createdAt,
+      authorName: t.authorName,
+      authorUsername: t.authorUsername,
+      authorImage: t.authorImage || undefined,
+      likes: t.likes,
+      retweets: t.retweets,
+      replies: t.replies,
+    }));
+  } catch (error) {
+    console.error("Error reading cached tweets from database:", error);
+    return [];
+  }
+}
+
+async function isCacheValid(): Promise<boolean> {
+  try {
+    const result = await db.select({ fetchedAt: cachedTweets.fetchedAt })
+      .from(cachedTweets)
+      .orderBy(desc(cachedTweets.fetchedAt))
+      .limit(1);
+    
+    if (result.length === 0 || !result[0].fetchedAt) {
+      return false;
+    }
+    
+    const cacheAge = Date.now() - result[0].fetchedAt.getTime();
+    return cacheAge < CACHE_DURATION;
+  } catch (error) {
+    console.error("Error checking cache validity:", error);
+    return false;
+  }
+}
+
+async function saveTweetsToDb(tweets: FormattedTweet[]): Promise<void> {
+  if (tweets.length === 0) return;
+  
+  try {
+    const tweetRecords = tweets.map(t => ({
+      tweetId: t.id,
+      text: t.text,
+      createdAt: t.createdAt,
+      authorName: t.authorName,
+      authorUsername: t.authorUsername,
+      authorImage: t.authorImage || null,
+      likes: t.likes,
+      retweets: t.retweets,
+      replies: t.replies,
+    }));
+    
+    // Use transaction to ensure atomicity - delete and insert together
+    await db.transaction(async (tx) => {
+      await tx.delete(cachedTweets);
+      await tx.insert(cachedTweets).values(tweetRecords);
+    });
+    
+    console.log(`Saved ${tweets.length} tweets to database cache`);
+  } catch (error) {
+    console.error("Error saving tweets to database:", error);
+  }
+}
+
+async function getAvailableTweets(count: number): Promise<FormattedTweet[]> {
+  const dbTweets = await getCachedTweetsFromDb();
+  if (dbTweets.length > 0) {
+    return dbTweets.slice(0, count);
   }
   return FALLBACK_TWEETS.slice(0, count);
 }
 
-export async function getUserTweets(count: number = 10): Promise<FormattedTweet[]> {
-  const now = Date.now();
-  
-  // Return cached data if within cache duration
-  if (cachedTweets.length > 0 && now - lastFetchTime < CACHE_DURATION) {
-    return cachedTweets.slice(0, count);
-  }
-  
-  // If we were rate limited recently, return available tweets and don't try again yet
-  if (now - lastRateLimitTime < RATE_LIMIT_BACKOFF) {
-    console.log("Rate limit backoff active, returning available tweets");
-    return getAvailableTweets(count);
-  }
-
+async function fetchTweetsFromApi(): Promise<FormattedTweet[]> {
   if (!BEARER_TOKEN) {
     console.error("Twitter Bearer Token not configured");
-    return getAvailableTweets(count);
+    return [];
   }
 
   try {
@@ -140,7 +200,7 @@ export async function getUserTweets(count: number = 10): Promise<FormattedTweet[
         lastRateLimitTime = Date.now();
         console.log("Rate limit hit, backing off for 15 minutes");
       }
-      return getAvailableTweets(count);
+      return [];
     }
 
     const userData = (await userResponse.json()) as { data?: { id: string } };
@@ -148,14 +208,14 @@ export async function getUserTweets(count: number = 10): Promise<FormattedTweet[
 
     if (!userId) {
       console.error("Could not find Twitter user ID");
-      return getAvailableTweets(count);
+      return [];
     }
 
     // Fetch user's tweets
     const tweetsResponse = await fetch(
       `https://api.twitter.com/2/users/${userId}/tweets?` +
         new URLSearchParams({
-          max_results: String(Math.min(count, 100)),
+          max_results: "20",
           "tweet.fields": "created_at,public_metrics,author_id",
           "user.fields": "name,username,profile_image_url",
           expansions: "author_id",
@@ -175,20 +235,20 @@ export async function getUserTweets(count: number = 10): Promise<FormattedTweet[
         lastRateLimitTime = Date.now();
         console.log("Rate limit hit, backing off for 15 minutes");
       }
-      return getAvailableTweets(count);
+      return [];
     }
 
     const tweetsData = (await tweetsResponse.json()) as TwitterApiResponse;
 
     if (!tweetsData.data || tweetsData.data.length === 0) {
-      console.log("No tweets found");
-      return getAvailableTweets(count);
+      console.log("No tweets found from API");
+      return [];
     }
 
     const users = tweetsData.includes?.users || [];
     const userMap = new Map(users.map((u) => [u.id, u]));
 
-    cachedTweets = tweetsData.data.map((tweet) => {
+    const formattedTweets = tweetsData.data.map((tweet) => {
       const author = userMap.get(tweet.author_id);
       return {
         id: tweet.id,
@@ -203,13 +263,44 @@ export async function getUserTweets(count: number = 10): Promise<FormattedTweet[
       };
     });
 
-    lastFetchTime = now;
-    console.log(`Fetched ${cachedTweets.length} tweets from Twitter API`);
-    return cachedTweets.slice(0, count);
+    console.log(`Fetched ${formattedTweets.length} tweets from Twitter API`);
+    return formattedTweets;
   } catch (error) {
     console.error("Twitter API error:", error);
-    return getAvailableTweets(count);
+    return [];
   }
+}
+
+export async function getUserTweets(count: number = 10): Promise<FormattedTweet[]> {
+  const now = Date.now();
+  
+  // Check if database cache is still valid
+  const cacheValid = await isCacheValid();
+  if (cacheValid) {
+    const dbTweets = await getCachedTweetsFromDb();
+    if (dbTweets.length > 0) {
+      console.log("Returning tweets from database cache");
+      return dbTweets.slice(0, count);
+    }
+  }
+  
+  // If we were rate limited recently, return available tweets without API call
+  if (now - lastRateLimitTime < RATE_LIMIT_BACKOFF) {
+    console.log("Rate limit backoff active, returning available tweets");
+    return await getAvailableTweets(count);
+  }
+
+  // Fetch fresh tweets from API
+  const freshTweets = await fetchTweetsFromApi();
+  
+  if (freshTweets.length > 0) {
+    // Save to database
+    await saveTweetsToDb(freshTweets);
+    return freshTweets.slice(0, count);
+  }
+
+  // Fall back to cached or fallback tweets
+  return await getAvailableTweets(count);
 }
 
 export async function searchTweets(query: string, count: number = 10): Promise<FormattedTweet[]> {
@@ -269,3 +360,25 @@ export async function searchTweets(query: string, count: number = 10): Promise<F
     return [];
   }
 }
+
+// Initialize cache on startup if empty
+(async () => {
+  try {
+    const tweets = await getCachedTweetsFromDb();
+    if (tweets.length === 0) {
+      console.log("No cached tweets found, fetching initial batch...");
+      const freshTweets = await fetchTweetsFromApi();
+      if (freshTweets.length > 0) {
+        await saveTweetsToDb(freshTweets);
+      } else {
+        // Store fallback tweets so frontend has something to show
+        await saveTweetsToDb(FALLBACK_TWEETS);
+        console.log("Stored fallback tweets in database");
+      }
+    } else {
+      console.log(`Found ${tweets.length} cached tweets in database`);
+    }
+  } catch (error) {
+    console.error("Error initializing tweet cache:", error);
+  }
+})();
