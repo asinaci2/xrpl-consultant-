@@ -2,13 +2,16 @@ import { motion } from "framer-motion";
 import { Link } from "react-scroll";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MatrixRain } from "@/components/MatrixRain";
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-gradient-to-br from-background via-background to-blue-50/50">
-      {/* Abstract Background Shapes */}
-      <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-[800px] h-[800px] bg-secondary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-black">
+      {/* Matrix Rain Background */}
+      <MatrixRain className="opacity-30" />
+      
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/70 z-[1]" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
@@ -19,47 +22,47 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/10 text-secondary text-sm font-semibold mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm font-semibold mb-6">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
               </span>
               Certified Blockchain Consultant
             </div>
             
-            <h1 className="text-5xl lg:text-7xl font-display font-bold leading-tight mb-6 text-primary">
-              Unlock the Power of <span className="text-secondary">XRPL</span> for Enterprise.
+            <h1 className="text-5xl lg:text-7xl font-display font-bold leading-tight mb-6 text-white">
+              Unlock the Power of <span className="text-green-400">XRPL</span> for Enterprise.
             </h1>
             
-            <p className="text-xl text-muted-foreground mb-8 max-w-lg leading-relaxed">
+            <p className="text-xl text-gray-300 mb-8 max-w-lg leading-relaxed">
               Expert guidance on XRP Ledger strategy, tokenization, and cross-border payment solutions. Transform your financial infrastructure with proven blockchain expertise.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <Link to="contact" smooth={true} duration={500}>
-                <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 rounded-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+                <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 rounded-full bg-green-500 hover:bg-green-600 text-black font-bold shadow-lg shadow-green-500/30">
                   Start Your Strategy
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
               <Link to="about" smooth={true} duration={500}>
-                <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg h-14 px-8 rounded-full border-2">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg h-14 px-8 rounded-full border-2 border-green-400/50 text-green-400 hover:bg-green-400/10">
                   View Credentials
                 </Button>
               </Link>
             </div>
 
-            <div className="flex items-center gap-6 text-sm text-muted-foreground font-medium">
+            <div className="flex items-center gap-6 text-sm text-gray-400 font-medium flex-wrap">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-secondary" />
+                <CheckCircle2 className="w-5 h-5 text-green-400" />
                 <span>Enterprise Grade</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-secondary" />
+                <CheckCircle2 className="w-5 h-5 text-green-400" />
                 <span>Certified Expert</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-secondary" />
+                <CheckCircle2 className="w-5 h-5 text-green-400" />
                 <span>Global Solutions</span>
               </div>
             </div>
@@ -85,21 +88,21 @@ export function Hero() {
                <motion.div 
                  animate={{ y: [0, -10, 0] }}
                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                 className="absolute bottom-12 left-12 z-20 bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/20 max-w-xs"
+                 className="absolute bottom-12 left-12 z-20 bg-black/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-green-500/30 max-w-xs"
                >
                  <div className="flex items-center gap-4 mb-3">
-                   <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">XR</div>
+                   <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 font-bold">XR</div>
                    <div>
-                     <div className="text-sm font-bold text-primary">Ledger Settlement</div>
-                     <div className="text-xs text-muted-foreground">Instant Finality</div>
+                     <div className="text-sm font-bold text-white">Ledger Settlement</div>
+                     <div className="text-xs text-gray-400">Instant Finality</div>
                    </div>
                  </div>
-                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                   <div className="h-full w-full bg-secondary animate-[shimmer_2s_infinite]"></div>
+                 <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                   <div className="h-full w-full bg-green-500 animate-[shimmer_2s_infinite]"></div>
                  </div>
                  <div className="flex justify-between mt-2 text-xs font-medium">
-                   <span>Status</span>
-                   <span className="text-green-600">Confirmed</span>
+                   <span className="text-gray-400">Status</span>
+                   <span className="text-green-400">Confirmed</span>
                  </div>
                </motion.div>
             </div>
