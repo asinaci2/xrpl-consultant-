@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Coins, Globe2, ShieldCheck, Zap, Layers, BarChart3 } from "lucide-react";
+import { Coins, Globe2, ShieldCheck, Zap, Layers, BarChart3, Palette, Users, Rocket } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 const services = [
   {
@@ -31,12 +32,27 @@ const services = [
     icon: BarChart3,
     title: "Treasury Management",
     description: "Optimize corporate treasury operations using blockchain-based liquidity management and settlement solutions."
+  },
+  {
+    icon: Palette,
+    title: "NFT/AR Art Integration",
+    description: "Collaborate with visual artists for AR enhancements, exclusive drops, and morale-boosting visuals. Token-gated artist access and community chats via TextRP."
+  },
+  {
+    icon: Users,
+    title: "Community Artist Amplification",
+    description: "Strategy for daily engagement, gratitude-focused branding, and cross-project shoutouts. Consistent presence and authentic community building."
+  },
+  {
+    icon: Rocket,
+    title: "Creator Growth Advising",
+    description: "Brokering collabs between devs and artists for hybrid utility—AR-gated rooms, themed community morale, and cross-ecosystem partnerships."
   }
 ];
 
 export function Services() {
   return (
-    <section id="services" className="section-padding bg-white">
+    <section id="services" className="section-padding bg-background" data-testid="section-services">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-secondary font-semibold tracking-wide uppercase text-sm mb-3">Our Expertise</h2>
@@ -56,17 +72,26 @@ export function Services() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group p-8 rounded-2xl bg-white border border-border hover:border-secondary/30 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-secondary/5 transition-all duration-300"
             >
-              <div className="w-14 h-14 rounded-xl bg-blue-50 text-primary group-hover:bg-secondary group-hover:text-white flex items-center justify-center mb-6 transition-colors duration-300">
-                <service.icon className="w-7 h-7" />
-              </div>
-              <h4 className="text-xl font-display font-bold text-primary mb-3 group-hover:text-secondary transition-colors">
-                {service.title}
-              </h4>
-              <p className="text-muted-foreground leading-relaxed">
-                {service.description}
-              </p>
+              <Card 
+                className="h-full hover-elevate"
+                data-testid={`card-service-${index}`}
+              >
+                <CardContent className="p-8">
+                  <div className="w-14 h-14 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center mb-6">
+                    <service.icon className="w-7 h-7" />
+                  </div>
+                  <h4 
+                    className="text-xl font-display font-bold text-primary mb-3"
+                    data-testid={`text-service-title-${index}`}
+                  >
+                    {service.title}
+                  </h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {service.description}
+                  </p>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </div>
