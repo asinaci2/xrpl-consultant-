@@ -2,7 +2,7 @@ import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
-import { insertChatSessionSchema, insertChatMessageSchema } from "@shared/schema";
+import { insertChatSessionSchema, insertChatMessageSchema, insertStorySchema } from "@shared/schema";
 import { z } from "zod";
 import { WebSocketServer, WebSocket } from "ws";
 import { createChatRoom, sendMatrixMessage, getNewReplies, uploadFileToMatrix } from "./matrix";
@@ -294,6 +294,53 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Twitter search error:", err);
       res.status(500).json({ message: "Failed to search tweets" });
+    }
+  });
+
+  // Stories endpoints
+  app.get("/api/stories", async (req, res) => {
+    try {
+      await storage.deleteExpiredStories();
+      const stories = await storage.getActiveStories();
+      res.json(stories);
+    } catch (err) {
+      console.error("Stories fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch stories" });
+    }
+  });
+
+  app.post("/api/stories", upload.single("image"), async (req, res) => {
+    try {
+      const { content, authorName, authorImage } = req.body;
+      
+      let imageUrl: string | undefined;
+      if (req.file) {
+        const mxcUrl = await uploadFileToMatrix(
+          req.file.buffer,
+          req.file.originalname,
+          req.file.mimetype
+        );
+        imageUrl = mxcUrl.replace(
+          "mxc://",
+          "https://synapse.textrp.io/_matrix/media/v3/download/"
+        );
+      }
+      
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      
+      const parsed = insertStorySchema.parse({
+        content: content || null,
+        imageUrl: imageUrl || null,
+        authorName: authorName || "Edwin Gutierrez",
+        authorImage: authorImage || null,
+        expiresAt,
+      });
+      
+      const story = await storage.createStory(parsed);
+      res.status(201).json(story);
+    } catch (err) {
+      console.error("Story creation error:", err);
+      res.status(500).json({ message: "Failed to create story" });
     }
   });
 

@@ -2,15 +2,18 @@ import {
   inquiries, 
   chatSessions, 
   chatMessages,
+  stories,
   type InsertInquiry, 
   type Inquiry,
   type InsertChatSession,
   type ChatSession,
   type InsertChatMessage,
-  type ChatMessage
+  type ChatMessage,
+  type InsertStory,
+  type Story
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, gt, lt } from "drizzle-orm";
 
 export interface IStorage {
   createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
@@ -19,6 +22,9 @@ export interface IStorage {
   updateChatSessionMatrixRoom(sessionId: string, matrixRoomId: string): Promise<void>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessages(sessionId: string): Promise<ChatMessage[]>;
+  createStory(story: InsertStory): Promise<Story>;
+  getActiveStories(): Promise<Story[]>;
+  deleteExpiredStories(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -67,6 +73,28 @@ export class DatabaseStorage implements IStorage {
       .from(chatMessages)
       .where(eq(chatMessages.sessionId, sessionId))
       .orderBy(chatMessages.createdAt);
+  }
+
+  async createStory(story: InsertStory): Promise<Story> {
+    const [created] = await db
+      .insert(stories)
+      .values(story)
+      .returning();
+    return created;
+  }
+
+  async getActiveStories(): Promise<Story[]> {
+    const now = new Date();
+    return await db
+      .select()
+      .from(stories)
+      .where(gt(stories.expiresAt, now))
+      .orderBy(stories.createdAt);
+  }
+
+  async deleteExpiredStories(): Promise<void> {
+    const now = new Date();
+    await db.delete(stories).where(lt(stories.expiresAt, now));
   }
 }
 

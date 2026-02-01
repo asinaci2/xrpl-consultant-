@@ -80,3 +80,21 @@ export const insertCachedTweetSchema = createInsertSchema(cachedTweets).omit({
 
 export type InsertCachedTweet = z.infer<typeof insertCachedTweetSchema>;
 export type CachedTweet = typeof cachedTweets.$inferSelect;
+
+export const stories = pgTable("stories", {
+  id: serial("id").primaryKey(),
+  content: text("content"),
+  imageUrl: text("image_url"),
+  authorName: text("author_name").notNull().default("Edwin Gutierrez"),
+  authorImage: text("author_image"),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(),
+});
+
+export const insertStorySchema = createInsertSchema(stories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertStory = z.infer<typeof insertStorySchema>;
+export type Story = typeof stories.$inferSelect;
