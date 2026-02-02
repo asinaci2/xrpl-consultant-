@@ -22,6 +22,7 @@ export interface IStorage {
   updateChatSessionMatrixRoom(sessionId: string, matrixRoomId: string): Promise<void>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessages(sessionId: string): Promise<ChatMessage[]>;
+  clearAllChatMessages(): Promise<void>;
   createStory(story: InsertStory): Promise<Story>;
   getActiveStories(): Promise<Story[]>;
   deleteExpiredStories(): Promise<void>;
@@ -73,6 +74,10 @@ export class DatabaseStorage implements IStorage {
       .from(chatMessages)
       .where(eq(chatMessages.sessionId, sessionId))
       .orderBy(chatMessages.createdAt);
+  }
+
+  async clearAllChatMessages(): Promise<void> {
+    await db.delete(chatMessages);
   }
 
   async createStory(story: InsertStory): Promise<Story> {

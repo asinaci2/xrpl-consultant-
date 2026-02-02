@@ -142,6 +142,16 @@ export async function registerRoutes(
     }
   });
 
+  // Clear all chat messages
+  app.delete("/api/chat/clear", async (req, res) => {
+    try {
+      await storage.clearAllChatMessages();
+      res.json({ message: "All chat messages cleared" });
+    } catch (err) {
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
+
   app.post("/api/chat/sessions/:sessionId/messages", async (req, res) => {
     try {
       const { sessionId } = req.params;
