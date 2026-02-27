@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, RefreshCw, ArrowLeft, Image, BookOpen, Mail, Twitter, Briefcase, Edit2, X, LogOut, User, ExternalLink, Phone, MessageCircle, Shield, Activity } from "lucide-react";
+import { Trash2, Plus, RefreshCw, ArrowLeft, Image, BookOpen, Mail, Twitter, Briefcase, Edit2, X, LogOut, User, ExternalLink, Phone, MessageCircle, Shield, Activity, UserPlus, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 
@@ -1294,10 +1294,48 @@ type SyncStatus = {
 };
 
 function SyncTab() {
+  const { toast } = useToast();
   const { data: status, isLoading, refetch, isFetching } = useQuery<SyncStatus>({
     queryKey: ["/api/admin/sync-status"],
     refetchInterval: 30_000,
   });
+
+  const [matrixId, setMatrixId] = useState("");
+  const [addedConsultant, setAddedConsultant] = useState<{ name: string; slug: string } | null>(null);
+
+  const addMutation = useMutation({
+    mutationFn: async (matrixUserId: string) => {
+      const res = await apiRequest("POST", "/api/admin/add-consultant", { matrixUserId });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      const { consultant, created, reactivated } = data;
+      setAddedConsultant({ name: consultant.name, slug: consultant.slug });
+      setMatrixId("");
+      queryClient.invalidateQueries({ queryKey: ["/api/consultants"] });
+      if (created) {
+        toast({ title: "Consultant created", description: `${consultant.name} added with slug /${consultant.slug}` });
+      } else if (reactivated) {
+        toast({ title: "Consultant reactivated", description: `${consultant.name} (/${consultant.slug}) is now active again` });
+      } else {
+        toast({ title: "Already exists", description: `${consultant.name} (/${consultant.slug}) already has an active account` });
+      }
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message || "Failed to add consultant", variant: "destructive" });
+    },
+  });
+
+  const handleAdd = () => {
+    const id = matrixId.trim();
+    if (!id) return;
+    if (!id.startsWith("@") || !id.includes(":")) {
+      toast({ title: "Invalid Matrix ID", description: "Format should be @username:server.com", variant: "destructive" });
+      return;
+    }
+    setAddedConsultant(null);
+    addMutation.mutate(id);
+  };
 
   return (
     <div className="space-y-5">
@@ -1369,6 +1407,58 @@ function SyncTab() {
           ) : (
             <p className="text-gray-400 text-sm">Could not load sync status.</p>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="bg-black/60 border-blue-500/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-blue-400 text-base flex items-center gap-2">
+            <UserPlus className="w-4 h-4" />
+            Manually Add Consultant
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-gray-400 text-sm">
+            Use this to add a user who was invited to the TextRP consultant room but hasn't accepted yet.
+            Paste their TextRP Matrix ID below to create their consultant account immediately.
+          </p>
+          <div className="flex gap-2">
+            <Input
+              value={matrixId}
+              onChange={(e) => setMatrixId(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+              placeholder="@username:synapse.textrp.io"
+              className="flex-1 bg-black/40 border-blue-500/20 text-gray-200 font-mono text-sm placeholder:text-gray-600"
+              data-testid="input-matrix-id"
+            />
+            <Button
+              onClick={handleAdd}
+              disabled={addMutation.isPending || !matrixId.trim()}
+              className="bg-blue-600 hover:bg-blue-700 text-white shrink-0"
+              data-testid="button-add-consultant"
+            >
+              {addMutation.isPending ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <UserPlus className="w-4 h-4" />
+              )}
+              <span className="ml-2">{addMutation.isPending ? "Adding..." : "Add"}</span>
+            </Button>
+          </div>
+          {addedConsultant && (
+            <div className="flex items-start gap-2 px-3 py-2 rounded border border-green-500/30 bg-green-500/5" data-testid="alert-consultant-added">
+              <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-green-300 text-sm font-semibold">{addedConsultant.name}</p>
+                <p className="text-gray-400 text-xs font-mono mt-0.5">
+                  slug: /{addedConsultant.slug} — they can now log in and access their dashboard
+                </p>
+              </div>
+            </div>
+          )}
+          <p className="text-gray-600 text-xs">
+            To find someone's Matrix ID: open TextRP, go to their profile, and copy their full ID (starts with @).
+          </p>
         </CardContent>
       </Card>
     </div>

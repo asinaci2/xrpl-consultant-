@@ -151,9 +151,13 @@ async function syncProfileRooms(storage: IStorage): Promise<void> {
   const unlinkedConsultants = existingConsultants.filter(c => !syncedSlugs.has(c.slug));
   if (!unlinkedConsultants.length) return;
 
+  const alreadyLinkedRooms = new Set(
+    existingConsultants.map(c => c.profileRoomId).filter(Boolean) as string[]
+  );
+
   const allJoinedRooms = await getBotJoinedRooms();
   const candidateRooms = allJoinedRooms.filter(
-    r => !managementRooms.has(r) && !visitorRoomIds.has(r)
+    r => !managementRooms.has(r) && !visitorRoomIds.has(r) && !alreadyLinkedRooms.has(r)
   );
 
   for (const roomId of candidateRooms) {

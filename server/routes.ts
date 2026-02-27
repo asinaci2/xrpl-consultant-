@@ -1235,5 +1235,46 @@ export async function registerRoutes(
     res.json(getSyncStatus());
   });
 
+  app.post("/api/admin/add-consultant", requireAdmin, async (req, res) => {
+    try {
+      const { matrixUserId } = req.body;
+      if (!matrixUserId || typeof matrixUserId !== "string") {
+        res.status(400).json({ message: "matrixUserId is required" });
+        return;
+      }
+
+      const existing = await storage.getConsultantByMatrixUserId(matrixUserId);
+      if (existing) {
+        if (!existing.isActive) {
+          const reactivated = await storage.updateConsultant(existing.slug, { isActive: true });
+          console.log(`[admin] Re-activated consultant: ${existing.slug} (${matrixUserId})`);
+          res.json({ consultant: reactivated, created: false, reactivated: true });
+          return;
+        }
+        res.json({ consultant: existing, created: false, reactivated: false });
+        return;
+      }
+
+      const { getDisplayName } = await import("./matrix");
+      const displayName = await getDisplayName(matrixUserId) || matrixUserId.split(":")[0].replace("@", "");
+      const localpart = matrixUserId.split(":")[0].replace("@", "");
+      const baseSlug = localpart.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+      const slugExists = await storage.getConsultantBySlug(baseSlug);
+      const finalSlug = slugExists ? `${baseSlug}-${Date.now()}` : baseSlug;
+
+      const consultant = await storage.createConsultant({
+        slug: finalSlug,
+        name: displayName,
+        matrixUserId,
+        isActive: true,
+      });
+      console.log(`[admin] Manually added consultant: ${displayName} (${matrixUserId}) → slug: ${finalSlug}`);
+      res.status(201).json({ consultant, created: true, reactivated: false });
+    } catch (err) {
+      console.error("Admin add consultant error:", err);
+      res.status(500).json({ message: "Failed to add consultant" });
+    }
+  });
+
   return httpServer;
 }
