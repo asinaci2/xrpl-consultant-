@@ -3,7 +3,8 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Home from "@/pages/Home";
+import Directory from "@/pages/Directory";
+import ConsultantPage from "@/pages/ConsultantPage";
 import Admin from "@/pages/Admin";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
@@ -31,7 +32,8 @@ function ProtectedAdmin() {
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={Directory} />
+      <Route path="/c/:slug" component={ConsultantPage} />
       <Route path="/login" component={Login} />
       <Route path="/admin" component={ProtectedAdmin} />
       <Route component={NotFound} />

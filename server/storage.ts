@@ -6,6 +6,7 @@ import {
   cachedMedia,
   projects,
   contactInfo,
+  consultants,
   type InsertInquiry, 
   type Inquiry,
   type InsertChatSession,
@@ -20,9 +21,11 @@ import {
   type Project,
   type InsertContactInfo,
   type ContactInfo,
+  type InsertConsultant,
+  type Consultant,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, gt, lt, and, asc, desc } from "drizzle-orm";
+import { eq, gt, lt, and, asc, desc, isNull, or } from "drizzle-orm";
 
 export interface IStorage {
   createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
@@ -36,21 +39,29 @@ export interface IStorage {
   clearAllChatMessages(): Promise<void>;
   createStory(story: InsertStory): Promise<Story>;
   getActiveStories(): Promise<Story[]>;
+  getActiveStoriesBySlug(slug: string): Promise<Story[]>;
   getAllStories(): Promise<Story[]>;
   deleteStory(id: number): Promise<void>;
   deleteExpiredStories(): Promise<void>;
   getMediaBySection(section: string): Promise<CachedMedia[]>;
+  getMediaBySectionAndSlug(section: string, slug: string): Promise<CachedMedia[]>;
   getAllMedia(): Promise<CachedMedia[]>;
   createMedia(data: InsertCachedMedia): Promise<CachedMedia>;
   updateMedia(id: number, data: Partial<InsertCachedMedia>): Promise<CachedMedia | undefined>;
   deleteMedia(id: number): Promise<void>;
   getActiveProjects(): Promise<Project[]>;
+  getActiveProjectsBySlug(slug: string): Promise<Project[]>;
   getAllProjects(): Promise<Project[]>;
   createProject(data: InsertProject): Promise<Project>;
   updateProject(id: number, data: Partial<InsertProject>): Promise<Project | undefined>;
   deleteProject(id: number): Promise<void>;
   getContactInfo(): Promise<ContactInfo | undefined>;
+  getContactInfoBySlug(slug: string): Promise<ContactInfo | undefined>;
   updateContactInfo(data: Partial<InsertContactInfo>): Promise<ContactInfo>;
+  getConsultants(): Promise<Consultant[]>;
+  getConsultantBySlug(slug: string): Promise<Consultant | undefined>;
+  createConsultant(data: InsertConsultant): Promise<Consultant>;
+  updateConsultant(slug: string, data: Partial<InsertConsultant>): Promise<Consultant | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -133,6 +144,15 @@ export class DatabaseStorage implements IStorage {
       .orderBy(stories.createdAt);
   }
 
+  async getActiveStoriesBySlug(slug: string): Promise<Story[]> {
+    const now = new Date();
+    return await db
+      .select()
+      .from(stories)
+      .where(and(gt(stories.expiresAt, now), eq(stories.consultantSlug, slug)))
+      .orderBy(stories.createdAt);
+  }
+
   async getAllStories(): Promise<Story[]> {
     return await db
       .select()
@@ -154,6 +174,18 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(cachedMedia)
       .where(and(eq(cachedMedia.section, section), eq(cachedMedia.isActive, true)))
+      .orderBy(asc(cachedMedia.displayOrder));
+  }
+
+  async getMediaBySectionAndSlug(section: string, slug: string): Promise<CachedMedia[]> {
+    return await db
+      .select()
+      .from(cachedMedia)
+      .where(and(
+        eq(cachedMedia.section, section),
+        eq(cachedMedia.isActive, true),
+        eq(cachedMedia.consultantSlug, slug)
+      ))
       .orderBy(asc(cachedMedia.displayOrder));
   }
 
@@ -193,6 +225,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(projects.displayOrder));
   }
 
+  async getActiveProjectsBySlug(slug: string): Promise<Project[]> {
+    return await db
+      .select()
+      .from(projects)
+      .where(and(eq(projects.isActive, true), eq(projects.consultantSlug, slug)))
+      .orderBy(asc(projects.displayOrder));
+  }
+
   async getAllProjects(): Promise<Project[]> {
     return await db
       .select()
@@ -226,6 +266,11 @@ export class DatabaseStorage implements IStorage {
     return row;
   }
 
+  async getContactInfoBySlug(slug: string): Promise<ContactInfo | undefined> {
+    const [row] = await db.select().from(contactInfo).where(eq(contactInfo.consultantSlug, slug));
+    return row;
+  }
+
   async updateContactInfo(data: Partial<InsertContactInfo>): Promise<ContactInfo> {
     const existing = await this.getContactInfo();
     if (existing) {
@@ -243,6 +288,33 @@ export class DatabaseStorage implements IStorage {
       const [created] = await db.insert(contactInfo).values({ id: 1, ...defaults, ...data }).returning();
       return created;
     }
+  }
+
+  async getConsultants(): Promise<Consultant[]> {
+    return await db
+      .select()
+      .from(consultants)
+      .where(eq(consultants.isActive, true))
+      .orderBy(asc(consultants.displayOrder));
+  }
+
+  async getConsultantBySlug(slug: string): Promise<Consultant | undefined> {
+    const [row] = await db.select().from(consultants).where(eq(consultants.slug, slug));
+    return row;
+  }
+
+  async createConsultant(data: InsertConsultant): Promise<Consultant> {
+    const [created] = await db.insert(consultants).values(data).returning();
+    return created;
+  }
+
+  async updateConsultant(slug: string, data: Partial<InsertConsultant>): Promise<Consultant | undefined> {
+    const [updated] = await db
+      .update(consultants)
+      .set(data)
+      .where(eq(consultants.slug, slug))
+      .returning();
+    return updated;
   }
 }
 

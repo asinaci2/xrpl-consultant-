@@ -2,11 +2,40 @@ import { pgTable, text, serial, timestamp, boolean, integer } from "drizzle-orm/
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const consultants = pgTable("consultants", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  tagline: text("tagline").notNull().default(""),
+  bio: text("bio").notNull().default(""),
+  avatarUrl: text("avatar_url"),
+  specialties: text("specialties").array().notNull().default([]),
+  twitterUsername: text("twitter_username"),
+  matrixUserId: text("matrix_user_id"),
+  email: text("email").notNull().default(""),
+  phone: text("phone").notNull().default(""),
+  location: text("location").notNull().default(""),
+  locationLine2: text("location_line2").notNull().default(""),
+  contactHeadline: text("contact_headline").notNull().default("Ready to Connect?"),
+  isActive: boolean("is_active").default(true),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertConsultantSchema = createInsertSchema(consultants).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertConsultant = z.infer<typeof insertConsultantSchema>;
+export type Consultant = typeof consultants.$inferSelect;
+
 export const inquiries = pgTable("inquiries", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull(),
   message: text("message").notNull(),
+  consultantSlug: text("consultant_slug"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -14,6 +43,7 @@ export const insertInquirySchema = createInsertSchema(inquiries).pick({
   name: true,
   email: true,
   message: true,
+  consultantSlug: true,
 });
 
 export type InsertInquiry = z.infer<typeof insertInquirySchema>;
@@ -87,6 +117,7 @@ export const stories = pgTable("stories", {
   imageUrl: text("image_url"),
   authorName: text("author_name").notNull().default("Edwin Gutierrez"),
   authorImage: text("author_image"),
+  consultantSlug: text("consultant_slug"),
   createdAt: timestamp("created_at").defaultNow(),
   expiresAt: timestamp("expires_at").notNull(),
 });
@@ -108,6 +139,7 @@ export const cachedMedia = pgTable("cached_media", {
   title: text("title"),
   section: text("section").notNull(),
   altText: text("alt_text"),
+  consultantSlug: text("consultant_slug"),
   isActive: boolean("is_active").default(true),
   displayOrder: integer("display_order").default(0),
   fetchedAt: timestamp("fetched_at").defaultNow(),
@@ -133,6 +165,7 @@ export const projects = pgTable("projects", {
   icon: text("icon").notNull().default("Briefcase"),
   color: text("color").notNull().default("bg-green-500"),
   tags: text("tags").array().notNull(),
+  consultantSlug: text("consultant_slug"),
   displayOrder: integer("display_order").default(0),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -148,6 +181,7 @@ export type Project = typeof projects.$inferSelect;
 
 export const contactInfo = pgTable("contact_info", {
   id: serial("id").primaryKey(),
+  consultantSlug: text("consultant_slug"),
   headline: text("headline").notNull().default("Ready to Innovate?"),
   subheading: text("subheading").notNull().default("Schedule a consultation to discuss your blockchain strategy and how XRPL can transform your business."),
   email: text("email").notNull().default("contact@edwingutierrez.com"),

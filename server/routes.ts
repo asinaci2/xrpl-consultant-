@@ -739,5 +739,91 @@ export async function registerRoutes(
     }
   });
 
+  // Consultant directory routes
+  app.get("/api/consultants", async (_req, res) => {
+    try {
+      const all = await storage.getConsultants();
+      res.json(all);
+    } catch (err) {
+      console.error("Consultants fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch consultants" });
+    }
+  });
+
+  app.get("/api/consultants/:slug", async (req, res) => {
+    try {
+      const consultant = await storage.getConsultantBySlug(req.params.slug);
+      if (!consultant) {
+        res.status(404).json({ message: "Consultant not found" });
+        return;
+      }
+      res.json(consultant);
+    } catch (err) {
+      console.error("Consultant fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch consultant" });
+    }
+  });
+
+  app.post("/api/consultants", requireAdmin, async (req, res) => {
+    try {
+      const created = await storage.createConsultant(req.body);
+      res.status(201).json(created);
+    } catch (err) {
+      console.error("Consultant create error:", err);
+      res.status(500).json({ message: "Failed to create consultant" });
+    }
+  });
+
+  app.patch("/api/consultants/:slug", requireAdmin, async (req, res) => {
+    try {
+      const updated = await storage.updateConsultant(req.params.slug, req.body);
+      if (!updated) {
+        res.status(404).json({ message: "Consultant not found" });
+        return;
+      }
+      res.json(updated);
+    } catch (err) {
+      console.error("Consultant update error:", err);
+      res.status(500).json({ message: "Failed to update consultant" });
+    }
+  });
+
+  // Scoped data routes per consultant slug
+  app.get("/api/c/:slug/projects", async (req, res) => {
+    try {
+      const data = await storage.getActiveProjectsBySlug(req.params.slug);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch projects" });
+    }
+  });
+
+  app.get("/api/c/:slug/stories", async (req, res) => {
+    try {
+      const data = await storage.getActiveStoriesBySlug(req.params.slug);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch stories" });
+    }
+  });
+
+  app.get("/api/c/:slug/media/:section", async (req, res) => {
+    try {
+      const data = await storage.getMediaBySectionAndSlug(req.params.section, req.params.slug);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch media" });
+    }
+  });
+
+  app.get("/api/c/:slug/contact-info", async (req, res) => {
+    try {
+      const info = await storage.getContactInfoBySlug(req.params.slug);
+      res.json(info ?? { ...CONTACT_DEFAULTS, consultantSlug: req.params.slug });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch contact info" });
+    }
+  });
+
   return httpServer;
 }

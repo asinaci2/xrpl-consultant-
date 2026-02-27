@@ -1,8 +1,8 @@
-# Edwin Gutierrez Consulting Website
+# TextRP Consultant Network
 
 ## Overview
 
-This is a professional consulting website for Edwin Gutierrez, a blockchain consultant specializing in XRP Ledger (XRPL) enterprise solutions. The site features a modern landing page with sections for services, about, and contact, plus a real-time chat widget for visitor communication.
+This is a multi-tenant consultant directory for the TextRP / XRPL ecosystem. The landing page at `/` lists all consultants as cards. Each consultant has a full personal page at `/c/:slug`. Edwin Gutierrez ("Asi Naci") is the first consultant at `/c/asinaci`.
 
 The application follows a full-stack architecture with a React frontend and Express backend, using PostgreSQL for data persistence and WebSockets for real-time chat functionality.
 
@@ -45,7 +45,16 @@ Preferred communication style: Simple, everyday language.
 client/           # React frontend
   src/
     components/   # React components including ui/ for shadcn
-    pages/        # Page components
+      ConsultantContact.tsx     # Contact form + info, slug-scoped
+      ConsultantHero.tsx        # Hero section using consultant data from DB
+      ConsultantNavigation.tsx  # Nav with back-to-directory link + slug-scoped stories
+      ConsultantProjects.tsx    # Projects grid, slug-scoped
+    pages/
+      Directory.tsx             # / route — consultant directory grid
+      ConsultantPage.tsx        # /c/:slug route — full consultant profile
+      Admin.tsx                 # /admin — admin dashboard
+      Login.tsx                 # /login — SSO login
+      not-found.tsx
     hooks/        # Custom React hooks
     lib/          # Utilities and query client
 server/           # Express backend
@@ -57,6 +66,25 @@ shared/           # Shared code between client/server
   schema.ts       # Drizzle database schema
   routes.ts       # API route definitions with Zod
 ```
+
+## Multi-Tenant Architecture
+
+### Consultant Directory
+- **Route**: `/` → `Directory.tsx` — fetches `GET /api/consultants`, renders consultant cards grid
+- **Consultant Page**: `/c/:slug` → `ConsultantPage.tsx` — fetches `GET /api/consultants/:slug`, renders full profile
+- **Database**: `consultants` table (id, slug, name, tagline, bio, avatarUrl, specialties[], twitterUsername, matrixUserId, email, phone, location, locationLine2, contactHeadline, isActive, displayOrder)
+- **Auto-seed**: Edwin Gutierrez seeded as first consultant on startup if table is empty
+- **Scoped Data**: projects, stories, media, contactInfo all have `consultantSlug` column
+
+### Consultant-Scoped API Routes
+- `GET /api/consultants` — all active consultants (public)
+- `GET /api/consultants/:slug` — single consultant profile (public)
+- `POST /api/consultants` — create consultant (requireAdmin)
+- `PATCH /api/consultants/:slug` — update consultant (requireAdmin)
+- `GET /api/c/:slug/projects` — active projects for slug
+- `GET /api/c/:slug/stories` — active stories for slug
+- `GET /api/c/:slug/media/:section` — media for slug + section
+- `GET /api/c/:slug/contact-info` — contact info for slug
 
 ## External Dependencies
 
@@ -100,32 +128,34 @@ shared/           # Shared code between client/server
   - `StoriesHeader.tsx` - Horizontal scrollable row of circular story bubbles with green glow effects
   - `StoryViewer.tsx` - Full-screen modal with progress bars, keyboard navigation, tap-to-pause
   - `Stories.tsx` - Section wrapper integrating header and viewer
-- **Database**: `stories` table with content, imageUrl, authorName, authorImage, createdAt, expiresAt
+  - `ConsultantNavigation.tsx` - In-nav story bubbles scoped to consultant slug
+- **Database**: `stories` table with content, imageUrl, authorName, authorImage, consultantSlug, createdAt, expiresAt
 - **Expiration**: Stories auto-expire after 24 hours
 - **Endpoints**:
-  - `GET /api/stories` - Returns active (non-expired) stories
-  - `POST /api/stories` - Creates new story with optional image upload to Matrix
+  - `GET /api/stories` - Returns active (non-expired) stories (all consultants)
+  - `POST /api/stories` - Creates new story
+  - `GET /api/c/:slug/stories` - Returns active stories for one consultant
 - **Styling**: Matrix cyberpunk theme with green glows, dark gradients, monospace fonts
 
 ### Cached Media System
 - **Service**: `server/media.ts` - Multi-source image resolver with database caching
-- **Database**: `cached_media` table with source, sourceUrl, imageUrl, section, altText, displayOrder, isActive, fetchedAt
+- **Database**: `cached_media` table with source, sourceUrl, imageUrl, section, altText, displayOrder, isActive, consultantSlug, fetchedAt
 - **Sources**: Instagram (oEmbed), TikTok (oEmbed), Google Drive (direct link parsing), Manual URLs
 - **Caching**: 6-hour refresh interval for oEmbed sources, rate limit backoff on 429 errors
 - **Auto-seed**: Seeds Hero and About section images on first run if table is empty
 - **Endpoints**:
-  - `GET /api/media/:section` - Returns cached media for a section (e.g., `/api/media/hero`)
+  - `GET /api/media/:section` - Returns cached media for a section (all/legacy)
+  - `GET /api/c/:slug/media/:section` - Returns media for consultant+section
   - `GET /api/media` - Returns all media entries
-  - `POST /api/media` - Creates new media entry (resolves image URL from source)
+  - `POST /api/media` - Creates new media entry
   - `DELETE /api/media/:id` - Removes a media entry
-- **Frontend**: Hero.tsx and About.tsx fetch images from `/api/media/hero` and `/api/media/about` with fallback URLs
-- **Usage**: Add images via API: `POST /api/media` with `{source: "instagram|tiktok|gdrive|manual", sourceUrl: "...", section: "hero|about"}`
 
 ### Visual Theme
-- **Full-page Matrix rain**: Fixed canvas background (z-0) behind all content via `MatrixRain` component in Home.tsx
+- **Full-page Matrix rain**: Fixed canvas background (z-0) behind all content via `MatrixRain` component
 - **Dark theme**: All sections use semi-transparent dark backgrounds (bg-black/70 to bg-black/90) with backdrop-blur
 - **Color scheme**: Green accents (green-400/500), white headings, gray-300/400 body text, green-500/20 borders
 - **Navigation**: Glass-nav effect with bg-black/80 backdrop-blur, green accent buttons
+- **Day mode**: CSS `[data-theme="day"]` selector applies grey/light palette; toggled via useTheme hook
 
 ### Admin Dashboard
 - **Page**: `client/src/pages/Admin.tsx` at route `/admin`
@@ -134,10 +164,10 @@ shared/           # Shared code between client/server
 - **Media Tab**: View/add/delete/toggle media entries; supports manual, Instagram, TikTok, Google Drive sources
 - **Stories Tab**: Create/delete stories with content, author name, optional image URL
 - **Inquiries Tab**: View/delete contact form submissions
-- **Contact Tab**: Edit "Get in Touch" section — headline, description, email, phone, office location (stored in `contact_info` table, served via `GET /api/contact-info`, updated via `PATCH /api/contact-info`)
+- **Contact Tab**: Edit "Get in Touch" section — headline, description, email, phone, office location (stored in `contact_info` table)
 - **Tweets Tab**: View cached tweets, force refresh from Twitter API
 - **Additional API Endpoints**:
-  - `PATCH /api/media/:id` - Update media fields (isActive, altText, displayOrder, section)
+  - `PATCH /api/media/:id` - Update media fields
   - `GET /api/inquiries` - List all inquiries
   - `DELETE /api/inquiries/:id` - Delete an inquiry
   - `GET /api/stories/all` - List all stories (including expired)
@@ -157,11 +187,10 @@ shared/           # Shared code between client/server
 - **Admin Control**: `ADMIN_MATRIX_USERS` env var (comma-separated Matrix user IDs)
 - **Middleware**: `requireAuth` (checks session exists), `requireAdmin` (checks session + admin flag)
 - **Frontend**: 
-  - `client/src/pages/Login.tsx` - Matrix-themed SSO login page at `/login` (single "Sign in with Xumm" button)
+  - `client/src/pages/Login.tsx` - Matrix-themed SSO login page at `/login`
   - `client/src/hooks/useAuth.ts` - Auth state hook (logout/me)
   - Login redirects: admin → `/admin`, regular users → `https://app.textrp.io/#/room/#budzy-vibe:synapse.textrp.io`
 - **Protected Routes**: All admin CRUD endpoints require `requireAdmin` middleware
-- **Public Routes**: `GET /api/projects`, `GET /api/stories`, `GET /api/media/:section`, `GET /api/twitter/tweets`, `POST /api/inquiries`, chat endpoints
 - **Auth Endpoints**:
   - `GET /api/auth/sso-redirect` - Returns Xumm SSO redirect URL
   - `GET /api/auth/callback` - Handles SSO callback, exchanges token, creates session
@@ -169,7 +198,11 @@ shared/           # Shared code between client/server
   - `GET /api/auth/me` - Get current user info
 
 ### Featured Projects
-- **Database**: `projects` table with title, subtitle, description, impact, link, icon, color, tags, displayOrder, isActive
-- **Frontend**: `client/src/components/Projects.tsx` fetches from `/api/projects` with icon name-to-component mapping
-- **Auto-seed**: 4 initial projects seeded on first run (TextRP Ambassador, Budzy Movement, Crypto Fam Radio, XRP Warlords)
+- **Database**: `projects` table with title, subtitle, description, impact, link, icon, color, tags, displayOrder, isActive, consultantSlug
+- **Frontend**: `client/src/components/ConsultantProjects.tsx` fetches from `/api/c/:slug/projects`
+- **Auto-seed**: 4 initial projects seeded on startup for asinaci (TextRP Ambassador, Budzy Movement, Crypto Fam Radio, XRP GameFi Strategy)
 - **Icons**: Mapped by name string (MessageSquare, Heart, Radio, Gamepad2, Briefcase, Globe, Star, Zap, Shield, Code, Users, Rocket, Award, Target)
+
+### Admin Matrix User IDs
+- `@rP9jGcAaVjpdqcdHbEckLtRoCYjETxXosj:synapse.textrp.io`
+- `@rGHSzEkv2hEko8UkNj7e5azR86g6cR2Vyc:synapse.textrp.io`
