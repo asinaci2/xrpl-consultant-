@@ -28,7 +28,9 @@ Preferred communication style: Simple, everyday language.
 -   **Consultant Directory**: Displays all active consultants.
 -   **Consultant Profile Pages**: Detailed pages for each consultant.
 -   **Real-time Chat**: WebSocket-based chat between visitors and consultants. Chat sessions on `/c/:slug` are routed directly to that consultant's Matrix account — the correct person receives the visitor's messages in their TextRP/Matrix client.
--   **TextRP Backroom Sync**: A background loop (`server/sync.ts`) polls TextRP Matrix rooms every 60 seconds. Membership in `ADMIN_MATRIX_ROOM` grants admin access live (no re-login required). Membership in `CONSULTANT_MATRIX_ROOM` (optional env var) auto-creates/activates consultant records; removal deactivates them.
+-   **TextRP Backroom Sync**: A background loop (`server/sync.ts`) polls TextRP Matrix rooms every 60 seconds. Membership in `ADMIN_MATRIX_ROOM` grants admin access live (no re-login required). Membership in `CONSULTANT_MATRIX_ROOM` auto-creates/activates consultant records; removal deactivates them. `SYNC_EXCLUDE_MATRIX_IDS` (comma-separated) skips auto-creation for specific IDs while still granting dashboard access.
+-   **Profile Room Sync**: Consultants invite the bot to their personal TextRP room — the bot detects this automatically, reads the room's name/avatar/topic, and populates that consultant's chat widget profile. Runs every 60 seconds. Consultants can also manually link a room ID from their dashboard Chat Widget tab.
+-   **Per-Consultant Chat Widget**: The `ChatWidget` on `/c/:slug` fetches that consultant's specific chat profile via `GET /api/chat/host-config/:slug`, falling back to their main profile data if no custom config exists.
 -   **Dynamic Content**:
     -   **Stories**: WhatsApp/Instagram-style expiring content for consultants.
     -   **Projects**: Consultant project showcases.

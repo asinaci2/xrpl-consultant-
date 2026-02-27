@@ -827,6 +827,31 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/chat/host-config/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const config = await storage.getChatHostConfigBySlug(slug);
+      if (config) { res.json(config); return; }
+      const consultant = await storage.getConsultantBySlug(slug);
+      if (consultant) {
+        res.json({
+          consultantSlug: slug,
+          displayName: consultant.name,
+          title: consultant.tagline || "Consultant",
+          avatarUrl: consultant.avatarUrl ?? null,
+          statusMessage: "Usually replies within a few hours",
+          isAvailable: true,
+        });
+        return;
+      }
+      const fallback = await storage.getChatHostConfig();
+      res.json(fallback ?? { consultantSlug: slug, displayName: "", title: "", avatarUrl: null, statusMessage: "", isAvailable: true });
+    } catch (err) {
+      console.error("Chat host config by slug fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch chat host config" });
+    }
+  });
+
   app.patch("/api/chat/host-config", requireAdmin, async (req, res) => {
     try {
       const updated = await storage.upsertChatHostConfig(req.body);
@@ -1128,7 +1153,16 @@ export async function registerRoutes(
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
       const config = await storage.getChatHostConfigBySlug(slug);
-      res.json(config ?? { consultantSlug: slug, displayName: "", title: "", avatarUrl: null, statusMessage: "", isAvailable: true });
+      if (config) { res.json(config); return; }
+      const consultant = await storage.getConsultantBySlug(slug);
+      res.json({
+        consultantSlug: slug,
+        displayName: consultant?.name ?? "",
+        title: consultant?.tagline ?? "",
+        avatarUrl: consultant?.avatarUrl ?? null,
+        statusMessage: "Usually replies within a few hours",
+        isAvailable: true,
+      });
     } catch (err) {
       res.status(500).json({ message: "Failed to fetch chat profile" });
     }
@@ -1142,6 +1176,18 @@ export async function registerRoutes(
       res.json(updated);
     } catch (err) {
       res.status(500).json({ message: "Failed to update chat profile" });
+    }
+  });
+
+  app.patch("/api/dashboard/profile-room", requireVerifiedConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const { profileRoomId } = req.body;
+      await storage.updateConsultant(slug, { profileRoomId: profileRoomId || null });
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update profile room" });
     }
   });
 

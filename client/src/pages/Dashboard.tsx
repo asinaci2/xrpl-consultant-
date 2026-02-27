@@ -17,7 +17,7 @@ import {
   UserCircle, Sparkles, FileText, AtSign, Camera, Megaphone,
   Mail, MapPin, Globe, Clock, Layout, TrendingUp,
   MessageSquare, Heart, Radio, Gamepad2, Star, Zap,
-  Shield, Code, Users, Rocket, Award, Target, Link2, AlertCircle, CheckCircle2,
+  Shield, Code, Users, Rocket, Award, Target, Link2, AlertCircle, CheckCircle2, Hash,
   type LucideIcon,
 } from "lucide-react";
 import { SiInstagram, SiTiktok, SiX, SiSnapchat } from "react-icons/si";
@@ -60,6 +60,7 @@ type ConsultantProfile = {
   location: string;
   locationLine2: string;
   contactHeadline: string;
+  profileRoomId: string | null;
 };
 
 type ProjectEntry = {
@@ -1506,9 +1507,20 @@ function MediaTab({ slug }: { slug: string }) {
 }
 
 // ── Chat Profile Tab ───────────────────────────────────────────────────────────
-function ChatProfileTab({ slug, matrixUserId }: { slug: string; matrixUserId: string | null }) {
+function ChatProfileTab({ slug, matrixUserId, profileRoomId }: { slug: string; matrixUserId: string | null; profileRoomId?: string | null }) {
   const { toast } = useToast();
   const { data: config, isLoading } = useQuery<ChatProfileData>({ queryKey: ["/api/dashboard/chat-profile"] });
+  const [roomInput, setRoomInput] = useState(profileRoomId ?? "");
+  const roomMutation = useMutation({
+    mutationFn: () => apiRequest("PATCH", "/api/dashboard/profile-room", { profileRoomId: roomInput || null }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/profile"] });
+      toast({ title: "Saved", description: "Profile room updated. Chat profile will sync on next cycle." });
+    },
+    onError: () => toast({ title: "Error", description: "Failed to save profile room.", variant: "destructive" }),
+  });
+
+  useEffect(() => { setRoomInput(profileRoomId ?? ""); }, [profileRoomId]);
 
   const [displayName, setDisplayName] = useState("");
   const [title, setTitle] = useState("");
@@ -1570,6 +1582,49 @@ function ChatProfileTab({ slug, matrixUserId }: { slug: string; matrixUserId: st
           </div>
         </div>
       )}
+
+      {/* Profile room linking */}
+      <Card className="bg-black/60 border-cyan-500/20">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-cyan-400 text-base flex items-center gap-2">
+            <Hash className="w-4 h-4" />
+            TextRP Profile Room
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {profileRoomId ? (
+            <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-cyan-500/5 border border-cyan-500/20">
+              <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(6,182,212,0.7)] mt-1.5 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-cyan-300 text-xs font-medium">Room linked — chat profile syncs automatically</p>
+                <p className="text-gray-500 text-xs font-mono break-all mt-0.5">{profileRoomId}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-400 text-sm">
+              Invite the bot to your TextRP room — the room's name, avatar, and topic will automatically populate your chat widget profile every 60 seconds.
+            </p>
+          )}
+          <div className="flex gap-2">
+            <Input
+              value={roomInput}
+              onChange={e => setRoomInput(e.target.value)}
+              placeholder="!roomid:synapse.textrp.io"
+              className="bg-black/40 border-cyan-500/20 text-white font-mono text-sm flex-1"
+              data-testid="input-profile-room-id"
+            />
+            <Button
+              onClick={() => roomMutation.mutate()}
+              disabled={roomMutation.isPending}
+              variant="outline"
+              className="border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/10 shrink-0"
+              data-testid="button-save-profile-room"
+            >
+              {roomMutation.isPending ? "Saving..." : "Save"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid lg:grid-cols-2 gap-6">
         <Card className="bg-black/60 border-green-500/20">
@@ -1809,7 +1864,7 @@ export default function Dashboard() {
             <MediaTab slug={slug} />
           </TabsContent>
           <TabsContent value="chat-profile">
-            <ChatProfileTab slug={slug} matrixUserId={matrixUserId} />
+            <ChatProfileTab slug={slug} matrixUserId={matrixUserId} profileRoomId={profile?.profileRoomId} />
           </TabsContent>
         </Tabs>
       </div>

@@ -264,6 +264,64 @@ export async function getRoomMembers(roomId: string): Promise<string[] | null> {
   }
 }
 
+export async function getBotJoinedRooms(): Promise<string[]> {
+  const botToken = process.env.ACCESS_TOKEN;
+  if (!botToken) return [];
+  try {
+    const res = await fetch(
+      `${MATRIX_HOMESERVER}/_matrix/client/v3/joined_rooms`,
+      { headers: { Authorization: `Bearer ${botToken}` } }
+    );
+    if (!res.ok) {
+      console.warn(`[matrix] getBotJoinedRooms failed: HTTP ${res.status}`);
+      return [];
+    }
+    const data = await res.json() as { joined_rooms: string[] };
+    return data.joined_rooms ?? [];
+  } catch (err) {
+    console.warn("[matrix] getBotJoinedRooms error:", err);
+    return [];
+  }
+}
+
+function mxcToHttps(mxcUrl: string): string {
+  const without = mxcUrl.replace("mxc://", "");
+  const [server, mediaId] = without.split("/");
+  return `${MATRIX_HOMESERVER}/_matrix/media/v3/download/${server}/${mediaId}`;
+}
+
+export async function getRoomProfile(roomId: string): Promise<{ name: string | null; avatarUrl: string | null; topic: string | null }> {
+  const botToken = process.env.ACCESS_TOKEN;
+  if (!botToken) return { name: null, avatarUrl: null, topic: null };
+
+  async function getStateEvent(type: string): Promise<any> {
+    try {
+      const res = await fetch(
+        `${MATRIX_HOMESERVER}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state/${encodeURIComponent(type)}`,
+        { headers: { Authorization: `Bearer ${botToken}` } }
+      );
+      if (res.status === 404) return null;
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  const [nameEvent, avatarEvent, topicEvent] = await Promise.all([
+    getStateEvent("m.room.name"),
+    getStateEvent("m.room.avatar"),
+    getStateEvent("m.room.topic"),
+  ]);
+
+  const name = nameEvent?.name ?? null;
+  const rawAvatar = avatarEvent?.url ?? null;
+  const avatarUrl = rawAvatar?.startsWith("mxc://") ? mxcToHttps(rawAvatar) : rawAvatar;
+  const topic = topicEvent?.topic ?? null;
+
+  return { name, avatarUrl, topic };
+}
+
 export async function getDisplayName(userId: string): Promise<string> {
   const botToken = process.env.ACCESS_TOKEN;
   try {

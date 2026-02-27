@@ -45,8 +45,13 @@ export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const configUrl = consultantSlug
+    ? `/api/chat/host-config/${consultantSlug}`
+    : "/api/chat/host-config";
+
   const { data: hostConfig } = useQuery<ChatHostConfig>({
-    queryKey: ["/api/chat/host-config"],
+    queryKey: consultantSlug ? ["/api/chat/host-config", consultantSlug] : ["/api/chat/host-config"],
+    queryFn: () => fetch(configUrl).then(r => r.json()),
     staleTime: 60_000,
   });
 

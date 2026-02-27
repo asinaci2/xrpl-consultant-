@@ -28,7 +28,7 @@ import {
   type ChatHostConfig,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, gt, lt, and, asc, desc, isNull, or } from "drizzle-orm";
+import { eq, gt, lt, and, asc, desc, isNull, isNotNull, or } from "drizzle-orm";
 
 export interface IStorage {
   createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
@@ -37,6 +37,7 @@ export interface IStorage {
   createChatSession(session: InsertChatSession & { matrixRoomId?: string }): Promise<ChatSession>;
   getChatSession(sessionId: string): Promise<ChatSession | undefined>;
   updateChatSessionMatrixRoom(sessionId: string, matrixRoomId: string): Promise<void>;
+  getVisitorChatRoomIds(): Promise<string[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessages(sessionId: string): Promise<ChatMessage[]>;
   clearAllChatMessages(): Promise<void>;
@@ -117,6 +118,14 @@ export class DatabaseStorage implements IStorage {
       .update(chatSessions)
       .set({ matrixRoomId })
       .where(eq(chatSessions.sessionId, sessionId));
+  }
+
+  async getVisitorChatRoomIds(): Promise<string[]> {
+    const rows = await db
+      .select({ matrixRoomId: chatSessions.matrixRoomId })
+      .from(chatSessions)
+      .where(isNotNull(chatSessions.matrixRoomId));
+    return rows.map(r => r.matrixRoomId).filter(Boolean) as string[];
   }
 
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {

@@ -17,6 +17,7 @@ export const consultants = pgTable("consultants", {
   location: text("location").notNull().default(""),
   locationLine2: text("location_line2").notNull().default(""),
   contactHeadline: text("contact_headline").notNull().default("Ready to Connect?"),
+  profileRoomId: text("profile_room_id"),
   isActive: boolean("is_active").default(true),
   displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),

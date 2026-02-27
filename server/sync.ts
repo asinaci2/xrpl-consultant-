@@ -1,4 +1,4 @@
-import { getRoomMembers, getDisplayName, getMatrixClient } from "./matrix";
+import { getRoomMembers, getDisplayName, getMatrixClient, getBotJoinedRooms, getRoomProfile } from "./matrix";
 import type { IStorage } from "./storage";
 
 const ADMIN_MATRIX_ROOM = process.env.ADMIN_MATRIX_ROOM || "!imueijCPGUZihXVrif:synapse.textrp.io";
@@ -126,11 +126,73 @@ async function syncConsultantRoom(storage: IStorage): Promise<void> {
   lastConsultantsSynced = synced;
 }
 
+async function syncProfileRooms(storage: IStorage): Promise<void> {
+  const existingConsultants = await storage.getConsultants();
+  const visitorRoomIds = new Set(await storage.getVisitorChatRoomIds());
+  const managementRooms = new Set([ADMIN_MATRIX_ROOM, CONSULTANT_MATRIX_ROOM].filter(Boolean));
+
+  const syncedSlugs = new Set<string>();
+
+  for (const consultant of existingConsultants) {
+    if (consultant.profileRoomId) {
+      const roomProfile = await getRoomProfile(consultant.profileRoomId);
+      if (roomProfile.name && !roomProfile.name.startsWith("Chat with ")) {
+        await storage.upsertChatHostConfigBySlug(consultant.slug, {
+          displayName: roomProfile.name,
+          avatarUrl: roomProfile.avatarUrl ?? consultant.avatarUrl ?? undefined,
+          statusMessage: roomProfile.topic ?? undefined,
+        });
+        console.log(`[sync] Updated chat profile for ${consultant.slug} from linked room ${consultant.profileRoomId}`);
+      }
+      syncedSlugs.add(consultant.slug);
+    }
+  }
+
+  const unlinkedConsultants = existingConsultants.filter(c => !syncedSlugs.has(c.slug));
+  if (!unlinkedConsultants.length) return;
+
+  const allJoinedRooms = await getBotJoinedRooms();
+  const candidateRooms = allJoinedRooms.filter(
+    r => !managementRooms.has(r) && !visitorRoomIds.has(r)
+  );
+
+  for (const roomId of candidateRooms) {
+    const unlinkedByMatrixId = new Map(
+      unlinkedConsultants.filter(c => c.matrixUserId && !syncedSlugs.has(c.slug)).map(c => [c.matrixUserId!, c])
+    );
+    if (!unlinkedByMatrixId.size) break;
+
+    const roomProfile = await getRoomProfile(roomId);
+    if (roomProfile.name?.startsWith("Chat with ") || !roomProfile.name) continue;
+
+    const members = await getRoomMembers(roomId);
+    if (!members) continue;
+
+    let matchedConsultant: typeof existingConsultants[number] | undefined;
+    for (const memberId of members) {
+      const c = unlinkedByMatrixId.get(memberId);
+      if (c) { matchedConsultant = c; break; }
+    }
+    if (!matchedConsultant) continue;
+
+    await storage.updateConsultant(matchedConsultant.slug, { profileRoomId: roomId });
+    await storage.upsertChatHostConfigBySlug(matchedConsultant.slug, {
+      displayName: roomProfile.name,
+      avatarUrl: roomProfile.avatarUrl ?? matchedConsultant.avatarUrl ?? undefined,
+      statusMessage: roomProfile.topic ?? undefined,
+    });
+    syncedSlugs.add(matchedConsultant.slug);
+    console.log(`[sync] Auto-linked profile room ${roomId} → consultant: ${matchedConsultant.slug}`);
+    console.log(`[sync] Updated chat profile for ${matchedConsultant.slug} from room ${roomId}`);
+  }
+}
+
 async function runSync(storage: IStorage): Promise<void> {
   try {
     await Promise.all([
       syncAdminRoom(),
       syncConsultantRoom(storage),
+      syncProfileRooms(storage),
     ]);
     lastSyncAt = new Date();
   } catch (err) {
