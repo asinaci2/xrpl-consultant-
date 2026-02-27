@@ -3,7 +3,6 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AppSidebar } from "@/components/ui/sidebar";
 import Home from "@/pages/Home";
 import NotFound from "@/pages/not-found";
 import { ChatWidget } from "@/components/ChatWidget";
@@ -17,23 +16,12 @@ function Router() {
   );
 }
 
-function DashboardLayout() {
-  return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar />
-      <main className="flex-1 overflow-y-auto">
-        <Router />
-      </main>
-    </div>
-  );
-}
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <DashboardLayout />
+        <Router />
         <ChatWidget />
       </TooltipProvider>
     </QueryClientProvider>

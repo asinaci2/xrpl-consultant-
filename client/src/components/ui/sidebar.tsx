@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { NavLink, useLocation } from "react-router-dom"; // or your router (react-router, tanstack, etc.)
 import {
   LayoutDashboard,
   Wallet,
@@ -93,7 +93,7 @@ const navItems = [
 
 export function AppSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [location] = useLocation();
+  const location = useLocation();
 
   return (
     <div
@@ -135,18 +135,20 @@ export function AppSidebar() {
         {/* Navigation Items */}
         <nav className="flex-1 space-y-1 px-3 py-6">
           {navItems.map((item) => {
-            const isActive = location === item.href;
+            const isActive = location.pathname === item.href;
             return (
-              <Link
+              <NavLink
                 key={item.href}
-                href={item.href}
-                className={cn(
-                  "group flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all",
-                  isActive
-                    ? "bg-secondary/30 text-secondary font-semibold shadow-sm"
-                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-                  isCollapsed && "justify-center px-0",
-                )}
+                to={item.href}
+                className={({ isActive }) =>
+                  cn(
+                    "group flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all",
+                    isActive
+                      ? "bg-secondary/30 text-secondary font-semibold shadow-sm"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                    isCollapsed && "justify-center px-0",
+                  )
+                }
               >
                 <item.icon
                   className={cn(
@@ -155,7 +157,7 @@ export function AppSidebar() {
                   )}
                 />
                 {!isCollapsed && <span>{item.label}</span>}
-              </Link>
+              </NavLink>
             );
           })}
         </nav>
