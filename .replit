@@ -41,7 +41,7 @@ waitForPort = 5000
 [userenv]
 
 [userenv.shared]
-ACCESS_TOKEN = "syt_ckdIU3pFa3YyaEVrbzhVa05qN2U1YXpSODZnNmNSMlZ5Yw_OnBpShKpkCqAmowluXBZ_0xFwYt"
+ACCESS_TOKEN = "syt_ckdIU3pFa3YyaEVrbzhVa05qN2U1YXpSODZnNmNSMlZ5Yw_hkonaohwpwnLJVkOZDLQ_0vN6NS"
 RECIPIENT = "@rP9jGcAaVjpdqcdHbEckLtRoCYjETxXosj:synapse.textrp.io"
 USER = "@rGHSzEkv2hEko8UkNj7e5azR86g6cR2Vyc:synapse.textrp.io"
 ADMIN_MATRIX_ROOM = "!imueijCPGUZihXVrif:synapse.textrp.io"
