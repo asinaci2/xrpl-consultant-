@@ -4,7 +4,7 @@ import connectPgSimple from "connect-pg-simple";
 import type { Express } from "express";
 
 const MATRIX_HOMESERVER = "https://synapse.textrp.io";
-const ADMIN_USERS = (process.env.ADMIN_MATRIX_USERS || "").split(",").map(u => u.trim()).filter(Boolean);
+const ADMIN_MATRIX_ROOM = process.env.ADMIN_MATRIX_ROOM || "!imueijCPGUZihXVrif:synapse.textrp.io";
 
 declare module "express-session" {
   interface SessionData {
@@ -46,6 +46,19 @@ export function getSSORedirectUrl(callbackUrl: string): string {
   return `${MATRIX_HOMESERVER}/_matrix/client/v3/login/sso/redirect/oidc-xumm?redirectUrl=${encodeURIComponent(callbackUrl)}`;
 }
 
+async function isRoomMember(accessToken: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${MATRIX_HOMESERVER}/_matrix/client/v3/joined_rooms`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!res.ok) return false;
+    const data = await res.json() as { joined_rooms: string[] };
+    return data.joined_rooms.includes(ADMIN_MATRIX_ROOM);
+  } catch {
+    return false;
+  }
+}
+
 export async function exchangeLoginToken(loginToken: string) {
   const response = await fetch(`${MATRIX_HOMESERVER}/_matrix/client/v3/login`, {
     method: "POST",
@@ -82,7 +95,9 @@ export async function exchangeLoginToken(loginToken: string) {
   } catch {
   }
 
-  const isAdmin = ADMIN_USERS.includes(data.user_id);
+  const isAdmin = await isRoomMember(data.access_token);
+
+  console.log(`[auth] Login: userId=${data.user_id} displayName=${displayName} isAdmin=${isAdmin} adminRoom=${ADMIN_MATRIX_ROOM}`);
 
   return {
     userId: data.user_id,

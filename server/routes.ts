@@ -124,7 +124,7 @@ export async function registerRoutes(
         if (result.isAdmin) {
           res.redirect("/admin");
         } else {
-          res.redirect("https://app.textrp.io/#/room/#budzy-vibe:synapse.textrp.io");
+          res.redirect("https://app.textrp.io/#/room/#budzys-buddies:synapse.textrp.io");
         }
       });
     } catch (err: any) {
