@@ -41,9 +41,9 @@ waitForPort = 5000
 [userenv]
 
 [userenv.shared]
-ACCESS_TOKEN = "syt_ckdIU3pFa3YyaEVrbzhVa05qN2U1YXpSODZnNmNSMlZ5Yw_hkonaohwpwnLJVkOZDLQ_0vN6NS"
+ACCESS_TOKEN = "syt_ckdIU3pFa3YyaEVrbzhVa05qN2U1YXpSODZnNmNSMlZ5Yw_ORYUgogyOFvcGngNTGIp_1WmxhO"
 RECIPIENT = "@rP9jGcAaVjpdqcdHbEckLtRoCYjETxXosj:synapse.textrp.io"
-USER = "@rGHSzEkv2hEko8UkNj7e5azR86g6cR2Vyc:synapse.textrp.io"
 ADMIN_MATRIX_ROOM = "!imueijCPGUZihXVrif:synapse.textrp.io"
 ADMIN_MATRIX_USERS = "@rP9jGcAaVjpdqcdHbEckLtRoCYjETxXosj:synapse.textrp.io,@rGHSzEkv2hEko8UkNj7e5azR86g6cR2Vyc:synapse.textrp.io"
 CONSULTANT_MATRIX_ROOM = "!mjBwnRoCIFDjVJySUr:synapse.textrp.io"
+CHATBOT = "@rGHSzEkv2hEko8UkNj7e5azR86g6cR2Vyc:synapse.textrp.io"
