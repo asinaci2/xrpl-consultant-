@@ -1,4 +1,4 @@
-import { getRoomMembers, getDisplayName } from "./matrix";
+import { getRoomMembers, getDisplayName, getMatrixClient } from "./matrix";
 import type { IStorage } from "./storage";
 
 const ADMIN_MATRIX_ROOM = process.env.ADMIN_MATRIX_ROOM || "!imueijCPGUZihXVrif:synapse.textrp.io";
@@ -116,6 +116,28 @@ async function runSync(storage: IStorage): Promise<void> {
   }
 }
 
+async function joinSyncRooms(): Promise<void> {
+  const rooms = [ADMIN_MATRIX_ROOM, CONSULTANT_MATRIX_ROOM].filter(Boolean);
+  if (!rooms.length) return;
+  try {
+    const client = await getMatrixClient();
+    for (const roomId of rooms) {
+      try {
+        await client.joinRoom(roomId);
+        console.log(`[sync] Bot joined room: ${roomId}`);
+      } catch (e: any) {
+        if (e?.errcode === "M_ALREADY_JOINED" || e?.message?.includes("already")) {
+          console.log(`[sync] Bot already in room: ${roomId}`);
+        } else {
+          console.warn(`[sync] Could not join room ${roomId}:`, e?.message ?? e);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("[sync] joinSyncRooms error:", err);
+  }
+}
+
 export function startSyncLoop(storage: IStorage): void {
   console.log(`[sync] Starting background sync loop (interval: ${SYNC_INTERVAL_MS / 1000}s)`);
   console.log(`[sync] Admin room: ${ADMIN_MATRIX_ROOM}`);
@@ -125,6 +147,6 @@ export function startSyncLoop(storage: IStorage): void {
     console.log("[sync] No CONSULTANT_MATRIX_ROOM set — consultant auto-sync disabled");
   }
 
-  runSync(storage);
+  joinSyncRooms().then(() => runSync(storage));
   setInterval(() => runSync(storage), SYNC_INTERVAL_MS);
 }

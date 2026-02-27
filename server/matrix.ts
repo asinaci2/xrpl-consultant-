@@ -14,7 +14,7 @@ if (typeof (Promise as any).withResolvers === "undefined") {
 import * as sdk from "matrix-js-sdk";
 
 const MATRIX_HOMESERVER = "https://synapse.textrp.io";
-const MATRIX_USER_ID = process.env.USER || "";
+const MATRIX_USER_ID = process.env.CHATBOT || "";
 const MATRIX_ACCESS_TOKEN = process.env.ACCESS_TOKEN || "";
 const MATRIX_RECIPIENT = process.env.RECIPIENT || "";
 
