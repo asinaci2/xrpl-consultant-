@@ -6,6 +6,13 @@ import type { Express } from "express";
 const MATRIX_HOMESERVER = "https://synapse.textrp.io";
 const ADMIN_MATRIX_ROOM = process.env.ADMIN_MATRIX_ROOM || "!imueijCPGUZihXVrif:synapse.textrp.io";
 
+function isAdminUserId(userId: string): boolean {
+  const adminUsers = (process.env.ADMIN_MATRIX_USERS || "").split(",").map(u => u.trim()).filter(Boolean);
+  const found = adminUsers.includes(userId);
+  if (found) console.log(`[auth] Direct user ID match: userId=${userId} isAdmin=true`);
+  return found;
+}
+
 declare module "express-session" {
   interface SessionData {
     userId: string;
@@ -117,7 +124,7 @@ export async function exchangeLoginToken(loginToken: string) {
   } catch {
   }
 
-  const isAdmin = await isRoomMember(data.user_id, data.access_token);
+  const isAdmin = isAdminUserId(data.user_id) || await isRoomMember(data.user_id, data.access_token);
 
   console.log(`[auth] Login: userId=${data.user_id} displayName=${displayName} isAdmin=${isAdmin} adminRoom=${ADMIN_MATRIX_ROOM}`);
 
