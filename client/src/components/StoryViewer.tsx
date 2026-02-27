@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -87,13 +88,13 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
     return `${Math.floor(diffHours / 24)}d ago`;
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+        className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center"
         onClick={onClose}
         data-testid="story-viewer-overlay"
       >
@@ -234,6 +235,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
           </button>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
