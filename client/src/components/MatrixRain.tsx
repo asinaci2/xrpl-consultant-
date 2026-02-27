@@ -14,7 +14,7 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()XRP";
+    const characters = "$TXT$XRP$BWTCK$COPE";
     const letters = characters.split("");
     const fontSize = 14;
     const backgroundColor = "rgba(0, 0, 0, 0.05)";
