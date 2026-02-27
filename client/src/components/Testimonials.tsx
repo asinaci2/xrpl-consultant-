@@ -4,7 +4,7 @@ import { SiX } from "react-icons/si";
 
 export function Testimonials() {
   return (
-    <section id="testimonials" className="section-padding bg-black" data-testid="section-testimonials">
+    <section id="testimonials" className="section-padding bg-black/70 backdrop-blur-sm" data-testid="section-testimonials">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

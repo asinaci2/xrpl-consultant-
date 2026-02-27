@@ -66,14 +66,14 @@ const skills = [
 
 export function Services() {
   return (
-    <section id="services" className="section-padding bg-background" data-testid="section-services">
+    <section id="services" className="section-padding bg-black/80 backdrop-blur-sm" data-testid="section-services">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-secondary font-semibold tracking-wide uppercase text-sm mb-3">Consultant Services</h2>
-          <h3 className="text-3xl md:text-5xl font-display font-bold text-primary mb-6">
+          <h2 className="text-green-400 font-semibold tracking-wide uppercase text-sm mb-3">Consultant Services</h2>
+          <h3 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
             XRPL & Web3 Expertise
           </h3>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-gray-400">
             From meme origins to full ecosystems—strategic guidance for builders who do more and talk less.
           </p>
         </div>
@@ -92,16 +92,16 @@ export function Services() {
                 data-testid={`card-service-${index}`}
               >
                 <CardContent className="p-8">
-                  <div className="w-14 h-14 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center mb-6">
+                  <div className="w-14 h-14 rounded-xl bg-green-500/10 text-green-400 flex items-center justify-center mb-6">
                     <service.icon className="w-7 h-7" />
                   </div>
                   <h4 
-                    className="text-xl font-display font-bold text-primary mb-3"
+                    className="text-xl font-display font-bold text-white mb-3"
                     data-testid={`text-service-title-${index}`}
                   >
                     {service.title}
                   </h4>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-gray-400 leading-relaxed">
                     {service.description}
                   </p>
                 </CardContent>
@@ -117,7 +117,7 @@ export function Services() {
           viewport={{ once: true }}
           className="text-center"
         >
-          <h3 className="text-2xl font-display font-bold text-primary mb-8" data-testid="text-skills-title">
+          <h3 className="text-2xl font-display font-bold text-white mb-8" data-testid="text-skills-title">
             Core Expertise
           </h3>
           <div className="flex flex-wrap justify-center gap-3" data-testid="container-skills">

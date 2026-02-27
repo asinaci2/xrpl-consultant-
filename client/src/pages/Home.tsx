@@ -6,6 +6,7 @@ import { About } from "@/components/About";
 import { Testimonials } from "@/components/Testimonials";
 import { Contact } from "@/components/Contact";
 import { Footer } from "@/components/Footer";
+import { MatrixRain } from "@/components/MatrixRain";
 import { motion, useScroll, useSpring } from "framer-motion";
 
 export default function Home() {
@@ -17,16 +18,19 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans text-foreground">
-      {/* Progress Bar */}
+    <div className="min-h-screen bg-black flex flex-col font-sans text-foreground relative">
+      <div className="fixed inset-0 z-0">
+        <MatrixRain className="opacity-20" />
+      </div>
+
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-secondary origin-left z-[100]"
+        className="fixed top-0 left-0 right-0 h-1 bg-green-500 origin-left z-[100]"
         style={{ scaleX }}
       />
       
       <Navigation />
       
-      <main className="flex-grow">
+      <main className="flex-grow relative z-10">
         <Hero />
         <Services />
         <Projects />
@@ -35,7 +39,9 @@ export default function Home() {
         <Contact />
       </main>
       
-      <Footer />
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </div>
   );
 }

@@ -143,8 +143,8 @@ export function Navigation() {
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             data-testid="button-logo-home"
           >
-            <Hexagon className="w-8 h-8 text-secondary fill-secondary/20" />
-            <span className="font-display font-bold text-xl tracking-tight text-primary">
+            <Hexagon className="w-8 h-8 text-green-400 fill-green-400/20" />
+            <span className="font-display font-bold text-xl tracking-tight text-white">
               Edwin Gutierrez
             </span>
           </div>
@@ -162,14 +162,14 @@ export function Navigation() {
                 to={link.to}
                 smooth={true}
                 duration={500}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                className="text-sm font-medium text-gray-300 hover:text-green-400 transition-colors cursor-pointer"
                 data-testid={`link-nav-${link.to}`}
               >
                 {link.name}
               </Link>
             ))}
             <Link to="contact" smooth={true} duration={500} data-testid="link-nav-contact">
-              <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6" data-testid="button-consultation">
+              <Button className="bg-green-500 hover:bg-green-600 text-black font-bold rounded-full px-6" data-testid="button-consultation">
                 Consultation
               </Button>
             </Link>
@@ -179,7 +179,7 @@ export function Navigation() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-primary hover:text-primary/80 transition-colors"
+              className="text-white hover:text-green-400 transition-colors"
               data-testid="button-mobile-menu"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -190,7 +190,7 @@ export function Navigation() {
 
       {/* Mobile Nav */}
       {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-20 left-0 w-full bg-background border-b border-border shadow-lg" data-testid="mobile-menu">
+        <div className="md:hidden absolute top-20 left-0 w-full bg-black/95 backdrop-blur-md border-b border-green-500/20 shadow-lg" data-testid="mobile-menu">
           <div className="px-4 pt-2 pb-6 space-y-2">
             {navLinks.map((link) => (
               <Link
@@ -199,7 +199,7 @@ export function Navigation() {
                 smooth={true}
                 duration={500}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-3 text-base font-medium text-foreground hover:bg-muted rounded-lg cursor-pointer"
+                className="block px-3 py-3 text-base font-medium text-gray-300 hover:bg-green-500/10 hover:text-green-400 rounded-lg cursor-pointer"
                 data-testid={`link-mobile-nav-${link.to}`}
               >
                 {link.name}
@@ -207,7 +207,7 @@ export function Navigation() {
             ))}
             <div className="pt-4">
               <Link to="contact" smooth={true} duration={500} onClick={() => setIsMobileMenuOpen(false)} data-testid="link-mobile-nav-contact">
-                <Button className="w-full bg-primary text-white rounded-lg" data-testid="button-mobile-consultation">
+                <Button className="w-full bg-green-500 hover:bg-green-600 text-black font-bold rounded-lg" data-testid="button-mobile-consultation">
                   Book Consultation
                 </Button>
               </Link>

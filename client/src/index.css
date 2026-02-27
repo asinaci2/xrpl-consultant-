@@ -33,6 +33,10 @@
   --input: 214 32% 91%;
   --ring: 222 47% 11%;
   
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 90%;
+  --card-border: 142 70% 20%;
+
   --radius: 0.5rem;
 
   /* Typography */
@@ -83,7 +87,7 @@
   }
   
   .glass-nav {
-    @apply bg-background/80 backdrop-blur-md border-b border-border/50;
+    @apply bg-black/80 backdrop-blur-md border-b border-green-500/20;
   }
   
   .section-padding {

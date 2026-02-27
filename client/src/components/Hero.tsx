@@ -2,21 +2,15 @@ import { motion } from "framer-motion";
 import { Link } from "react-scroll";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MatrixRain } from "@/components/MatrixRain";
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-black">
-      {/* Matrix Rain Background */}
-      <MatrixRain className="opacity-30" />
-      
-      {/* Dark overlay for readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/70 z-[1]" />
+    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/70 z-[1]" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
           
-          {/* Text Content */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -68,23 +62,20 @@ export function Hero() {
             </div>
           </motion.div>
 
-          {/* Visual/Image */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="relative hidden lg:block"
           >
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 border border-white/20 aspect-square">
-               {/* Corporate abstract blockchain concept */}
-               <div className="absolute inset-0 bg-primary/5 z-10"></div>
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-green-500/10 border border-green-500/20 aspect-square">
+               <div className="absolute inset-0 bg-black/20 z-10"></div>
                <img 
                  src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop" 
                  alt="Blockchain Technology Visualization"
                  className="w-full h-full object-cover"
                />
                
-               {/* Floating Card 1 */}
                <motion.div 
                  animate={{ y: [0, -10, 0] }}
                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}

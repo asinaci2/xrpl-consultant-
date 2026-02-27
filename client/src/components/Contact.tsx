@@ -46,7 +46,7 @@ export function Contact() {
   }
 
   return (
-    <section id="contact" className="section-padding bg-primary text-white relative overflow-hidden">
+    <section id="contact" className="section-padding bg-black/85 backdrop-blur-sm text-white relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
       
@@ -55,44 +55,44 @@ export function Contact() {
           
           {/* Contact Info */}
           <div>
-            <h2 className="text-secondary font-semibold tracking-wide uppercase text-sm mb-3">Get in Touch</h2>
+            <h2 className="text-green-400 font-semibold tracking-wide uppercase text-sm mb-3">Get in Touch</h2>
             <h3 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
               Ready to Innovate?
             </h3>
-            <p className="text-blue-100 text-lg mb-12 max-w-md">
+            <p className="text-gray-300 text-lg mb-12 max-w-md">
               Schedule a consultation to discuss your blockchain strategy and how XRPL can transform your business.
             </p>
 
             <div className="space-y-8">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                  <Mail className="w-5 h-5 text-secondary" />
+                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                  <Mail className="w-5 h-5 text-green-400" />
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">Email</h4>
-                  <a href="mailto:contact@edwingutierrez.com" className="text-blue-200 hover:text-white transition-colors">
+                  <a href="mailto:contact@edwingutierrez.com" className="text-gray-300 hover:text-green-400 transition-colors">
                     contact@edwingutierrez.com
                   </a>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                  <Phone className="w-5 h-5 text-secondary" />
+                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                  <Phone className="w-5 h-5 text-green-400" />
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">Phone</h4>
-                  <p className="text-blue-200">+1 (555) 123-4567</p>
+                  <p className="text-gray-300">+1 (555) 123-4567</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                  <MapPin className="w-5 h-5 text-secondary" />
+                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                  <MapPin className="w-5 h-5 text-green-400" />
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">Office</h4>
-                  <p className="text-blue-200">
+                  <p className="text-gray-300">
                     San Francisco, CA<br />
                     Available Worldwide Remote
                   </p>
@@ -107,9 +107,9 @@ export function Contact() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className="bg-white rounded-2xl p-8 shadow-2xl"
+            className="bg-black/60 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-green-500/20"
           >
-            <h4 className="text-2xl font-display font-bold text-primary mb-6">Send a Message</h4>
+            <h4 className="text-2xl font-display font-bold text-white mb-6">Send a Message</h4>
             
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -118,9 +118,9 @@ export function Contact() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-primary font-medium">Full Name</FormLabel>
+                      <FormLabel className="text-gray-300 font-medium">Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="John Doe" className="bg-slate-50 border-slate-200 focus:border-secondary h-12 rounded-lg text-foreground" {...field} />
+                        <Input placeholder="John Doe" className="bg-black/40 border-green-500/20 focus:border-green-400 h-12 rounded-lg text-white placeholder:text-gray-500" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -132,9 +132,9 @@ export function Contact() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-primary font-medium">Email Address</FormLabel>
+                      <FormLabel className="text-gray-300 font-medium">Email Address</FormLabel>
                       <FormControl>
-                        <Input placeholder="john@company.com" className="bg-slate-50 border-slate-200 focus:border-secondary h-12 rounded-lg text-foreground" {...field} />
+                        <Input placeholder="john@company.com" className="bg-black/40 border-green-500/20 focus:border-green-400 h-12 rounded-lg text-white placeholder:text-gray-500" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -146,11 +146,11 @@ export function Contact() {
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-primary font-medium">How can I help?</FormLabel>
+                      <FormLabel className="text-gray-300 font-medium">How can I help?</FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="Tell me about your project needs..." 
-                          className="bg-slate-50 border-slate-200 focus:border-secondary min-h-[150px] rounded-lg resize-none text-foreground" 
+                          className="bg-black/40 border-green-500/20 focus:border-green-400 min-h-[150px] rounded-lg resize-none text-white placeholder:text-gray-500" 
                           {...field} 
                         />
                       </FormControl>
@@ -162,7 +162,7 @@ export function Contact() {
                 <Button 
                   type="submit" 
                   disabled={mutation.isPending}
-                  className="w-full h-12 bg-secondary hover:bg-secondary/90 text-white font-semibold rounded-lg text-lg shadow-lg shadow-secondary/20 transition-all hover:scale-[1.02]"
+                  className="w-full h-12 bg-green-500 hover:bg-green-600 text-black font-semibold rounded-lg text-lg shadow-lg shadow-green-500/20 transition-all hover:scale-[1.02]"
                 >
                   {mutation.isPending ? (
                     <>

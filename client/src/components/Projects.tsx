@@ -47,14 +47,14 @@ const projects = [
 
 export function Projects() {
   return (
-    <section id="projects" className="section-padding bg-muted/50">
+    <section id="projects" className="section-padding bg-black/70 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-secondary font-semibold tracking-wide uppercase text-sm mb-3">Featured Projects</h2>
-          <h3 className="text-3xl md:text-5xl font-display font-bold text-primary mb-6">
+          <h2 className="text-green-400 font-semibold tracking-wide uppercase text-sm mb-3">Featured Projects</h2>
+          <h3 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
             XRPL Ecosystem Work
           </h3>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-gray-400">
             Real projects, real utility. Here's how I help XRPL builders grow their communities and drive adoption.
           </p>
         </div>
@@ -80,7 +80,7 @@ export function Projects() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 
-                          className="text-xl font-display font-bold text-primary"
+                          className="text-xl font-display font-bold text-white"
                           data-testid={`text-project-title-${index}`}
                         >
                           {project.title}
@@ -90,26 +90,26 @@ export function Projects() {
                             href={project.link} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-muted-foreground"
+                            className="text-gray-400 hover:text-green-400"
                             data-testid={`link-project-${index}`}
                           >
                             <ExternalLink className="w-4 h-4" />
                           </a>
                         )}
                       </div>
-                      <p className="text-sm text-secondary font-medium" data-testid={`text-project-subtitle-${index}`}>
+                      <p className="text-sm text-green-400 font-medium" data-testid={`text-project-subtitle-${index}`}>
                         {project.subtitle}
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-muted-foreground leading-relaxed mb-4" data-testid={`text-project-description-${index}`}>
+                  <p className="text-gray-400 leading-relaxed mb-4" data-testid={`text-project-description-${index}`}>
                     {project.description}
                   </p>
 
-                  <div className="bg-muted rounded-lg p-3 mb-4">
-                    <p className="text-sm text-foreground" data-testid={`text-project-impact-${index}`}>
-                      <span className="font-semibold text-secondary">Impact:</span> {project.impact}
+                  <div className="bg-black/40 rounded-lg p-3 mb-4 border border-green-500/10">
+                    <p className="text-sm text-gray-300" data-testid={`text-project-impact-${index}`}>
+                      <span className="font-semibold text-green-400">Impact:</span> {project.impact}
                     </p>
                   </div>
 
@@ -138,12 +138,12 @@ export function Projects() {
           viewport={{ once: true }}
           className="mt-12 text-center"
         >
-          <p className="text-muted-foreground mb-4">
+          <p className="text-gray-400 mb-4">
             Want to grow your XRPL project with authentic community strategy?
           </p>
           <a
             href="#contact"
-            className="inline-flex items-center gap-2 text-secondary font-semibold"
+            className="inline-flex items-center gap-2 text-green-400 font-semibold hover:text-green-300"
             data-testid="link-contact-from-projects"
           >
             Let's connect and build together
