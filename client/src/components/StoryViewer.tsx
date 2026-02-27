@@ -89,6 +89,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
   };
 
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     if (touchNavigated.current) {
       touchNavigated.current = false;
       return;
