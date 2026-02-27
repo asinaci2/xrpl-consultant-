@@ -182,11 +182,20 @@ export async function registerRoutes(
   app.post(api.chat.createSession.path, async (req, res) => {
     try {
       const input = insertChatSessionSchema.parse(req.body);
-      
+
+      let recipientMatrixUserId: string | undefined;
+      if (input.consultantSlug) {
+        const consultant = await storage.getConsultantBySlug(input.consultantSlug);
+        if (consultant?.matrixUserId) {
+          recipientMatrixUserId = consultant.matrixUserId;
+          console.log(`[chat] Routing session to consultant ${input.consultantSlug} → ${recipientMatrixUserId}`);
+        }
+      }
+
       let matrixRoomId: string | undefined;
       try {
         const visitorName = input.visitorName || "Website Visitor";
-        matrixRoomId = await createChatRoom(visitorName, input.visitorEmail || undefined);
+        matrixRoomId = await createChatRoom(visitorName, input.visitorEmail || undefined, recipientMatrixUserId);
         console.log(`Created Matrix room: ${matrixRoomId}`);
       } catch (matrixError) {
         console.error("Failed to create Matrix room:", matrixError);
@@ -1134,6 +1143,11 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Failed to update chat profile" });
     }
+  });
+
+  app.get("/api/admin/sync-status", requireAdmin, (_req, res) => {
+    const { getSyncStatus } = require("./sync");
+    res.json(getSyncStatus());
   });
 
   return httpServer;

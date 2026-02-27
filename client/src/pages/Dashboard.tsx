@@ -1506,7 +1506,7 @@ function MediaTab({ slug }: { slug: string }) {
 }
 
 // ── Chat Profile Tab ───────────────────────────────────────────────────────────
-function ChatProfileTab({ slug }: { slug: string }) {
+function ChatProfileTab({ slug, matrixUserId }: { slug: string; matrixUserId: string | null }) {
   const { toast } = useToast();
   const { data: config, isLoading } = useQuery<ChatProfileData>({ queryKey: ["/api/dashboard/chat-profile"] });
 
@@ -1547,6 +1547,29 @@ function ChatProfileTab({ slug }: { slug: string }) {
         description="The floating chat bubble in the bottom-right corner of your profile — how you appear to visitors who message you."
         slug={slug}
       />
+
+      {matrixUserId ? (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-lg border border-green-500/20 bg-green-500/5">
+          <MessageCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-green-300 text-sm font-medium">Chat delivery routing</p>
+            <p className="text-gray-400 text-xs mt-0.5">
+              Visitor messages are delivered to your Matrix account:{" "}
+              <span className="font-mono text-green-400 break-all">{matrixUserId}</span>
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-lg border border-amber-500/30 bg-amber-500/5">
+          <MessageCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-amber-300 text-sm font-medium">No Matrix account linked</p>
+            <p className="text-gray-400 text-xs mt-0.5">
+              Visitors cannot reach you via chat until you sign in with your Matrix account.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-2 gap-6">
         <Card className="bg-black/60 border-green-500/20">
@@ -1786,7 +1809,7 @@ export default function Dashboard() {
             <MediaTab slug={slug} />
           </TabsContent>
           <TabsContent value="chat-profile">
-            <ChatProfileTab slug={slug} />
+            <ChatProfileTab slug={slug} matrixUserId={matrixUserId} />
           </TabsContent>
         </Tabs>
       </div>

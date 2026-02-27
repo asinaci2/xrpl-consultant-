@@ -10,6 +10,17 @@ function isAdminUserId(userId: string): boolean {
   const adminUsers = (process.env.ADMIN_MATRIX_USERS || "").split(",").map(u => u.trim()).filter(Boolean);
   const found = adminUsers.includes(userId);
   if (found) console.log(`[auth] Direct user ID match: userId=${userId} isAdmin=true`);
+  if (!found) {
+    try {
+      const { getLiveAdmins } = require("./sync");
+      const inLiveSet = getLiveAdmins().has(userId);
+      if (inLiveSet) {
+        console.log(`[auth] Live sync set match: userId=${userId} isAdmin=true`);
+        return true;
+      }
+    } catch {
+    }
+  }
   return found;
 }
 

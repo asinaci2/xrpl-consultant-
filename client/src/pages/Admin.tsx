@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, RefreshCw, ArrowLeft, Image, BookOpen, Mail, Twitter, Briefcase, Edit2, X, LogOut, User, ExternalLink, Phone, MessageCircle, Shield } from "lucide-react";
+import { Trash2, Plus, RefreshCw, ArrowLeft, Image, BookOpen, Mail, Twitter, Briefcase, Edit2, X, LogOut, User, ExternalLink, Phone, MessageCircle, Shield, Activity } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 
@@ -1284,6 +1284,97 @@ function ContactTab() {
   );
 }
 
+type SyncStatus = {
+  lastSyncAt: string | null;
+  adminCount: number;
+  consultantRoomMembers: number;
+  consultantsSynced: number;
+  adminRoomId: string;
+  consultantRoomId: string | null;
+};
+
+function SyncTab() {
+  const { data: status, isLoading, refetch, isFetching } = useQuery<SyncStatus>({
+    queryKey: ["/api/admin/sync-status"],
+    refetchInterval: 30_000,
+  });
+
+  return (
+    <div className="space-y-5">
+      <Card className="bg-black/60 border-green-500/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-green-400 text-base flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            TextRP Room Sync Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className="text-gray-400 text-sm">Loading sync status...</p>
+          ) : status ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-black/40 rounded-lg p-3 border border-green-500/10">
+                  <p className="text-gray-500 text-xs mb-1">Last Sync</p>
+                  <p className="text-green-300 text-sm font-mono">
+                    {status.lastSyncAt ? new Date(status.lastSyncAt).toLocaleTimeString() : "Pending..."}
+                  </p>
+                </div>
+                <div className="bg-black/40 rounded-lg p-3 border border-green-500/10">
+                  <p className="text-gray-500 text-xs mb-1">Admin Room Members</p>
+                  <p className="text-green-300 text-sm font-mono">{status.adminCount}</p>
+                </div>
+                <div className="bg-black/40 rounded-lg p-3 border border-green-500/10">
+                  <p className="text-gray-500 text-xs mb-1">Consultant Room Members</p>
+                  <p className="text-green-300 text-sm font-mono">
+                    {status.consultantRoomId ? status.consultantRoomMembers : "Room not configured"}
+                  </p>
+                </div>
+                <div className="bg-black/40 rounded-lg p-3 border border-green-500/10">
+                  <p className="text-gray-500 text-xs mb-1">Last Sync Changes</p>
+                  <p className="text-green-300 text-sm font-mono">{status.consultantsSynced} updates</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <p className="text-gray-500 text-xs mb-1">Admin Room ID</p>
+                  <p className="text-gray-300 text-xs font-mono break-all bg-black/30 p-2 rounded">{status.adminRoomId}</p>
+                </div>
+                {status.consultantRoomId ? (
+                  <div>
+                    <p className="text-gray-500 text-xs mb-1">Consultant Room ID</p>
+                    <p className="text-gray-300 text-xs font-mono break-all bg-black/30 p-2 rounded">{status.consultantRoomId}</p>
+                  </div>
+                ) : (
+                  <div className="px-3 py-2 rounded border border-amber-500/30 bg-amber-500/5">
+                    <p className="text-amber-300 text-xs">
+                      No <span className="font-mono">CONSULTANT_MATRIX_ROOM</span> environment variable set.
+                      Set it to a TextRP room ID to enable automatic consultant sync.
+                    </p>
+                  </div>
+                )}
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => refetch()}
+                disabled={isFetching}
+                className="border-green-500/30 text-green-400"
+                data-testid="button-refresh-sync"
+              >
+                <RefreshCw className={`w-3 h-3 mr-2 ${isFetching ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
+            </div>
+          ) : (
+            <p className="text-gray-400 text-sm">Could not load sync status.</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function Admin() {
   const { user, logout, matrixUserId } = useAuth();
   const [, setLocation] = useLocation();
@@ -1425,6 +1516,14 @@ export default function Admin() {
               <MessageCircle className="w-4 h-4 mr-2" />
               Chat Profile
             </TabsTrigger>
+            <TabsTrigger
+              value="sync"
+              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
+              data-testid="tab-sync"
+            >
+              <Activity className="w-4 h-4 mr-2" />
+              Sync
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="media">
@@ -1447,6 +1546,9 @@ export default function Admin() {
           </TabsContent>
           <TabsContent value="chat-profile">
             <ChatProfileTab />
+          </TabsContent>
+          <TabsContent value="sync">
+            <SyncTab />
           </TabsContent>
         </Tabs>
       </div>

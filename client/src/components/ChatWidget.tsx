@@ -29,7 +29,11 @@ interface ChatHostConfig {
   isAvailable: boolean;
 }
 
-export function ChatWidget() {
+interface ChatWidgetProps {
+  consultantSlug?: string;
+}
+
+export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -118,7 +122,8 @@ export function ChatWidget() {
       const res = await apiRequest("POST", "/api/chat/sessions", { 
         sessionId: newSessionId,
         visitorName: name,
-        visitorEmail: email
+        visitorEmail: email,
+        ...(consultantSlug ? { consultantSlug } : {}),
       });
       return res.json();
     },

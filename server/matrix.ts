@@ -48,10 +48,15 @@ export async function getMatrixClient(): Promise<sdk.MatrixClient> {
   return matrixClient;
 }
 
-export async function createChatRoom(visitorName: string, visitorEmail?: string): Promise<string> {
+export async function createChatRoom(
+  visitorName: string,
+  visitorEmail?: string,
+  recipientMatrixUserId?: string
+): Promise<string> {
   const client = await getMatrixClient();
 
   const roomName = `Chat with ${visitorName}`;
+  const recipient = recipientMatrixUserId || MATRIX_RECIPIENT;
 
   try {
     const response = await client.createRoom({
@@ -59,15 +64,15 @@ export async function createChatRoom(visitorName: string, visitorEmail?: string)
       topic: visitorEmail ? `Visitor email: ${visitorEmail}` : "Website visitor chat",
       visibility: sdk.Visibility.Private,
       preset: sdk.Preset.PrivateChat,
-      invite: MATRIX_RECIPIENT ? [MATRIX_RECIPIENT] : [],
+      invite: recipient ? [recipient] : [],
     });
 
     const roomId = response.room_id;
     joinedRooms.add(roomId);
     console.log(`Matrix room created: ${roomId}`);
 
-    if (MATRIX_RECIPIENT) {
-      console.log(`Invited ${MATRIX_RECIPIENT} to room ${roomId}`);
+    if (recipient) {
+      console.log(`Invited ${recipient} to room ${roomId}`);
     }
 
     return roomId;
@@ -234,4 +239,40 @@ export async function getNewReplies(roomId: string): Promise<Array<{ content: st
     console.error("Failed to get Matrix replies:", error);
     return [];
   }
+}
+
+export async function getRoomMembers(roomId: string): Promise<string[]> {
+  const botToken = process.env.ACCESS_TOKEN;
+  if (!botToken) return [];
+  try {
+    const res = await fetch(
+      `${MATRIX_HOMESERVER}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/joined_members`,
+      { headers: { Authorization: `Bearer ${botToken}` } }
+    );
+    if (!res.ok) {
+      console.warn(`[matrix] getRoomMembers failed for ${roomId}: ${res.status}`);
+      return [];
+    }
+    const data = await res.json() as { joined: Record<string, unknown> };
+    return Object.keys(data.joined);
+  } catch (err) {
+    console.warn("[matrix] getRoomMembers error:", err);
+    return [];
+  }
+}
+
+export async function getDisplayName(userId: string): Promise<string> {
+  const botToken = process.env.ACCESS_TOKEN;
+  try {
+    const res = await fetch(
+      `${MATRIX_HOMESERVER}/_matrix/client/v3/profile/${encodeURIComponent(userId)}/displayname`,
+      botToken ? { headers: { Authorization: `Bearer ${botToken}` } } : {}
+    );
+    if (res.ok) {
+      const data = await res.json() as { displayname?: string };
+      return data.displayname || userId;
+    }
+  } catch {
+  }
+  return userId;
 }

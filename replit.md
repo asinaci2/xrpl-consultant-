@@ -27,7 +27,8 @@ Preferred communication style: Simple, everyday language.
 ### Features
 -   **Consultant Directory**: Displays all active consultants.
 -   **Consultant Profile Pages**: Detailed pages for each consultant.
--   **Real-time Chat**: WebSocket-based chat between visitors and consultants.
+-   **Real-time Chat**: WebSocket-based chat between visitors and consultants. Chat sessions on `/c/:slug` are routed directly to that consultant's Matrix account — the correct person receives the visitor's messages in their TextRP/Matrix client.
+-   **TextRP Backroom Sync**: A background loop (`server/sync.ts`) polls TextRP Matrix rooms every 60 seconds. Membership in `ADMIN_MATRIX_ROOM` grants admin access live (no re-login required). Membership in `CONSULTANT_MATRIX_ROOM` (optional env var) auto-creates/activates consultant records; removal deactivates them.
 -   **Dynamic Content**:
     -   **Stories**: WhatsApp/Instagram-style expiring content for consultants.
     -   **Projects**: Consultant project showcases.
