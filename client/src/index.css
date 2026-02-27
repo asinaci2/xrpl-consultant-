@@ -119,7 +119,7 @@
   --secondary-foreground: 222 47% 11%;
   --background:       210 40% 98%;      /* slate-50 */
   --foreground:       222 47% 11%;      /* slate-900 */
-  --ring:             142 70% 40%;      /* green ring */
+  --ring:             174 72% 40%;      /* teal ring */
 
   /* Root page background */
   background-color: #f8fafc !important;
@@ -242,7 +242,33 @@
   color: #94a3b8 !important;
 }
 
-/* Keep green text as-is — reads well on light */
+/* ── Green → Teal accent remapping (better contrast on light backgrounds) ── */
+/* text */
+[data-theme="day"] [class*="text-green-3"] { color: #14b8a6 !important; }
+[data-theme="day"] [class*="text-green-4"] { color: #0d9488 !important; }
+[data-theme="day"] [class*="text-green-5"] { color: #0f766e !important; }
+[data-theme="day"] [class*="text-green-6"] { color: #115e59 !important; }
+
+/* borders */
+[data-theme="day"] [class*="border-green"] {
+  border-color: rgba(13, 148, 136, 0.35) !important;
+}
+
+/* solid backgrounds */
+[data-theme="day"] [class*="bg-green-4"],
+[data-theme="day"] [class*="bg-green-5"] {
+  background-color: #0d9488 !important;
+}
+
+/* translucent tint backgrounds (e.g. bg-green-500/10, bg-green-400/20) */
+[data-theme="day"] [class*="bg-green-"][class*="/"] {
+  background-color: rgba(13, 148, 136, 0.12) !important;
+}
+
+/* ring */
+[data-theme="day"] [class*="ring-green"] {
+  --tw-ring-color: rgba(13, 148, 136, 0.5) !important;
+}
 
 /* ── Headings ── */
 [data-theme="day"] h1,
@@ -266,16 +292,7 @@
   color: #94a3b8 !important;
 }
 
-/* ── Borders ── */
-[data-theme="day"] [class*="border-green-500/"] {
-  border-color: rgba(34, 197, 94, 0.25) !important;
-}
-
-/* ── Green background tints (icon containers, highlight pills) ── */
-[data-theme="day"] [class*="bg-green-500/1"],
-[data-theme="day"] [class*="bg-green-500/2"] {
-  background-color: rgba(34, 197, 94, 0.08) !important;
-}
+/* (green border + tint overrides handled by the teal block above) */
 
 /* ── Standard named gradient overlays ── */
 [data-theme="day"] [class*="from-black"] {
