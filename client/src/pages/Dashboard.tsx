@@ -765,9 +765,10 @@ function ProjectsTab({ slug }: { slug: string }) {
 // ── Stories Tab ────────────────────────────────────────────────────────────────
 type ResolvedPost = {
   platform: string;
-  imageUrl: string;
+  imageUrl: string | null;
   title: string | null;
   sourceUrl: string;
+  hasImage: boolean;
 };
 
 const PLATFORM_INFO: Record<string, {
@@ -868,10 +869,15 @@ function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avata
 
   const handlePostImport = () => {
     if (!resolvedPost) return;
+    const caption = importCaption || resolvedPost.title || undefined;
+    if (!resolvedPost.imageUrl && !caption) {
+      toast({ title: "Add a caption — this post has no image", variant: "destructive" });
+      return;
+    }
     createMutation.mutate({
-      content: importCaption || resolvedPost.title || undefined,
+      content: caption,
       authorName: storyAuthor,
-      imageUrl: resolvedPost.imageUrl,
+      imageUrl: resolvedPost.imageUrl ?? undefined,
       sourceType: resolvedPost.platform,
       sourceUrl: resolvedPost.sourceUrl,
     });
@@ -1026,12 +1032,26 @@ function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avata
                         })()}
                       </div>
                       <div className="flex gap-3 p-3">
-                        <img
-                          src={resolvedPost.imageUrl}
-                          alt="Post thumbnail"
-                          className="w-20 h-20 object-cover rounded-lg shrink-0 border border-white/10"
-                        />
+                        {resolvedPost.imageUrl ? (
+                          <img
+                            src={resolvedPost.imageUrl}
+                            alt="Post thumbnail"
+                            className="w-20 h-20 object-cover rounded-lg shrink-0 border border-white/10"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-lg shrink-0 border border-white/10 bg-black/60 flex flex-col items-center justify-center gap-1">
+                            {(() => {
+                              const pi = PLATFORM_INFO[resolvedPost.platform];
+                              if (!pi) return null;
+                              return <pi.Icon className="w-5 h-5 opacity-60" style={{ color: pi.color }} />;
+                            })()}
+                            <span className="text-gray-500 text-[10px] text-center px-1">No image</span>
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
+                          {!resolvedPost.imageUrl && (
+                            <p className="text-amber-400/80 text-xs mb-1.5">This post has no thumbnail — it will be posted as a text/caption story.</p>
+                          )}
                           {resolvedPost.title && (
                             <p className="text-gray-300 text-xs line-clamp-3 leading-relaxed">{resolvedPost.title}</p>
                           )}

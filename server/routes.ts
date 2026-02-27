@@ -413,11 +413,18 @@ export async function registerRoutes(
         return;
       }
       const resolved = await resolveMediaUrl(platform, url);
-      if (!resolved) {
+      if (resolved === null) {
         res.status(422).json({ error: "Could not resolve URL — make sure the post is public" });
         return;
       }
-      res.json({ platform, imageUrl: resolved.imageUrl, title: resolved.title || null, sourceUrl: url });
+      // Return what we got — imageUrl may be undefined (text-only post, will be a caption-only story)
+      res.json({
+        platform,
+        imageUrl: resolved.imageUrl || null,
+        title: resolved.title || null,
+        sourceUrl: url,
+        hasImage: !!resolved.imageUrl,
+      });
     } catch (err) {
       console.error("resolve-story-url error:", err);
       res.status(500).json({ error: "Failed to resolve URL" });
