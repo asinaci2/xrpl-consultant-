@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
@@ -26,15 +26,17 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
-  const touchStartRef = useRef(0);
+  const [direction, setDirection] = useState(1);
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentStory = stories[currentIndex];
 
   const goToNext = useCallback(() => {
     if (currentIndex < stories.length - 1) {
       setDirection(1);
-      setCurrentIndex(currentIndex + 1);
+      setCurrentIndex(i => i + 1);
       setProgress(0);
     } else {
       onClose();
@@ -44,14 +46,13 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
   const goToPrev = useCallback(() => {
     if (currentIndex > 0) {
       setDirection(-1);
-      setCurrentIndex(currentIndex - 1);
+      setCurrentIndex(i => i - 1);
       setProgress(0);
     }
   }, [currentIndex]);
 
   useEffect(() => {
     if (isPaused) return;
-
     const interval = setInterval(() => {
       setProgress((prev) => {
         const next = prev + (100 / (STORY_DURATION / 50));
@@ -62,7 +63,6 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
         return next;
       });
     }, 50);
-
     return () => clearInterval(interval);
   }, [isPaused, goToNext]);
 
@@ -73,7 +73,6 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
       if (e.key === "ArrowRight") goToNext();
       if (e.key === " ") setIsPaused((p) => !p);
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose, goToPrev, goToNext]);
@@ -85,11 +84,34 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
-    
     if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     return `${Math.floor(diffHours / 24)}d ago`;
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    holdTimer.current = setTimeout(() => setIsPaused(true), 150);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (holdTimer.current) clearTimeout(holdTimer.current);
+    setIsPaused(false);
+
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) goToNext();
+      else goToPrev();
+    }
+  };
+
+  const handleTapZone = (side: "left" | "right") => {
+    if (side === "left") goToPrev();
+    else goToNext();
   };
 
   return createPortal(
@@ -106,138 +128,85 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="relative w-full max-w-md h-[80vh] max-h-[700px] bg-gradient-to-b from-[#0d1f0d] to-[#0a0a0a] rounded-lg overflow-hidden border border-green-500/30"
-          style={{
-            boxShadow: "0 0 40px rgba(74, 222, 128, 0.2), 0 0 80px rgba(74, 222, 128, 0.1)",
-          }}
+          className="relative w-full max-w-md h-[85vh] max-h-[750px] bg-gradient-to-b from-[#0d1f0d] to-[#0a0a0a] rounded-2xl overflow-hidden border border-green-500/30 select-none"
+          style={{ boxShadow: "0 0 40px rgba(74,222,128,0.2), 0 0 80px rgba(74,222,128,0.1)" }}
           onClick={(e) => e.stopPropagation()}
-          onMouseDown={() => setIsPaused(true)}
-          onMouseUp={() => setIsPaused(false)}
-          onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={(e) => {
-            touchStartRef.current = e.touches[0].clientX;
-            setIsPaused(true);
-          }}
-          onTouchEnd={(e) => {
-            const diff = touchStartRef.current - e.changedTouches[0].clientX;
-            if (Math.abs(diff) > 50) {
-              if (diff > 0) goToNext();
-              else goToPrev();
-            }
-            setIsPaused(false);
-          }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
           data-testid="story-viewer-container"
         >
-          <div className="absolute top-0 left-0 right-0 flex gap-1 p-2 z-10">
+          {/* Progress bars */}
+          <div className="absolute top-0 left-0 right-0 flex gap-1 p-2 z-30">
             {stories.map((_, index) => (
-              <div
-                key={index}
-                className="flex-1 h-1 bg-green-900/50 rounded-full overflow-hidden"
-              >
+              <div key={index} className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-green-400 transition-all duration-50"
+                  className="h-full bg-white rounded-full"
                   style={{
-                    width: index < currentIndex 
-                      ? "100%" 
-                      : index === currentIndex 
-                        ? `${progress}%` 
-                        : "0%",
-                    boxShadow: "0 0 8px rgba(74, 222, 128, 0.6)",
+                    width: index < currentIndex ? "100%" : index === currentIndex ? `${progress}%` : "0%",
+                    transition: index === currentIndex ? "none" : undefined,
+                    boxShadow: "0 0 6px rgba(74,222,128,0.6)",
                   }}
                 />
               </div>
             ))}
           </div>
 
-          {/* Close button — always fixed, not animated */}
-          <div className="absolute top-6 right-4 z-20">
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={onClose}
-              className="text-green-400"
-              data-testid="button-close-story"
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
-
-          {/* Sliding story content — animates on index change */}
+          {/* Sliding story content */}
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentIndex}
               custom={direction}
               variants={{
-                enter: (d: number) => ({ x: d * 320, opacity: 0 }),
+                enter: (d: number) => ({ x: d > 0 ? "100%" : "-100%", opacity: 0 }),
                 center: { x: 0, opacity: 1 },
-                exit: (d: number) => ({ x: -d * 320, opacity: 0 }),
+                exit: (d: number) => ({ x: d > 0 ? "-100%" : "100%", opacity: 0 }),
               }}
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.28, ease: "easeInOut" }}
-              className="absolute inset-0 flex flex-col"
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="absolute inset-0"
             >
+              {/* Story background / image */}
+              {currentStory.imageUrl && (
+                <img
+                  src={currentStory.imageUrl}
+                  alt="Story"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              )}
+
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/70" />
+
               {/* Author header */}
-              <div className="absolute top-6 left-0 right-16 flex items-center gap-3 px-4 z-10">
+              <div className="absolute top-8 left-0 right-14 flex items-center gap-3 px-4 z-10">
                 <div
                   className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 p-[2px] flex-shrink-0"
-                  style={{ boxShadow: "0 0 10px rgba(74, 222, 128, 0.4)" }}
+                  style={{ boxShadow: "0 0 10px rgba(74,222,128,0.4)" }}
                 >
                   {currentStory.authorImage ? (
-                    <img
-                      src={currentStory.authorImage}
-                      alt={currentStory.authorName}
-                      className="w-full h-full rounded-full object-cover"
-                    />
+                    <img src={currentStory.authorImage} alt={currentStory.authorName} className="w-full h-full rounded-full object-cover" />
                   ) : (
                     <div className="w-full h-full rounded-full bg-[#0a0a0a] flex items-center justify-center">
-                      <span className="text-green-400 font-mono font-bold">
+                      <span className="text-green-400 font-mono font-bold text-sm">
                         {currentStory.authorName.charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}
                 </div>
                 <div>
-                  <p
-                    className="text-green-400 font-mono text-sm font-medium"
-                    style={{ textShadow: "0 0 10px rgba(74, 222, 128, 0.5)" }}
-                  >
-                    {currentStory.authorName}
-                  </p>
-                  <p className="text-green-600 font-mono text-xs">
-                    {formatTimeAgo(currentStory.createdAt)}
-                  </p>
+                  <p className="text-white font-semibold text-sm drop-shadow">{currentStory.authorName}</p>
+                  <p className="text-white/70 text-xs">{formatTimeAgo(currentStory.createdAt)}</p>
                 </div>
               </div>
 
-              {/* Main content */}
-              <div className="flex items-center justify-center h-full pt-16 pb-20 px-4">
-                {currentStory.imageUrl ? (
-                  <img
-                    src={currentStory.imageUrl}
-                    alt="Story"
-                    className="max-w-full max-h-full object-contain rounded-lg"
-                    style={{ boxShadow: "0 0 30px rgba(74, 222, 128, 0.2)" }}
-                  />
-                ) : currentStory.content ? (
-                  <div
-                    className="text-center px-8"
-                    style={{ textShadow: "0 0 20px rgba(74, 222, 128, 0.4)" }}
-                  >
-                    <p className="text-green-400 font-mono text-xl leading-relaxed">
-                      {currentStory.content}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-
-              {/* Caption (only when both image + text) */}
-              {currentStory.content && currentStory.imageUrl && (
-                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 to-transparent">
+              {/* Main text content */}
+              {currentStory.content && (
+                <div className="absolute inset-0 flex items-center justify-center px-8">
                   <p
-                    className="text-green-400 font-mono text-sm text-center"
-                    style={{ textShadow: "0 0 10px rgba(74, 222, 128, 0.5)" }}
+                    className="text-green-400 font-mono text-xl text-center leading-relaxed"
+                    style={{ textShadow: "0 0 20px rgba(74,222,128,0.5)" }}
                   >
                     {currentStory.content}
                   </p>
@@ -246,22 +215,44 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
             </motion.div>
           </AnimatePresence>
 
+          {/* Close button — above everything */}
+          <div className="absolute top-7 right-3 z-40">
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={(e) => { e.stopPropagation(); onClose(); }}
+              className="text-white hover:text-white hover:bg-white/20 rounded-full"
+              data-testid="button-close-story"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+
+          {/* Tap zones — left (prev) and right (next) — above content, below close */}
           <button
-            onClick={(e) => { e.stopPropagation(); goToPrev(); }}
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-green-400/60 hover:text-green-400 transition-colors"
-            disabled={currentIndex === 0}
+            className="absolute left-0 top-0 bottom-0 w-2/5 z-20 cursor-pointer"
+            onClick={(e) => { e.stopPropagation(); handleTapZone("left"); }}
+            aria-label="Previous story"
             data-testid="button-prev-story"
-          >
-            <ChevronLeft className="w-8 h-8" />
-          </button>
-          
+          />
           <button
-            onClick={(e) => { e.stopPropagation(); goToNext(); }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-green-400/60 hover:text-green-400 transition-colors"
+            className="absolute right-0 top-0 bottom-0 w-2/5 z-20 cursor-pointer"
+            onClick={(e) => { e.stopPropagation(); handleTapZone("right"); }}
+            aria-label="Next story"
             data-testid="button-next-story"
-          >
-            <ChevronRight className="w-8 h-8" />
-          </button>
+          />
+
+          {/* Story count hint at bottom */}
+          {stories.length > 1 && (
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1 z-30">
+              {stories.map((_, i) => (
+                <div
+                  key={i}
+                  className={`rounded-full transition-all duration-200 ${i === currentIndex ? "w-4 h-1.5 bg-green-400" : "w-1.5 h-1.5 bg-white/30"}`}
+                />
+              ))}
+            </div>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>,
