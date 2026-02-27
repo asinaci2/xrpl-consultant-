@@ -1285,18 +1285,72 @@ function ContactTab() {
 }
 
 export default function Admin() {
-  const { user, logout } = useAuth();
+  const { user, logout, matrixUserId } = useAuth();
   const [, setLocation] = useLocation();
+  const [showMatrixId, setShowMatrixId] = useState(false);
 
   const handleLogout = () => {
     logout.mutate(undefined, {
-      onSuccess: () => setLocation("/login"),
+      onSuccess: () => setLocation("/"),
     });
   };
 
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Identity Banner */}
+        <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 flex items-center justify-between gap-4 flex-wrap" data-testid="banner-admin-identity">
+          <div className="flex items-center gap-3 min-w-0">
+            <Shield className="w-4 h-4 text-amber-400 shrink-0" />
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-semibold text-amber-400">Admin Mode</span>
+                {user && (
+                  <>
+                    <span className="text-gray-400 text-sm">·</span>
+                    <span className="text-gray-300 text-sm font-mono" data-testid="text-admin-display-name">{user.displayName}</span>
+                  </>
+                )}
+                <span className="text-gray-600 text-sm">·</span>
+                <span className="text-gray-500 text-xs font-mono">Full site access</span>
+              </div>
+              <button
+                onClick={() => setShowMatrixId(v => !v)}
+                className="text-xs text-gray-600 hover:text-gray-400 font-mono mt-0.5 transition-colors"
+                data-testid="button-toggle-matrix-id"
+              >
+                {showMatrixId ? "hide" : "show"} Matrix ID
+              </button>
+              {showMatrixId && matrixUserId && (
+                <p className="text-xs text-gray-500 font-mono mt-0.5 break-all" data-testid="text-matrix-id">{matrixUserId}</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href="https://app.textrp.io/#/room/#budzy-vibe:synapse.textrp.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="link-textrp"
+            >
+              <Button variant="ghost" size="sm" className="text-green-400 hover:text-green-300 hover:bg-green-500/10 text-xs">
+                <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                TextRP
+              </Button>
+            </a>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 text-xs"
+              data-testid="button-logout"
+            >
+              <LogOut className="w-3.5 h-3.5 mr-1" />
+              Sign Out
+            </Button>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Link href="/">
@@ -1308,39 +1362,8 @@ export default function Admin() {
               <h1 className="text-2xl font-bold text-green-400 font-mono" data-testid="text-admin-title">
                 Admin Dashboard
               </h1>
-              <p className="text-gray-500 text-sm">Manage your site content</p>
+              <p className="text-gray-500 text-sm">Full site management</p>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {user && (
-              <div className="flex items-center gap-2 text-sm text-gray-400 font-mono" data-testid="text-admin-user">
-                <User className="w-4 h-4 text-green-400" />
-                <span>{user.displayName}</span>
-              </div>
-            )}
-            <a
-              href="https://app.textrp.io/#/room/#budzy-vibe:synapse.textrp.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="link-textrp"
-            >
-              <Button
-                variant="ghost"
-                className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
-              >
-                <ExternalLink className="w-4 h-4 mr-1" />
-                TextRP
-              </Button>
-            </a>
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              className="text-gray-400 hover:text-red-400 hover:bg-red-500/10"
-              data-testid="button-logout"
-            >
-              <LogOut className="w-4 h-4 mr-1" />
-              Logout
-            </Button>
           </div>
         </div>
 

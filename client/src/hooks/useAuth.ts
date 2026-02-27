@@ -8,6 +8,7 @@ type AuthUser = {
   consultantSlug: string | null;
 };
 
+
 export function useAuth() {
   const { data: user, isLoading } = useQuery<AuthUser | null>({
     queryKey: ["/api/auth/me"],
@@ -33,6 +34,8 @@ export function useAuth() {
     isAdmin: !!user?.isAdmin,
     isConsultant: !!user?.consultantSlug,
     consultantSlug: user?.consultantSlug ?? null,
+    displayName: user?.displayName ?? null,
+    matrixUserId: user?.userId ?? null,
     logout: logoutMutation,
   };
 }

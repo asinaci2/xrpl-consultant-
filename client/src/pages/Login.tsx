@@ -21,6 +21,8 @@ export default function Login() {
       setError("Failed to create session. Please try again.");
     } else if (errParam === "auth_failed") {
       setError("Authentication failed. Please try again.");
+    } else if (errParam === "no_role") {
+      setError("Your XRPL wallet is not registered as a consultant or admin on this network. Contact your network administrator to be added.");
     }
   }, []);
 

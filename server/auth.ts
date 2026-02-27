@@ -150,7 +150,9 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
     res.status(401).json({ message: "Authentication required" });
     return;
   }
-  if (!req.session.isAdmin) {
+  // Re-verify admin status live against the env-var list (cheap, synchronous)
+  const liveAdmin = isAdminUserId(req.session.userId) || req.session.isAdmin;
+  if (!liveAdmin) {
     res.status(403).json({ message: "Admin access required" });
     return;
   }
@@ -162,9 +164,48 @@ export function requireConsultant(req: Request, res: Response, next: NextFunctio
     res.status(401).json({ message: "Authentication required" });
     return;
   }
-  if (!req.session.consultantSlug && !req.session.isAdmin) {
+  // Admins always pass — they can manage any consultant via ?slug=
+  if (req.session.isAdmin || isAdminUserId(req.session.userId)) {
+    next();
+    return;
+  }
+  if (!req.session.consultantSlug) {
     res.status(403).json({ message: "Consultant access required" });
     return;
   }
   next();
+}
+
+import type { IStorage } from "./storage";
+
+export function makeRequireVerifiedConsultant(storage: IStorage) {
+  return async function requireVerifiedConsultant(req: Request, res: Response, next: NextFunction) {
+    if (!req.session.userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+    // Admins bypass — they are verified through env var
+    if (req.session.isAdmin || isAdminUserId(req.session.userId)) {
+      next();
+      return;
+    }
+    const slug = req.session.consultantSlug;
+    if (!slug) {
+      res.status(403).json({ message: "Consultant access required" });
+      return;
+    }
+    // Re-verify the consultant still exists in the DB on every request
+    try {
+      const consultant = await storage.getConsultantBySlug(slug);
+      if (!consultant || !consultant.isActive) {
+        req.session.destroy(() => {});
+        res.status(403).json({ message: "Your consultant access has been revoked. Please sign in again." });
+        return;
+      }
+    } catch {
+      res.status(403).json({ message: "Could not verify consultant access. Please try again." });
+      return;
+    }
+    next();
+  };
 }

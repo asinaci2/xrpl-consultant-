@@ -1639,7 +1639,8 @@ function ChatProfileTab({ slug }: { slug: string }) {
 
 // ── Main Dashboard Page ────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const { user, logout, consultantSlug } = useAuth();
+  const { user, logout, consultantSlug, isAdmin, matrixUserId, displayName } = useAuth();
+  const [showMatrixId, setShowMatrixId] = useState(false);
   const slug = consultantSlug ?? "";
 
   const { data: profile } = useQuery<ConsultantProfile>({
@@ -1657,44 +1658,88 @@ export default function Dashboard() {
       }} />
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <a className="text-green-400/60 hover:text-green-400 transition-colors" data-testid="link-back-directory">
-                <ArrowLeft className="w-5 h-5" />
-              </a>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-display font-bold text-white" data-testid="text-dashboard-title">
-                My Dashboard
-              </h1>
-              <p className="text-green-400/60 text-sm font-mono">{profile?.name || user?.displayName || slug}</p>
+        {/* Identity Banner */}
+        <div className={`mb-6 rounded-xl border px-4 py-3 flex items-center justify-between gap-4 flex-wrap ${isAdmin ? "border-amber-500/30 bg-amber-500/5" : "border-green-500/20 bg-green-500/5"}`} data-testid="banner-identity">
+          <div className="flex items-center gap-3 min-w-0">
+            {isAdmin ? (
+              <Shield className="w-4 h-4 text-amber-400 shrink-0" />
+            ) : (
+              <User className="w-4 h-4 text-green-400 shrink-0" />
+            )}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`text-sm font-semibold ${isAdmin ? "text-amber-400" : "text-green-400"}`} data-testid="text-role-label">
+                  {isAdmin ? "Admin Mode" : "Consultant"}
+                </span>
+                <span className="text-gray-400 text-sm">·</span>
+                <span className="text-gray-300 text-sm font-mono" data-testid="text-display-name">{displayName || profile?.name || slug}</span>
+                {slug && !isAdmin && (
+                  <>
+                    <span className="text-gray-600 text-sm">·</span>
+                    <span className="text-gray-500 text-xs font-mono">Managing your profile only</span>
+                  </>
+                )}
+                {isAdmin && slug && (
+                  <>
+                    <span className="text-gray-600 text-sm">·</span>
+                    <span className="text-amber-400/70 text-xs font-mono">Managing: {slug}</span>
+                  </>
+                )}
+                {isAdmin && !slug && (
+                  <>
+                    <span className="text-gray-600 text-sm">·</span>
+                    <span className="text-gray-500 text-xs font-mono">Use ?slug= to manage a consultant</span>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={() => setShowMatrixId(v => !v)}
+                className="text-xs text-gray-600 hover:text-gray-400 font-mono mt-0.5 transition-colors flex items-center gap-1"
+                data-testid="button-toggle-matrix-id"
+              >
+                {showMatrixId ? "hide" : "show"} Matrix ID
+              </button>
+              {showMatrixId && matrixUserId && (
+                <p className="text-xs text-gray-500 font-mono mt-0.5 break-all" data-testid="text-matrix-id">{matrixUserId}</p>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             {slug && (
-              <Link href={`/c/${slug}`}>
-                <a
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-green-500/30 text-green-400 text-sm hover:bg-green-500/10 transition-colors font-mono"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-testid="link-view-page"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  View My Page
-                </a>
-              </Link>
+              <a
+                href={`/c/${slug}`}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-green-500/30 text-green-400 text-xs hover:bg-green-500/10 transition-colors font-mono"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="link-view-page"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                View Page
+              </a>
             )}
             <Button
               variant="ghost"
+              size="sm"
               onClick={handleLogout}
-              className="text-gray-400 hover:text-red-400 hover:bg-red-500/10"
+              className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 text-xs"
               data-testid="button-logout"
             >
-              <LogOut className="w-4 h-4 mr-1" />
-              Logout
+              <LogOut className="w-3.5 h-3.5 mr-1" />
+              Sign Out
             </Button>
+          </div>
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <Link href="/" className="text-green-400/60 hover:text-green-400 transition-colors" data-testid="link-back-directory">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-display font-bold text-white" data-testid="text-dashboard-title">
+              {isAdmin ? "Admin Dashboard" : "My Dashboard"}
+            </h1>
+            <p className="text-green-400/60 text-sm font-mono">{profile?.name || displayName || slug}</p>
           </div>
         </div>
 

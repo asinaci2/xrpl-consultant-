@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Hexagon, Users } from "lucide-react";
+import { ArrowRight, Hexagon, LayoutDashboard, LogIn, Shield, Users } from "lucide-react";
 import { MatrixRain } from "@/components/MatrixRain";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Consultant {
   id: number;
@@ -21,6 +22,7 @@ export default function Directory() {
   const { data: consultants = [], isLoading } = useQuery<Consultant[]>({
     queryKey: ["/api/consultants"],
   });
+  const { isAdmin, isConsultant, isAuthenticated, isLoading: authLoading } = useAuth();
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
@@ -42,9 +44,31 @@ export default function Directory() {
                 <span className="text-green-400 font-mono text-sm ml-1">Consultant Network</span>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-green-400/60 font-mono">
-              <Users className="w-4 h-4" />
-              <span>{consultants.length} Active Consultants</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-green-400/60 font-mono">
+                <Users className="w-4 h-4" />
+                <span>{consultants.length} Active Consultants</span>
+              </div>
+              {!authLoading && (
+                <>
+                  {isAdmin ? (
+                    <Link href="/admin" className="flex items-center gap-1.5 border border-green-500/30 text-green-400 hover:bg-green-500/10 font-mono text-sm rounded-lg px-3 py-1.5 transition-colors" data-testid="link-admin-panel">
+                      <Shield className="w-3.5 h-3.5" />
+                      Admin Panel
+                    </Link>
+                  ) : isConsultant ? (
+                    <Link href="/dashboard" className="flex items-center gap-1.5 border border-green-500/30 text-green-400 hover:bg-green-500/10 font-mono text-sm rounded-lg px-3 py-1.5 transition-colors" data-testid="link-dashboard">
+                      <LayoutDashboard className="w-3.5 h-3.5" />
+                      Dashboard
+                    </Link>
+                  ) : (
+                    <Link href="/login" className="flex items-center gap-1.5 border border-green-500/20 text-green-400/70 hover:text-green-400 hover:bg-green-500/10 font-mono text-sm rounded-lg px-3 py-1.5 transition-colors" data-testid="link-sign-in">
+                      <LogIn className="w-3.5 h-3.5" />
+                      Sign In
+                    </Link>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </header>

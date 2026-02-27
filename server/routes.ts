@@ -8,7 +8,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import { createChatRoom, sendMatrixMessage, getNewReplies, uploadFileToMatrix, uploadMediaToMatrix } from "./matrix";
 import { getUserTweets, searchTweets } from "./twitter";
 import { resolveMediaUrl, refreshMediaEntry, detectPlatform } from "./media";
-import { getSSORedirectUrl, exchangeLoginToken, requireAdmin, requireConsultant } from "./auth";
+import { getSSORedirectUrl, exchangeLoginToken, requireAdmin, requireConsultant, makeRequireVerifiedConsultant } from "./auth";
+const requireVerifiedConsultant = makeRequireVerifiedConsultant(storage);
 import multer from "multer";
 
 const clients = new Map<string, Set<WebSocket>>();
@@ -130,7 +131,8 @@ export async function registerRoutes(
         } else if (consultantSlug) {
           res.redirect("/dashboard");
         } else {
-          res.redirect("https://app.textrp.io/#/room/#budzys-buddies:synapse.textrp.io");
+          // Authenticated via XRPL wallet but no role assigned — send to error page
+          res.redirect("/login?error=no_role");
         }
       });
     } catch (err: any) {
@@ -921,7 +923,7 @@ export async function registerRoutes(
   }
 
   // Profile
-  app.get("/api/dashboard/profile", requireConsultant, async (req, res) => {
+  app.get("/api/dashboard/profile", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
@@ -933,7 +935,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/dashboard/profile", requireConsultant, async (req, res) => {
+  app.patch("/api/dashboard/profile", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
@@ -945,7 +947,7 @@ export async function registerRoutes(
   });
 
   // Projects
-  app.get("/api/dashboard/projects", requireConsultant, async (req, res) => {
+  app.get("/api/dashboard/projects", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
@@ -956,7 +958,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/dashboard/projects", requireConsultant, async (req, res) => {
+  app.post("/api/dashboard/projects", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
@@ -967,7 +969,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/dashboard/projects/:id", requireConsultant, async (req, res) => {
+  app.patch("/api/dashboard/projects/:id", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       const id = parseInt(req.params.id);
@@ -980,7 +982,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/dashboard/projects/:id", requireConsultant, async (req, res) => {
+  app.delete("/api/dashboard/projects/:id", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       const id = parseInt(req.params.id);
@@ -994,7 +996,7 @@ export async function registerRoutes(
   });
 
   // Stories
-  app.get("/api/dashboard/stories", requireConsultant, async (req, res) => {
+  app.get("/api/dashboard/stories", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
@@ -1005,7 +1007,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/dashboard/stories", requireConsultant, upload.single("image"), async (req, res) => {
+  app.post("/api/dashboard/stories", requireVerifiedConsultant, upload.single("image"), async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
@@ -1027,7 +1029,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/dashboard/stories/:id", requireConsultant, async (req, res) => {
+  app.delete("/api/dashboard/stories/:id", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       const id = parseInt(req.params.id);
@@ -1041,7 +1043,7 @@ export async function registerRoutes(
   });
 
   // Contact info
-  app.get("/api/dashboard/contact-info", requireConsultant, async (req, res) => {
+  app.get("/api/dashboard/contact-info", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
@@ -1052,7 +1054,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/dashboard/contact-info", requireConsultant, async (req, res) => {
+  app.patch("/api/dashboard/contact-info", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
@@ -1064,7 +1066,7 @@ export async function registerRoutes(
   });
 
   // Media
-  app.get("/api/dashboard/media", requireConsultant, async (req, res) => {
+  app.get("/api/dashboard/media", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
@@ -1075,7 +1077,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/dashboard/media", requireConsultant, async (req, res) => {
+  app.post("/api/dashboard/media", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
@@ -1086,7 +1088,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/dashboard/media/:id", requireConsultant, async (req, res) => {
+  app.patch("/api/dashboard/media/:id", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       const id = parseInt(req.params.id);
@@ -1099,7 +1101,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/dashboard/media/:id", requireConsultant, async (req, res) => {
+  app.delete("/api/dashboard/media/:id", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       const id = parseInt(req.params.id);
@@ -1113,7 +1115,7 @@ export async function registerRoutes(
   });
 
   // Chat profile
-  app.get("/api/dashboard/chat-profile", requireConsultant, async (req, res) => {
+  app.get("/api/dashboard/chat-profile", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
@@ -1124,7 +1126,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/dashboard/chat-profile", requireConsultant, async (req, res) => {
+  app.patch("/api/dashboard/chat-profile", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
