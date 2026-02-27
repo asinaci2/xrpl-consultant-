@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { SiInstagram, SiTiktok, SiX, SiSnapchat } from "react-icons/si";
 
 interface Story {
   id: number;
@@ -12,7 +13,16 @@ interface Story {
   authorImage: string | null;
   createdAt: string | null;
   expiresAt: string;
+  sourceType?: string | null;
+  sourceUrl?: string | null;
 }
+
+const PLATFORM_BADGE: Record<string, { label: string; Icon: React.ComponentType<{ className?: string }>; color: string }> = {
+  instagram: { label: "Instagram", Icon: SiInstagram, color: "#e1306c" },
+  tiktok: { label: "TikTok", Icon: SiTiktok, color: "#69c9d0" },
+  twitter: { label: "X / Twitter", Icon: SiX, color: "#1d9bf0" },
+  snapchat: { label: "Snapchat", Icon: SiSnapchat, color: "#fffc00" },
+};
 
 interface StoryViewerProps {
   stories: Story[];
@@ -232,7 +242,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
           </AnimatePresence>
 
           {/* Close button — stops propagation so it doesn't trigger card navigation */}
-          <div className="absolute top-7 right-3 z-20">
+          <div className="absolute top-7 right-3 z-20 flex flex-col items-end gap-2">
             <Button
               size="icon"
               variant="ghost"
@@ -243,6 +253,25 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
             >
               <X className="w-5 h-5" />
             </Button>
+            {/* Platform attribution badge */}
+            {currentStory.sourceType && currentStory.sourceUrl && (() => {
+              const badge = PLATFORM_BADGE[currentStory.sourceType];
+              if (!badge) return null;
+              return (
+                <a
+                  href={currentStory.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => { e.stopPropagation(); setIsPaused(true); }}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/20 text-xs font-medium transition-opacity hover:opacity-80"
+                  style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
+                  data-testid={`badge-platform-${currentStory.sourceType}`}
+                >
+                  <badge.Icon className="w-3 h-3" style={{ color: badge.color }} />
+                  <span className="text-white/90">{badge.label}</span>
+                </a>
+              );
+            })()}
           </div>
 
           {/* Story dot indicators */}

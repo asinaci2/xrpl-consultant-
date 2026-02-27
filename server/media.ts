@@ -115,6 +115,62 @@ export function resolveGDriveImage(shareUrl: string): { imageUrl: string; title?
   return { imageUrl: directUrl, title: `Google Drive image ${fileId}` };
 }
 
+export async function resolveTwitterEmbed(tweetUrl: string): Promise<{ imageUrl: string; title?: string } | null> {
+  try {
+    const response = await fetch(
+      `https://publish.twitter.com/oembed?url=${encodeURIComponent(tweetUrl)}&omit_script=true`
+    );
+    if (!response.ok) {
+      console.error(`Twitter oEmbed error: ${response.status}`);
+      return null;
+    }
+    const data = (await response.json()) as OEmbedResponse;
+    if (data.thumbnail_url) {
+      return { imageUrl: data.thumbnail_url, title: data.author_name };
+    }
+    const imgMatch = data.html?.match(/src="([^"]+\.(jpg|jpeg|png|webp|gif)[^"]*)"/i);
+    if (imgMatch) {
+      return { imageUrl: imgMatch[1], title: data.author_name };
+    }
+    return null;
+  } catch (error) {
+    console.error("Twitter oEmbed error:", error);
+    return null;
+  }
+}
+
+export async function resolveSnapchatImage(spotlightUrl: string): Promise<{ imageUrl: string; title?: string } | null> {
+  try {
+    const response = await fetch(spotlightUrl, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" },
+    });
+    if (!response.ok) {
+      console.error(`Snapchat fetch error: ${response.status}`);
+      return null;
+    }
+    const html = await response.text();
+    const ogImageMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    if (ogImageMatch) {
+      const titleMatch = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)
+        || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
+      return { imageUrl: ogImageMatch[1], title: titleMatch?.[1] };
+    }
+    return null;
+  } catch (error) {
+    console.error("Snapchat fetch error:", error);
+    return null;
+  }
+}
+
+export function detectPlatform(url: string): string | null {
+  if (/instagram\.com/.test(url)) return "instagram";
+  if (/tiktok\.com/.test(url)) return "tiktok";
+  if (/twitter\.com|x\.com/.test(url)) return "twitter";
+  if (/snapchat\.com/.test(url)) return "snapchat";
+  return null;
+}
+
 export async function resolveMediaUrl(
   source: string,
   sourceUrl: string
@@ -124,6 +180,10 @@ export async function resolveMediaUrl(
       return await resolveInstagramImage(sourceUrl);
     case "tiktok":
       return await resolveTikTokImage(sourceUrl);
+    case "twitter":
+      return await resolveTwitterEmbed(sourceUrl);
+    case "snapchat":
+      return await resolveSnapchatImage(sourceUrl);
     case "gdrive":
       return resolveGDriveImage(sourceUrl);
     case "manual":

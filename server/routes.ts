@@ -7,7 +7,7 @@ import { z } from "zod";
 import { WebSocketServer, WebSocket } from "ws";
 import { createChatRoom, sendMatrixMessage, getNewReplies, uploadFileToMatrix, uploadMediaToMatrix } from "./matrix";
 import { getUserTweets, searchTweets } from "./twitter";
-import { resolveMediaUrl, refreshMediaEntry } from "./media";
+import { resolveMediaUrl, refreshMediaEntry, detectPlatform } from "./media";
 import { getSSORedirectUrl, exchangeLoginToken, requireAdmin, requireConsultant } from "./auth";
 import multer from "multer";
 
@@ -395,6 +395,35 @@ export async function registerRoutes(
     }
   });
 
+  // Social URL resolver — accessible to any authenticated user (admin or consultant)
+  app.post("/api/resolve-story-url", async (req, res) => {
+    if (!req.session?.userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+    try {
+      const { url } = req.body;
+      if (!url || typeof url !== "string") {
+        res.status(400).json({ error: "url is required" });
+        return;
+      }
+      const platform = detectPlatform(url);
+      if (!platform) {
+        res.status(422).json({ error: "Could not detect platform. Supported: Instagram, TikTok, Twitter/X, Snapchat" });
+        return;
+      }
+      const resolved = await resolveMediaUrl(platform, url);
+      if (!resolved) {
+        res.status(422).json({ error: "Could not resolve URL — make sure the post is public" });
+        return;
+      }
+      res.json({ platform, imageUrl: resolved.imageUrl, title: resolved.title || null, sourceUrl: url });
+    } catch (err) {
+      console.error("resolve-story-url error:", err);
+      res.status(500).json({ error: "Failed to resolve URL" });
+    }
+  });
+
   // Stories endpoints
   app.get("/api/stories", async (req, res) => {
     try {
@@ -409,7 +438,7 @@ export async function registerRoutes(
 
   app.post("/api/stories", requireAdmin, upload.single("image"), async (req, res) => {
     try {
-      const { content, authorName, authorImage, imageUrl: bodyImageUrl } = req.body;
+      const { content, authorName, authorImage, imageUrl: bodyImageUrl, sourceType, sourceUrl } = req.body;
       
       let imageUrl: string | undefined;
       if (req.file) {
@@ -433,6 +462,8 @@ export async function registerRoutes(
         imageUrl: imageUrl || null,
         authorName: authorName || "Edwin Gutierrez",
         authorImage: authorImage || null,
+        sourceType: sourceType || null,
+        sourceUrl: sourceUrl || null,
         expiresAt,
       });
       
@@ -971,10 +1002,20 @@ export async function registerRoutes(
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const { content, authorName, imageUrl: bodyImageUrl, sourceType, sourceUrl } = req.body;
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      const created = await storage.createStory({ ...req.body, consultantSlug: slug, expiresAt });
+      const created = await storage.createStory({
+        content: content || null,
+        imageUrl: bodyImageUrl || null,
+        authorName: authorName || "Edwin Gutierrez",
+        sourceType: sourceType || null,
+        sourceUrl: sourceUrl || null,
+        consultantSlug: slug,
+        expiresAt,
+      });
       res.status(201).json(created);
     } catch (err) {
+      console.error("Dashboard story creation error:", err);
       res.status(500).json({ message: "Failed to create story" });
     }
   });

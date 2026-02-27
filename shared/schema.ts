@@ -118,6 +118,8 @@ export const stories = pgTable("stories", {
   authorName: text("author_name").notNull().default("Edwin Gutierrez"),
   authorImage: text("author_image"),
   consultantSlug: text("consultant_slug"),
+  sourceType: text("source_type"),
+  sourceUrl: text("source_url"),
   createdAt: timestamp("created_at").defaultNow(),
   expiresAt: timestamp("expires_at").notNull(),
 });

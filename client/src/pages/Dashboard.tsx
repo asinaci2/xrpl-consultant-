@@ -17,9 +17,10 @@ import {
   UserCircle, Sparkles, FileText, AtSign, Camera, Megaphone,
   Mail, MapPin, Globe, Clock, Layout, TrendingUp,
   MessageSquare, Heart, Radio, Gamepad2, Star, Zap,
-  Shield, Code, Users, Rocket, Award, Target,
+  Shield, Code, Users, Rocket, Award, Target, Link2, AlertCircle, CheckCircle2,
   type LucideIcon,
 } from "lucide-react";
+import { SiInstagram, SiTiktok, SiX, SiSnapchat } from "react-icons/si";
 
 const EXPERTISE_OPTIONS = [
   "XRPL", "TextRP", "Web3", "Blockchain", "NFT Strategy", "Community Growth",
@@ -762,24 +763,64 @@ function ProjectsTab({ slug }: { slug: string }) {
 }
 
 // ── Stories Tab ────────────────────────────────────────────────────────────────
+type ResolvedPost = {
+  platform: string;
+  imageUrl: string;
+  title: string | null;
+  sourceUrl: string;
+};
+
+const PLATFORM_INFO: Record<string, {
+  label: string;
+  Icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  note?: string;
+}> = {
+  instagram: { label: "Instagram", Icon: SiInstagram, color: "#e1306c" },
+  tiktok: { label: "TikTok", Icon: SiTiktok, color: "#69c9d0" },
+  twitter: { label: "X / Twitter", Icon: SiX, color: "#1d9bf0" },
+  snapchat: { label: "Snapchat", Icon: SiSnapchat, color: "#fffc00", note: "Best effort (public Spotlight only)" },
+};
+
+function detectPlatformClient(url: string): string | null {
+  if (/instagram\.com/.test(url)) return "instagram";
+  if (/tiktok\.com/.test(url)) return "tiktok";
+  if (/twitter\.com|x\.com/.test(url)) return "twitter";
+  if (/snapchat\.com/.test(url)) return "snapchat";
+  return null;
+}
+
 function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avatarUrl: string; slug: string }) {
   const { toast } = useToast();
+  const [mode, setMode] = useState<"write" | "import">("write");
+
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [storyAuthor, setStoryAuthor] = useState(authorName);
 
+  const [importUrl, setImportUrl] = useState("");
+  const [importCaption, setImportCaption] = useState("");
+  const [resolvedPost, setResolvedPost] = useState<ResolvedPost | null>(null);
+  const [resolveError, setResolveError] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
+
   useEffect(() => { setStoryAuthor(authorName); }, [authorName]);
+
+  const detectedPlatform = detectPlatformClient(importUrl);
+  const platformInfo = detectedPlatform ? PLATFORM_INFO[detectedPlatform] : null;
 
   const { data: stories = [], isLoading } = useQuery<Story[]>({
     queryKey: ["/api/dashboard/stories"],
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: { content: string; authorName: string; imageUrl?: string }) => {
+    mutationFn: async (data: { content?: string; authorName: string; imageUrl?: string; sourceType?: string; sourceUrl?: string }) => {
       const formData = new FormData();
-      formData.append("content", data.content);
+      if (data.content) formData.append("content", data.content);
       formData.append("authorName", data.authorName);
       if (data.imageUrl) formData.append("imageUrl", data.imageUrl);
+      if (data.sourceType) formData.append("sourceType", data.sourceType);
+      if (data.sourceUrl) formData.append("sourceUrl", data.sourceUrl);
       const res = await fetch("/api/dashboard/stories", { method: "POST", body: formData });
       if (!res.ok) throw new Error("Failed to create story");
       return res.json();
@@ -787,9 +828,10 @@ function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avata
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stories"] });
       setContent(""); setImageUrl("");
-      toast({ title: "Story created" });
+      setImportUrl(""); setImportCaption(""); setResolvedPost(null); setResolveError(null);
+      toast({ title: "Story posted!" });
     },
-    onError: () => toast({ title: "Failed to create story", variant: "destructive" }),
+    onError: () => toast({ title: "Failed to post story", variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
@@ -800,7 +842,45 @@ function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avata
     },
   });
 
+  const handleFetchPreview = async () => {
+    if (!importUrl) return;
+    setIsFetching(true);
+    setResolveError(null);
+    setResolvedPost(null);
+    try {
+      const res = await fetch("/api/resolve-story-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: importUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setResolveError(data.error || "Could not resolve this URL");
+      } else {
+        setResolvedPost(data);
+      }
+    } catch {
+      setResolveError("Network error — please try again");
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  const handlePostImport = () => {
+    if (!resolvedPost) return;
+    createMutation.mutate({
+      content: importCaption || resolvedPost.title || undefined,
+      authorName: storyAuthor,
+      imageUrl: resolvedPost.imageUrl,
+      sourceType: resolvedPost.platform,
+      sourceUrl: resolvedPost.sourceUrl,
+    });
+  };
+
   const isExpired = (expiresAt: string) => new Date(expiresAt) < new Date();
+
+  const previewImageUrl = mode === "import" ? (resolvedPost?.imageUrl || "") : imageUrl;
+  const previewContent = mode === "import" ? (importCaption || resolvedPost?.title || "") : content;
 
   return (
     <div className="space-y-5">
@@ -819,32 +899,181 @@ function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avata
         <div className="lg:col-span-3">
           <Card className="bg-black/60 border-green-500/20">
             <CardHeader className="pb-3">
-              <CardTitle className="text-green-400 text-base flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Create Story
-              </CardTitle>
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <CardTitle className="text-green-400 text-base flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Create Story
+                </CardTitle>
+                {/* Mode toggle */}
+                <div className="flex rounded-lg border border-green-500/20 overflow-hidden text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setMode("write")}
+                    className={`px-3 py-1.5 font-medium transition-all flex items-center gap-1.5 ${mode === "write" ? "bg-green-600 text-white" : "text-gray-400 hover:text-gray-200 hover:bg-white/5"}`}
+                    data-testid="mode-write"
+                  >
+                    <FileText className="w-3 h-3" />
+                    Write
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode("import")}
+                    className={`px-3 py-1.5 font-medium transition-all flex items-center gap-1.5 ${mode === "import" ? "bg-amber-600 text-white" : "text-gray-400 hover:text-gray-200 hover:bg-white/5"}`}
+                    data-testid="mode-import"
+                  >
+                    <Link2 className="w-3 h-3" />
+                    Import from Social
+                  </button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <form onSubmit={e => { e.preventDefault(); if (!content) return; createMutation.mutate({ content, authorName: storyAuthor, imageUrl: imageUrl || undefined }); }} className="space-y-4">
-                <div>
-                  <FieldLabel icon={FileText}>Content *</FieldLabel>
-                  <Textarea value={content} onChange={e => setContent(e.target.value)} placeholder="What's on your mind?" rows={4} className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600" data-testid="input-story-content" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {mode === "write" ? (
+                <form onSubmit={e => { e.preventDefault(); if (!content) return; createMutation.mutate({ content, authorName: storyAuthor, imageUrl: imageUrl || undefined }); }} className="space-y-4">
+                  <div>
+                    <FieldLabel icon={FileText}>Content *</FieldLabel>
+                    <Textarea value={content} onChange={e => setContent(e.target.value)} placeholder="What's on your mind?" rows={4} className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600" data-testid="input-story-content" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <FieldLabel icon={User}>Author Name</FieldLabel>
+                      <Input value={storyAuthor} onChange={e => setStoryAuthor(e.target.value)} className="bg-black/40 border-green-500/20 text-white" data-testid="input-story-author" />
+                    </div>
+                    <div>
+                      <FieldLabel icon={Camera}>Image URL <span className="text-gray-500 text-xs ml-1">(optional)</span></FieldLabel>
+                      <Input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600" data-testid="input-story-image" />
+                    </div>
+                  </div>
+                  <Button type="submit" disabled={!content || createMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white" data-testid="button-create-story">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {createMutation.isPending ? "Posting..." : "Post Story"}
+                  </Button>
+                </form>
+              ) : (
+                <div className="space-y-4">
+                  {/* Platform supported badges */}
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(PLATFORM_INFO).map(([key, info]) => (
+                      <div key={key} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/10 bg-black/30 text-xs">
+                        <info.Icon className="w-3 h-3" style={{ color: info.color }} />
+                        <span className="text-gray-400">{info.label}</span>
+                        {info.note && <span className="text-gray-600">·</span>}
+                        {info.note && <span className="text-gray-600 text-[10px]">{info.note}</span>}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* URL input + detect */}
+                  <div>
+                    <FieldLabel icon={Link2}>Post URL *</FieldLabel>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input
+                          value={importUrl}
+                          onChange={e => { setImportUrl(e.target.value); setResolvedPost(null); setResolveError(null); }}
+                          placeholder="https://www.instagram.com/p/... or tiktok.com/... or x.com/..."
+                          className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600 pr-28"
+                          data-testid="input-import-url"
+                        />
+                        {platformInfo && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                            <platformInfo.Icon className="w-3.5 h-3.5" style={{ color: platformInfo.color }} />
+                            <span className="text-xs font-medium" style={{ color: platformInfo.color }}>{platformInfo.label}</span>
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={handleFetchPreview}
+                        disabled={!importUrl || !detectedPlatform || isFetching}
+                        className="bg-amber-600 hover:bg-amber-700 text-white shrink-0"
+                        data-testid="button-fetch-preview"
+                      >
+                        {isFetching ? "Fetching..." : "Fetch"}
+                      </Button>
+                    </div>
+                    {!detectedPlatform && importUrl && (
+                      <p className="text-gray-500 text-xs mt-1.5">Paste an Instagram, TikTok, X/Twitter, or Snapchat URL</p>
+                    )}
+                  </div>
+
+                  {/* Error */}
+                  {resolveError && (
+                    <div className="flex items-start gap-2.5 p-3 rounded-lg bg-red-500/10 border border-red-500/20" data-testid="import-error">
+                      <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-red-400 text-sm font-medium">Could not load this post</p>
+                        <p className="text-red-400/70 text-xs mt-0.5">{resolveError} — make sure the post is public</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Success preview */}
+                  {resolvedPost && (
+                    <div className="rounded-lg border border-green-500/20 bg-black/40 overflow-hidden" data-testid="import-preview">
+                      <div className="flex items-center gap-2 px-3 py-2 border-b border-green-500/10">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+                        <span className="text-green-400 text-xs font-medium">Post loaded successfully</span>
+                        {(() => {
+                          const pi = PLATFORM_INFO[resolvedPost.platform];
+                          if (!pi) return null;
+                          return (
+                            <div className="flex items-center gap-1 ml-auto">
+                              <pi.Icon className="w-3 h-3" style={{ color: pi.color }} />
+                              <span className="text-xs" style={{ color: pi.color }}>{pi.label}</span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                      <div className="flex gap-3 p-3">
+                        <img
+                          src={resolvedPost.imageUrl}
+                          alt="Post thumbnail"
+                          className="w-20 h-20 object-cover rounded-lg shrink-0 border border-white/10"
+                        />
+                        <div className="flex-1 min-w-0">
+                          {resolvedPost.title && (
+                            <p className="text-gray-300 text-xs line-clamp-3 leading-relaxed">{resolvedPost.title}</p>
+                          )}
+                          <a href={resolvedPost.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-green-400/60 hover:text-green-400 flex items-center gap-1 mt-1.5">
+                            <ExternalLink className="w-3 h-3" />
+                            View original post
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Caption */}
+                  <div>
+                    <FieldLabel icon={FileText}>Caption <span className="text-gray-500 text-xs ml-1">(optional — uses post title if blank)</span></FieldLabel>
+                    <Textarea
+                      value={importCaption}
+                      onChange={e => setImportCaption(e.target.value)}
+                      placeholder="Add your own caption..."
+                      rows={3}
+                      className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600"
+                      data-testid="input-import-caption"
+                    />
+                  </div>
+
                   <div>
                     <FieldLabel icon={User}>Author Name</FieldLabel>
-                    <Input value={storyAuthor} onChange={e => setStoryAuthor(e.target.value)} className="bg-black/40 border-green-500/20 text-white" data-testid="input-story-author" />
+                    <Input value={storyAuthor} onChange={e => setStoryAuthor(e.target.value)} className="bg-black/40 border-green-500/20 text-white" data-testid="input-import-author" />
                   </div>
-                  <div>
-                    <FieldLabel icon={Camera}>Image URL <span className="text-gray-500 text-xs ml-1">(optional)</span></FieldLabel>
-                    <Input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600" data-testid="input-story-image" />
-                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={handlePostImport}
+                    disabled={!resolvedPost || createMutation.isPending}
+                    className="bg-amber-600 hover:bg-amber-700 text-white"
+                    data-testid="button-post-import"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    {createMutation.isPending ? "Posting..." : "Post as Story"}
+                  </Button>
                 </div>
-                <Button type="submit" disabled={!content || createMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white" data-testid="button-create-story">
-                  <Plus className="w-4 h-4 mr-2" />
-                  {createMutation.isPending ? "Posting..." : "Post Story"}
-                </Button>
-              </form>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -873,19 +1102,32 @@ function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avata
 
           {/* Story card */}
           <div
-            className="rounded-xl border border-green-500/15 overflow-hidden min-h-[140px] relative flex flex-col justify-end"
+            className="rounded-xl border border-green-500/15 overflow-hidden min-h-[160px] relative flex flex-col justify-end"
             style={{
-              background: imageUrl
-                ? `url(${imageUrl}) center/cover, #050f05`
+              background: previewImageUrl
+                ? `url(${previewImageUrl}) center/cover, #050f05`
                 : "linear-gradient(180deg, #050f05 0%, #0a1a0a 100%)",
             }}
           >
-            {imageUrl && <div className="absolute inset-0 bg-black/50" />}
+            {previewImageUrl && <div className="absolute inset-0 bg-black/50" />}
+            {/* Platform badge in preview */}
+            {mode === "import" && resolvedPost && (() => {
+              const pi = PLATFORM_INFO[resolvedPost.platform];
+              if (!pi) return null;
+              return (
+                <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 px-2 py-1 rounded-full border border-white/20 bg-black/70 text-xs">
+                  <pi.Icon className="w-3 h-3" style={{ color: pi.color }} />
+                  <span className="text-white/80">{pi.label}</span>
+                </div>
+              );
+            })()}
             <div className="relative z-10 p-4 space-y-2">
-              {content ? (
-                <p className="text-white text-sm leading-relaxed line-clamp-4">{content.slice(0, 140)}{content.length > 140 ? "..." : ""}</p>
+              {previewContent ? (
+                <p className="text-white text-sm leading-relaxed line-clamp-4">{previewContent.slice(0, 140)}{previewContent.length > 140 ? "..." : ""}</p>
               ) : (
-                <p className="text-gray-600 text-sm italic">Start typing to preview your story...</p>
+                <p className="text-gray-600 text-sm italic">
+                  {mode === "import" ? "Fetch a post to preview..." : "Start typing to preview..."}
+                </p>
               )}
             </div>
           </div>
@@ -907,20 +1149,34 @@ function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avata
             <p className="text-gray-500 text-sm">No stories yet.</p>
           ) : (
             <div className="space-y-2">
-              {stories.map(s => (
-                <div key={s.id} className="flex items-start justify-between gap-3 p-3 rounded-lg bg-black/40 border border-green-500/10" data-testid={`row-story-${s.id}`}>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm line-clamp-2">{s.content}</p>
-                    <p className={`text-xs mt-1 font-mono ${isExpired(s.expiresAt) ? "text-red-400/60" : "text-amber-400/50"}`}>
-                      <Clock className="w-3 h-3 inline mr-1" />
-                      {isExpired(s.expiresAt) ? "Expired" : `Expires ${new Date(s.expiresAt).toLocaleString()}`}
-                    </p>
+              {stories.map((s: Story & { sourceType?: string | null; sourceUrl?: string | null }) => {
+                const pi = s.sourceType ? PLATFORM_INFO[s.sourceType] : null;
+                return (
+                  <div key={s.id} className="flex items-start justify-between gap-3 p-3 rounded-lg bg-black/40 border border-green-500/10" data-testid={`row-story-${s.id}`}>
+                    {s.imageUrl && (
+                      <img src={s.imageUrl} alt="" className="w-10 h-10 object-cover rounded border border-white/10 shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        {pi && (
+                          <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border border-white/10 bg-black/40">
+                            <pi.Icon className="w-2.5 h-2.5" style={{ color: pi.color }} />
+                            <span style={{ color: pi.color }}>{pi.label}</span>
+                          </span>
+                        )}
+                        <p className="text-white text-sm line-clamp-1">{s.content || (pi ? `${pi.label} post` : "No text")}</p>
+                      </div>
+                      <p className={`text-xs mt-1 font-mono ${isExpired(s.expiresAt) ? "text-red-400/60" : "text-amber-400/50"}`}>
+                        <Clock className="w-3 h-3 inline mr-1" />
+                        {isExpired(s.expiresAt) ? "Expired" : `Expires ${new Date(s.expiresAt).toLocaleString()}`}
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(s.id)} className="text-red-400/70 hover:text-red-400 h-8 w-8 shrink-0" data-testid={`button-delete-story-${s.id}`}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(s.id)} className="text-red-400/70 hover:text-red-400 h-8 w-8 shrink-0" data-testid={`button-delete-story-${s.id}`}>
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>

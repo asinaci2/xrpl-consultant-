@@ -15,6 +15,8 @@ interface Story {
   authorImage: string | null;
   createdAt: string | null;
   expiresAt: string;
+  sourceType?: string | null;
+  sourceUrl?: string | null;
 }
 
 function StoriesInNav() {
