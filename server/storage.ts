@@ -16,10 +16,12 @@ import {
   type CachedMedia
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, gt, lt, and, asc } from "drizzle-orm";
+import { eq, gt, lt, and, asc, desc } from "drizzle-orm";
 
 export interface IStorage {
   createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
+  getAllInquiries(): Promise<Inquiry[]>;
+  deleteInquiry(id: number): Promise<void>;
   createChatSession(session: InsertChatSession & { matrixRoomId?: string }): Promise<ChatSession>;
   getChatSession(sessionId: string): Promise<ChatSession | undefined>;
   updateChatSessionMatrixRoom(sessionId: string, matrixRoomId: string): Promise<void>;
@@ -28,6 +30,8 @@ export interface IStorage {
   clearAllChatMessages(): Promise<void>;
   createStory(story: InsertStory): Promise<Story>;
   getActiveStories(): Promise<Story[]>;
+  getAllStories(): Promise<Story[]>;
+  deleteStory(id: number): Promise<void>;
   deleteExpiredStories(): Promise<void>;
   getMediaBySection(section: string): Promise<CachedMedia[]>;
   getAllMedia(): Promise<CachedMedia[]>;
@@ -43,6 +47,17 @@ export class DatabaseStorage implements IStorage {
       .values(insertInquiry)
       .returning();
     return inquiry;
+  }
+
+  async getAllInquiries(): Promise<Inquiry[]> {
+    return await db
+      .select()
+      .from(inquiries)
+      .orderBy(desc(inquiries.createdAt));
+  }
+
+  async deleteInquiry(id: number): Promise<void> {
+    await db.delete(inquiries).where(eq(inquiries.id, id));
   }
 
   async createChatSession(session: InsertChatSession & { matrixRoomId?: string }): Promise<ChatSession> {
@@ -103,6 +118,17 @@ export class DatabaseStorage implements IStorage {
       .from(stories)
       .where(gt(stories.expiresAt, now))
       .orderBy(stories.createdAt);
+  }
+
+  async getAllStories(): Promise<Story[]> {
+    return await db
+      .select()
+      .from(stories)
+      .orderBy(desc(stories.createdAt));
+  }
+
+  async deleteStory(id: number): Promise<void> {
+    await db.delete(stories).where(eq(stories.id, id));
   }
 
   async deleteExpiredStories(): Promise<void> {

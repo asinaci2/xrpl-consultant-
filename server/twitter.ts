@@ -271,16 +271,17 @@ async function fetchTweetsFromApi(): Promise<FormattedTweet[]> {
   }
 }
 
-export async function getUserTweets(count: number = 10): Promise<FormattedTweet[]> {
+export async function getUserTweets(count: number = 10, forceRefresh: boolean = false): Promise<FormattedTweet[]> {
   const now = Date.now();
   
-  // Check if database cache is still valid
-  const cacheValid = await isCacheValid();
-  if (cacheValid) {
-    const dbTweets = await getCachedTweetsFromDb();
-    if (dbTweets.length > 0) {
-      console.log("Returning tweets from database cache");
-      return dbTweets.slice(0, count);
+  if (!forceRefresh) {
+    const cacheValid = await isCacheValid();
+    if (cacheValid) {
+      const dbTweets = await getCachedTweetsFromDb();
+      if (dbTweets.length > 0) {
+        console.log("Returning tweets from database cache");
+        return dbTweets.slice(0, count);
+      }
     }
   }
   

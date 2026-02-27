@@ -126,3 +126,18 @@ shared/           # Shared code between client/server
 - **Dark theme**: All sections use semi-transparent dark backgrounds (bg-black/70 to bg-black/90) with backdrop-blur
 - **Color scheme**: Green accents (green-400/500), white headings, gray-300/400 body text, green-500/20 borders
 - **Navigation**: Glass-nav effect with bg-black/80 backdrop-blur, green accent buttons
+
+### Admin Dashboard
+- **Page**: `client/src/pages/Admin.tsx` at route `/admin`
+- **Tabs**: Media, Stories, Inquiries, Tweets
+- **Media Tab**: View/add/delete/toggle media entries; supports manual, Instagram, TikTok, Google Drive sources
+- **Stories Tab**: Create/delete stories with content, author name, optional image URL
+- **Inquiries Tab**: View/delete contact form submissions
+- **Tweets Tab**: View cached tweets, force refresh from Twitter API
+- **Additional API Endpoints**:
+  - `PATCH /api/media/:id` - Update media fields (isActive, altText, displayOrder, section)
+  - `GET /api/inquiries` - List all inquiries
+  - `DELETE /api/inquiries/:id` - Delete an inquiry
+  - `GET /api/stories/all` - List all stories (including expired)
+  - `DELETE /api/stories/:id` - Delete a story
+  - `POST /api/twitter/refresh` - Force refresh Twitter cache

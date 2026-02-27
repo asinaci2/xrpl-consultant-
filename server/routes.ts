@@ -322,7 +322,7 @@ export async function registerRoutes(
 
   app.post("/api/stories", upload.single("image"), async (req, res) => {
     try {
-      const { content, authorName, authorImage } = req.body;
+      const { content, authorName, authorImage, imageUrl: bodyImageUrl } = req.body;
       
       let imageUrl: string | undefined;
       if (req.file) {
@@ -335,6 +335,8 @@ export async function registerRoutes(
           "mxc://",
           "https://synapse.textrp.io/_matrix/media/v3/download/"
         );
+      } else if (bodyImageUrl) {
+        imageUrl = bodyImageUrl;
       }
       
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -440,6 +442,96 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Media deletion error:", err);
       res.status(500).json({ message: "Failed to delete media entry" });
+    }
+  });
+
+  app.patch("/api/media/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid ID" });
+        return;
+      }
+      const updateSchema = z.object({
+        isActive: z.boolean().optional(),
+        altText: z.string().nullable().optional(),
+        displayOrder: z.number().int().optional(),
+        section: z.string().min(1).optional(),
+      });
+      const input = updateSchema.parse(req.body);
+      const updated = await storage.updateMedia(id, input);
+      if (!updated) {
+        res.status(404).json({ message: "Media entry not found" });
+        return;
+      }
+      res.json(updated);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message });
+        return;
+      }
+      console.error("Media update error:", err);
+      res.status(500).json({ message: "Failed to update media entry" });
+    }
+  });
+
+  app.get("/api/inquiries", async (_req, res) => {
+    try {
+      const allInquiries = await storage.getAllInquiries();
+      res.json(allInquiries);
+    } catch (err) {
+      console.error("Inquiries fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch inquiries" });
+    }
+  });
+
+  app.delete("/api/inquiries/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid ID" });
+        return;
+      }
+      await storage.deleteInquiry(id);
+      res.json({ message: "Inquiry deleted" });
+    } catch (err) {
+      console.error("Inquiry deletion error:", err);
+      res.status(500).json({ message: "Failed to delete inquiry" });
+    }
+  });
+
+  app.get("/api/stories/all", async (_req, res) => {
+    try {
+      const allStories = await storage.getAllStories();
+      res.json(allStories);
+    } catch (err) {
+      console.error("Stories fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch stories" });
+    }
+  });
+
+  app.delete("/api/stories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid ID" });
+        return;
+      }
+      await storage.deleteStory(id);
+      res.json({ message: "Story deleted" });
+    } catch (err) {
+      console.error("Story deletion error:", err);
+      res.status(500).json({ message: "Failed to delete story" });
+    }
+  });
+
+  app.post("/api/twitter/refresh", async (_req, res) => {
+    try {
+      const tweets = await getUserTweets(10, true);
+      res.json({ message: "Twitter cache refreshed", count: tweets.length });
+    } catch (err) {
+      console.error("Twitter refresh error:", err);
+      res.status(500).json({ message: "Failed to refresh Twitter cache" });
     }
   });
 
