@@ -1,47 +1,59 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Hexagon, LogIn, AlertCircle } from "lucide-react";
-
-const TEXTRP_ROOM_URL = "https://app.textrp.io/#/room/#budzy-vibe:synapse.textrp.io";
+import { Hexagon, LogIn, AlertCircle, Loader2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [, setLocation] = useLocation();
-  const { login } = useAuth();
+  const { isAdmin, isAuthenticated, isLoading } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const errParam = params.get("error");
+    if (errParam === "missing_token") {
+      setError("Authentication failed — no token received.");
+    } else if (errParam === "session_failed") {
+      setError("Failed to create session. Please try again.");
+    } else if (errParam === "auth_failed") {
+      setError("Authentication failed. Please try again.");
+    }
+  }, []);
 
-    login.mutate(
-      { username, password },
-      {
-        onSuccess: (data) => {
-          if (data.isAdmin) {
-            setLocation("/admin");
-          } else {
-            window.location.href = TEXTRP_ROOM_URL;
-          }
-        },
-        onError: (err: any) => {
-          const msg = err?.message || "Login failed";
-          const cleaned = msg.replace(/^\d+:\s*/, "").replace(/^"(.*)"$/, "$1");
-          try {
-            const parsed = JSON.parse(cleaned);
-            setError(parsed.message || "Invalid credentials");
-          } catch {
-            setError(cleaned || "Invalid credentials");
-          }
-        },
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      if (isAdmin) {
+        setLocation("/admin");
+      } else {
+        window.location.href = "https://app.textrp.io/#/room/#budzy-vibe:synapse.textrp.io";
       }
-    );
+    }
+  }, [isLoading, isAuthenticated, isAdmin, setLocation]);
+
+  const handleLogin = async () => {
+    setError("");
+    setIsRedirecting(true);
+    try {
+      const res = await apiRequest("GET", "/api/auth/sso-redirect");
+      const data = await res.json();
+      window.location.href = data.url;
+    } catch (err: any) {
+      setError("Failed to start login. Please try again.");
+      setIsRedirecting(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-green-400 font-mono animate-pulse">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4 relative overflow-hidden">
@@ -67,74 +79,44 @@ export default function Login() {
             </div>
           </div>
           <CardTitle className="text-2xl font-display text-white">
-            Matrix Login
+            Connect with Xumm
           </CardTitle>
           <p className="text-gray-400 text-sm font-mono mt-1">
-            synapse.textrp.io
+            Sign in via XRPL wallet
           </p>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm" data-testid="text-login-error">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{error}</span>
-              </div>
+        <CardContent className="space-y-4">
+          {error && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm" data-testid="text-login-error">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <Button
+            onClick={handleLogin}
+            disabled={isRedirecting}
+            className="w-full bg-green-500 hover:bg-green-600 text-black font-bold font-mono py-6 text-base transition-all duration-300"
+            data-testid="button-login"
+          >
+            {isRedirecting ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Redirecting to Xumm...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <LogIn className="w-5 h-5" />
+                Sign in with Xumm
+              </span>
             )}
+          </Button>
 
-            <div className="space-y-2">
-              <label className="text-sm font-mono text-green-400" htmlFor="username">
-                Username
-              </label>
-              <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="matrix_username"
-                required
-                className="bg-black/60 border-green-500/30 text-white placeholder:text-gray-600 focus:border-green-400 focus:ring-green-400/20 font-mono"
-                data-testid="input-username"
-              />
-            </div>
+          <p className="text-center text-xs text-gray-600 font-mono">
+            Powered by synapse.textrp.io
+          </p>
 
-            <div className="space-y-2">
-              <label className="text-sm font-mono text-green-400" htmlFor="password">
-                Password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="bg-black/60 border-green-500/30 text-white placeholder:text-gray-600 focus:border-green-400 focus:ring-green-400/20 font-mono"
-                data-testid="input-password"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={login.isPending}
-              className="w-full bg-green-500 hover:bg-green-600 text-black font-bold font-mono py-5 transition-all duration-300"
-              data-testid="button-login"
-            >
-              {login.isPending ? (
-                <span className="flex items-center gap-2">
-                  <span className="animate-spin">⟳</span>
-                  Authenticating...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <LogIn className="w-4 h-4" />
-                  Connect
-                </span>
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
+          <div className="pt-2 text-center">
             <a
               href="/"
               className="text-sm text-gray-500 hover:text-green-400 transition-colors font-mono"

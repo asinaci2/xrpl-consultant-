@@ -148,20 +148,22 @@ shared/           # Shared code between client/server
   - `PATCH /api/projects/:id` - Update project fields
   - `DELETE /api/projects/:id` - Delete a project
 
-### Authentication (Matrix Login)
-- **Service**: `server/auth.ts` - Matrix homeserver authentication via `synapse.textrp.io`
-- **Login Flow**: `POST /api/auth/login` → Matrix `/_matrix/client/v3/login` with `m.login.password`
+### Authentication (Matrix SSO via Xumm)
+- **Service**: `server/auth.ts` - Matrix homeserver SSO authentication via `synapse.textrp.io`
+- **Login Flow**: SSO redirect → Xumm wallet auth → Matrix callback with `loginToken` → `m.login.token` exchange
+- **SSO Provider**: Xumm (XRPL wallet) via `oidc-xumm` identity provider on Synapse
 - **Session**: `express-session` with `connect-pg-simple` PostgreSQL-backed sessions (7-day cookie)
 - **Admin Control**: `ADMIN_MATRIX_USERS` env var (comma-separated Matrix user IDs)
 - **Middleware**: `requireAuth` (checks session exists), `requireAdmin` (checks session + admin flag)
 - **Frontend**: 
-  - `client/src/pages/Login.tsx` - Matrix-themed login page at `/login`
-  - `client/src/hooks/useAuth.ts` - Auth state hook (login/logout/me)
+  - `client/src/pages/Login.tsx` - Matrix-themed SSO login page at `/login` (single "Sign in with Xumm" button)
+  - `client/src/hooks/useAuth.ts` - Auth state hook (logout/me)
   - Login redirects: admin → `/admin`, regular users → `https://app.textrp.io/#/room/#budzy-vibe:synapse.textrp.io`
 - **Protected Routes**: All admin CRUD endpoints require `requireAdmin` middleware
 - **Public Routes**: `GET /api/projects`, `GET /api/stories`, `GET /api/media/:section`, `GET /api/twitter/tweets`, `POST /api/inquiries`, chat endpoints
 - **Auth Endpoints**:
-  - `POST /api/auth/login` - Login with Matrix credentials
+  - `GET /api/auth/sso-redirect` - Returns Xumm SSO redirect URL
+  - `GET /api/auth/callback` - Handles SSO callback, exchanges token, creates session
   - `POST /api/auth/logout` - Destroy session
   - `GET /api/auth/me` - Get current user info
 

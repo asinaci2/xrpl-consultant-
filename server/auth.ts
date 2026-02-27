@@ -42,33 +42,32 @@ export function setupSession(app: Express) {
   );
 }
 
-export async function loginWithMatrix(username: string, password: string) {
+export function getSSORedirectUrl(callbackUrl: string): string {
+  return `${MATRIX_HOMESERVER}/_matrix/client/v3/login/sso/redirect/oidc-xumm?redirectUrl=${encodeURIComponent(callbackUrl)}`;
+}
+
+export async function exchangeLoginToken(loginToken: string) {
   const response = await fetch(`${MATRIX_HOMESERVER}/_matrix/client/v3/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      type: "m.login.password",
-      identifier: {
-        type: "m.id.user",
-        user: username,
-      },
-      password,
+      type: "m.login.token",
+      token: loginToken,
     }),
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error((error as any).error || "Invalid credentials");
+    throw new Error((error as any).error || "Token exchange failed");
   }
 
   const data = await response.json() as {
     user_id: string;
     access_token: string;
     device_id: string;
-    well_known?: any;
   };
 
-  let displayName = username;
+  let displayName = data.user_id;
   try {
     const profileRes = await fetch(
       `${MATRIX_HOMESERVER}/_matrix/client/v3/profile/${encodeURIComponent(data.user_id)}/displayname`,

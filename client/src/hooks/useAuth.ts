@@ -15,16 +15,6 @@ export function useAuth() {
     retry: false,
   });
 
-  const loginMutation = useMutation({
-    mutationFn: async (credentials: { username: string; password: string }) => {
-      const res = await apiRequest("POST", "/api/auth/login", credentials);
-      return (await res.json()) as AuthUser;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-    },
-  });
-
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", "/api/auth/logout");
@@ -40,7 +30,6 @@ export function useAuth() {
     isLoading,
     isAuthenticated: !!user,
     isAdmin: !!user?.isAdmin,
-    login: loginMutation,
     logout: logoutMutation,
   };
 }

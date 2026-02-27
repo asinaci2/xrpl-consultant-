@@ -8,7 +8,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { createChatRoom, sendMatrixMessage, getNewReplies, uploadFileToMatrix, uploadMediaToMatrix } from "./matrix";
 import { getUserTweets, searchTweets } from "./twitter";
 import { resolveMediaUrl, refreshMediaEntry } from "./media";
-import { loginWithMatrix, requireAdmin } from "./auth";
+import { getSSORedirectUrl, exchangeLoginToken, requireAdmin } from "./auth";
 import multer from "multer";
 
 const clients = new Map<string, Set<WebSocket>>();
@@ -91,14 +91,23 @@ export async function registerRoutes(
   // Start polling every 3 seconds
   setInterval(pollMatrixReplies, 3000);
 
-  app.post("/api/auth/login", async (req, res) => {
+  app.get("/api/auth/sso-redirect", (req, res) => {
+    const host = req.get("host") || "localhost:5000";
+    const protocol = req.protocol;
+    const callbackUrl = `${protocol}://${host}/api/auth/callback`;
+    const ssoUrl = getSSORedirectUrl(callbackUrl);
+    res.json({ url: ssoUrl });
+  });
+
+  app.get("/api/auth/callback", async (req, res) => {
     try {
-      const loginSchema = z.object({
-        username: z.string().min(1),
-        password: z.string().min(1),
-      });
-      const { username, password } = loginSchema.parse(req.body);
-      const result = await loginWithMatrix(username, password);
+      const loginToken = req.query.loginToken as string;
+      if (!loginToken) {
+        res.redirect("/login?error=missing_token");
+        return;
+      }
+
+      const result = await exchangeLoginToken(loginToken);
 
       req.session.userId = result.userId;
       req.session.accessToken = result.accessToken;
@@ -108,18 +117,19 @@ export async function registerRoutes(
       req.session.save((err) => {
         if (err) {
           console.error("Session save error:", err);
-          res.status(500).json({ message: "Failed to save session" });
+          res.redirect("/login?error=session_failed");
           return;
         }
-        res.json({
-          userId: result.userId,
-          displayName: result.displayName,
-          isAdmin: result.isAdmin,
-        });
+
+        if (result.isAdmin) {
+          res.redirect("/admin");
+        } else {
+          res.redirect("https://app.textrp.io/#/room/#budzy-vibe:synapse.textrp.io");
+        }
       });
     } catch (err: any) {
-      console.error("Login error:", err);
-      res.status(401).json({ message: err.message || "Invalid credentials" });
+      console.error("SSO callback error:", err);
+      res.redirect("/login?error=auth_failed");
     }
   });
 
