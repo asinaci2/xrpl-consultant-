@@ -200,6 +200,20 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/chat/sessions/:sessionId", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const session = await storage.getChatSession(sessionId);
+      if (!session) {
+        res.status(404).json({ message: "Session not found" });
+        return;
+      }
+      res.json(session);
+    } catch (err) {
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
+
   app.get("/api/chat/sessions/:sessionId/messages", async (req, res) => {
     try {
       const { sessionId } = req.params;

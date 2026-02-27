@@ -36,12 +36,24 @@ export function ChatWidget() {
   useEffect(() => {
     const stored = localStorage.getItem("chat_session_id");
     const storedName = localStorage.getItem("chat_visitor_name");
-    if (stored) {
-      setSessionId(stored);
-    }
-    if (storedName) {
-      setVisitorName(storedName);
-    }
+    if (!stored) return;
+    if (storedName) setVisitorName(storedName);
+
+    fetch(`/api/chat/sessions/${stored}`)
+      .then(res => {
+        if (res.ok) {
+          setSessionId(stored);
+        } else {
+          localStorage.removeItem("chat_session_id");
+          localStorage.removeItem("chat_visitor_name");
+          setVisitorName("");
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem("chat_session_id");
+        localStorage.removeItem("chat_visitor_name");
+        setVisitorName("");
+      });
   }, []);
 
   const { data: messages = [] } = useQuery<ChatMessage[]>({
