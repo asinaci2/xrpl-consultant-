@@ -180,11 +180,21 @@ export function requireConsultant(req: Request, res: Response, next: NextFunctio
     next();
     return;
   }
-  if (!req.session.consultantSlug) {
-    res.status(403).json({ message: "Consultant access required" });
+  // Consultants with an established record pass
+  if (req.session.consultantSlug) {
+    next();
     return;
   }
-  next();
+  // Room members without a consultant record yet also pass — they can create their page
+  try {
+    const { isConsultantRoomMember } = require("./sync");
+    if (isConsultantRoomMember(req.session.userId)) {
+      next();
+      return;
+    }
+  } catch {
+  }
+  res.status(403).json({ message: "Consultant access required" });
 }
 
 import type { IStorage } from "./storage";

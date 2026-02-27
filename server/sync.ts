@@ -5,7 +5,15 @@ const ADMIN_MATRIX_ROOM = process.env.ADMIN_MATRIX_ROOM || "!imueijCPGUZihXVrif:
 const CONSULTANT_MATRIX_ROOM = process.env.CONSULTANT_MATRIX_ROOM || "";
 const SYNC_INTERVAL_MS = 60_000;
 
+const EXCLUDED_IDS: Set<string> = new Set(
+  (process.env.SYNC_EXCLUDE_MATRIX_IDS || "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean)
+);
+
 const liveAdmins = new Set<string>();
+const liveConsultantRoomMembers = new Set<string>();
 
 let lastSyncAt: Date | null = null;
 let lastAdminCount = 0;
@@ -16,6 +24,10 @@ export function getLiveAdmins(): Set<string> {
   return liveAdmins;
 }
 
+export function isConsultantRoomMember(matrixUserId: string): boolean {
+  return liveConsultantRoomMembers.has(matrixUserId);
+}
+
 export function getSyncStatus() {
   return {
     lastSyncAt: lastSyncAt?.toISOString() ?? null,
@@ -24,6 +36,7 @@ export function getSyncStatus() {
     consultantsSynced: lastConsultantsSynced,
     adminRoomId: ADMIN_MATRIX_ROOM,
     consultantRoomId: CONSULTANT_MATRIX_ROOM || null,
+    excludedIds: Array.from(EXCLUDED_IDS),
   };
 }
 
@@ -50,6 +63,9 @@ async function syncConsultantRoom(storage: IStorage): Promise<void> {
   lastConsultantRoomCount = members.length;
   console.log(`[sync] Consultant room members: ${members.length}`);
 
+  liveConsultantRoomMembers.clear();
+  for (const m of members) liveConsultantRoomMembers.add(m);
+
   const existingConsultants = await storage.getConsultants();
   const existingByMatrixId = new Map(
     existingConsultants
@@ -61,6 +77,11 @@ async function syncConsultantRoom(storage: IStorage): Promise<void> {
 
   for (const matrixUserId of members) {
     if (matrixUserId.startsWith("@bot") || !matrixUserId.includes(":")) continue;
+
+    if (EXCLUDED_IDS.has(matrixUserId)) {
+      console.log(`[sync] Skipping excluded ID: ${matrixUserId} (has room access, no auto-create)`);
+      continue;
+    }
 
     const existing = existingByMatrixId.get(matrixUserId);
 
@@ -94,6 +115,7 @@ async function syncConsultantRoom(storage: IStorage): Promise<void> {
   const memberSet = new Set(members);
   for (const consultant of existingConsultants) {
     if (!consultant.matrixUserId) continue;
+    if (EXCLUDED_IDS.has(consultant.matrixUserId)) continue;
     if (!memberSet.has(consultant.matrixUserId) && consultant.isActive) {
       await storage.updateConsultant(consultant.slug, { isActive: false });
       console.log(`[sync] Deactivated consultant no longer in room: ${consultant.slug}`);
