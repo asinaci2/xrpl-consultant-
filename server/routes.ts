@@ -126,10 +126,9 @@ export async function registerRoutes(
           return;
         }
 
-        if (result.isAdmin) {
-          res.redirect("/admin");
-        } else if (consultantSlug) {
-          res.redirect("/dashboard");
+        if (result.isAdmin || consultantSlug) {
+          // Has a role — send to the role-aware welcome landing screen
+          res.redirect("/welcome");
         } else {
           // Authenticated via XRPL wallet but no role assigned — send to error page
           res.redirect("/login?error=no_role");

@@ -8,6 +8,7 @@ import ConsultantPage from "@/pages/ConsultantPage";
 import Admin from "@/pages/Admin";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
+import Welcome from "@/pages/Welcome";
 import NotFound from "@/pages/not-found";
 import { ChatWidget } from "@/components/ChatWidget";
 import { useAuth } from "@/hooks/useAuth";
@@ -58,6 +59,7 @@ function Router() {
       <Route path="/" component={Directory} />
       <Route path="/c/:slug" component={ConsultantPage} />
       <Route path="/login" component={Login} />
+      <Route path="/welcome" component={Welcome} />
       <Route path="/admin" component={ProtectedAdmin} />
       <Route path="/dashboard" component={ProtectedDashboard} />
       <Route component={NotFound} />

@@ -28,13 +28,11 @@ export default function Login() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      if (isAdmin) {
-        setLocation("/admin");
-      } else if (isConsultant) {
-        setLocation("/dashboard");
-      } else {
-        window.location.href = "https://app.textrp.io/#/room/#budzy-vibe:synapse.textrp.io";
-      }
+      // If there's an error param being shown, stay on this page — don't redirect away
+      const hasErrorParam = !!new URLSearchParams(window.location.search).get("error");
+      if (hasErrorParam) return;
+      // Send everyone with a valid session to the welcome screen
+      setLocation("/welcome");
     }
   }, [isLoading, isAuthenticated, isAdmin, isConsultant, setLocation]);
 
