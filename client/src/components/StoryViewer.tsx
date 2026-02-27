@@ -29,6 +29,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const touchMoved = useRef(false);
+  const touchNavigated = useRef(false);
 
   const currentStory = stories[currentIndex];
 
@@ -88,6 +89,10 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
   };
 
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (touchNavigated.current) {
+      touchNavigated.current = false;
+      return;
+    }
     const rect = e.currentTarget.getBoundingClientRect();
     if (e.clientX < rect.left + rect.width / 2) {
       goToPrev();
@@ -110,9 +115,11 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < 10) {
+      touchNavigated.current = true;
       if (touchStartX.current < window.innerWidth / 2) goToPrev();
       else goToNext();
     } else if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      touchNavigated.current = true;
       if (dx < 0) goToNext();
       else goToPrev();
     }
