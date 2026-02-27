@@ -145,6 +145,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
           style={{
             background: "linear-gradient(to bottom, #0d1f0d, #0a0a0a)",
             boxShadow: "0 0 40px rgba(74,222,128,0.2), 0 0 80px rgba(74,222,128,0.1)",
+            touchAction: "none",
           }}
           onClick={handleCardClick}
           onMouseDown={() => setIsPaused(true)}

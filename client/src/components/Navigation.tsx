@@ -42,8 +42,8 @@ function StoriesInNav() {
     return acc;
   }, {} as Record<string, Story[]>);
 
-  const handleStoryClick = (authorStories: Story[]) => {
-    setViewerState({ isOpen: true, stories: authorStories, startIndex: 0 });
+  const handleStoryClick = (allStories: Story[], startIndex: number) => {
+    setViewerState({ isOpen: true, stories: allStories, startIndex });
   };
 
   return (
@@ -60,7 +60,7 @@ function StoriesInNav() {
           return (
             <button
               key={authorName}
-              onClick={() => handleStoryClick(authorStories)}
+              onClick={() => handleStoryClick(stories, stories.findIndex(s => s.id === authorStories[0].id))}
               className="flex items-center gap-2 shrink-0 group"
               data-testid={`story-bubble-${authorName.replace(/\s+/g, "-").toLowerCase()}`}
             >
