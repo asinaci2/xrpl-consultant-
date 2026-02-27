@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,11 +26,14 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
+  const touchStartRef = useRef(0);
 
   const currentStory = stories[currentIndex];
 
   const goToNext = useCallback(() => {
     if (currentIndex < stories.length - 1) {
+      setDirection(1);
       setCurrentIndex(currentIndex + 1);
       setProgress(0);
     } else {
@@ -40,6 +43,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
 
   const goToPrev = useCallback(() => {
     if (currentIndex > 0) {
+      setDirection(-1);
       setCurrentIndex(currentIndex - 1);
       setProgress(0);
     }
@@ -110,8 +114,18 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
           onMouseDown={() => setIsPaused(true)}
           onMouseUp={() => setIsPaused(false)}
           onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
+          onTouchStart={(e) => {
+            touchStartRef.current = e.touches[0].clientX;
+            setIsPaused(true);
+          }}
+          onTouchEnd={(e) => {
+            const diff = touchStartRef.current - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+              if (diff > 0) goToNext();
+              else goToPrev();
+            }
+            setIsPaused(false);
+          }}
           data-testid="story-viewer-container"
         >
           <div className="absolute top-0 left-0 right-0 flex gap-1 p-2 z-10">
@@ -135,40 +149,8 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
             ))}
           </div>
 
-          <div className="absolute top-6 left-0 right-0 flex items-center justify-between px-4 z-10">
-            <div className="flex items-center gap-3">
-              <div 
-                className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 p-[2px]"
-                style={{
-                  boxShadow: "0 0 10px rgba(74, 222, 128, 0.4)",
-                }}
-              >
-                {currentStory.authorImage ? (
-                  <img
-                    src={currentStory.authorImage}
-                    alt={currentStory.authorName}
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full rounded-full bg-[#0a0a0a] flex items-center justify-center">
-                    <span className="text-green-400 font-mono font-bold">
-                      {currentStory.authorName.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div>
-                <p 
-                  className="text-green-400 font-mono text-sm font-medium"
-                  style={{ textShadow: "0 0 10px rgba(74, 222, 128, 0.5)" }}
-                >
-                  {currentStory.authorName}
-                </p>
-                <p className="text-green-600 font-mono text-xs">
-                  {formatTimeAgo(currentStory.createdAt)}
-                </p>
-              </div>
-            </div>
+          {/* Close button — always fixed, not animated */}
+          <div className="absolute top-6 right-4 z-20">
             <Button
               size="icon"
               variant="ghost"
@@ -180,42 +162,89 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
             </Button>
           </div>
 
-          <div className="flex items-center justify-center h-full pt-16 pb-20 px-4">
-            {currentStory.imageUrl ? (
-              <img
-                src={currentStory.imageUrl}
-                alt="Story"
-                className="max-w-full max-h-full object-contain rounded-lg"
-                style={{
-                  boxShadow: "0 0 30px rgba(74, 222, 128, 0.2)",
-                }}
-              />
-            ) : currentStory.content ? (
-              <div 
-                className="text-center px-8"
-                style={{
-                  textShadow: "0 0 20px rgba(74, 222, 128, 0.4)",
-                }}
-              >
-                <p className="text-green-400 font-mono text-xl leading-relaxed">
-                  {currentStory.content}
-                </p>
-              </div>
-            ) : null}
-          </div>
-
-          {currentStory.content && currentStory.imageUrl && (
-            <div 
-              className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 to-transparent"
+          {/* Sliding story content — animates on index change */}
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentIndex}
+              custom={direction}
+              variants={{
+                enter: (d: number) => ({ x: d * 320, opacity: 0 }),
+                center: { x: 0, opacity: 1 },
+                exit: (d: number) => ({ x: -d * 320, opacity: 0 }),
+              }}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.28, ease: "easeInOut" }}
+              className="absolute inset-0 flex flex-col"
             >
-              <p 
-                className="text-green-400 font-mono text-sm text-center"
-                style={{ textShadow: "0 0 10px rgba(74, 222, 128, 0.5)" }}
-              >
-                {currentStory.content}
-              </p>
-            </div>
-          )}
+              {/* Author header */}
+              <div className="absolute top-6 left-0 right-16 flex items-center gap-3 px-4 z-10">
+                <div
+                  className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 p-[2px] flex-shrink-0"
+                  style={{ boxShadow: "0 0 10px rgba(74, 222, 128, 0.4)" }}
+                >
+                  {currentStory.authorImage ? (
+                    <img
+                      src={currentStory.authorImage}
+                      alt={currentStory.authorName}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-[#0a0a0a] flex items-center justify-center">
+                      <span className="text-green-400 font-mono font-bold">
+                        {currentStory.authorName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p
+                    className="text-green-400 font-mono text-sm font-medium"
+                    style={{ textShadow: "0 0 10px rgba(74, 222, 128, 0.5)" }}
+                  >
+                    {currentStory.authorName}
+                  </p>
+                  <p className="text-green-600 font-mono text-xs">
+                    {formatTimeAgo(currentStory.createdAt)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Main content */}
+              <div className="flex items-center justify-center h-full pt-16 pb-20 px-4">
+                {currentStory.imageUrl ? (
+                  <img
+                    src={currentStory.imageUrl}
+                    alt="Story"
+                    className="max-w-full max-h-full object-contain rounded-lg"
+                    style={{ boxShadow: "0 0 30px rgba(74, 222, 128, 0.2)" }}
+                  />
+                ) : currentStory.content ? (
+                  <div
+                    className="text-center px-8"
+                    style={{ textShadow: "0 0 20px rgba(74, 222, 128, 0.4)" }}
+                  >
+                    <p className="text-green-400 font-mono text-xl leading-relaxed">
+                      {currentStory.content}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Caption (only when both image + text) */}
+              {currentStory.content && currentStory.imageUrl && (
+                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 to-transparent">
+                  <p
+                    className="text-green-400 font-mono text-sm text-center"
+                    style={{ textShadow: "0 0 10px rgba(74, 222, 128, 0.5)" }}
+                  >
+                    {currentStory.content}
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
 
           <button
             onClick={(e) => { e.stopPropagation(); goToPrev(); }}
