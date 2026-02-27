@@ -13,6 +13,7 @@ import {
   LogOut,
   AlertCircle,
   ArrowLeft,
+  MessageSquare,
 } from "lucide-react";
 
 export default function Welcome() {
@@ -251,6 +252,27 @@ export default function Welcome() {
             </Link>
           </div>
         )}
+
+        {/* TextRP — shown for all authenticated users */}
+        <a
+          href="https://app.textrp.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="card-nav-textrp"
+        >
+          <div className="group bg-black/80 border border-blue-500/20 hover:border-blue-500/50 rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/5 backdrop-blur-xl">
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors shrink-0">
+                <MessageSquare className="w-5 h-5 text-blue-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-semibold font-display">TextRP App</p>
+                <p className="text-gray-500 text-sm font-mono mt-0.5">Open the TextRP messaging platform</p>
+              </div>
+              <ExternalLink className="w-4 h-4 text-gray-700 group-hover:text-blue-400 transition-colors shrink-0" />
+            </div>
+          </div>
+        </a>
 
         {/* Footer link */}
         <div className="text-center">
