@@ -29,6 +29,10 @@ export function getSyncStatus() {
 
 async function syncAdminRoom(): Promise<void> {
   const members = await getRoomMembers(ADMIN_MATRIX_ROOM);
+  if (members === null) {
+    console.warn("[sync] Admin room fetch failed — skipping admin sync (bot not in room or no token)");
+    return;
+  }
   liveAdmins.clear();
   for (const m of members) liveAdmins.add(m);
   lastAdminCount = members.length;
@@ -39,6 +43,10 @@ async function syncConsultantRoom(storage: IStorage): Promise<void> {
   if (!CONSULTANT_MATRIX_ROOM) return;
 
   const members = await getRoomMembers(CONSULTANT_MATRIX_ROOM);
+  if (members === null) {
+    console.warn("[sync] Consultant room fetch failed — skipping consultant sync (bot not in room or no token)");
+    return;
+  }
   lastConsultantRoomCount = members.length;
   console.log(`[sync] Consultant room members: ${members.length}`);
 
