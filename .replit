@@ -44,3 +44,4 @@ waitForPort = 5000
 ACCESS_TOKEN = "syt_ckdIU3pFa3YyaEVrbzhVa05qN2U1YXpSODZnNmNSMlZ5Yw_OnBpShKpkCqAmowluXBZ_0xFwYt"
 RECIPIENT = "@rP9jGcAaVjpdqcdHbEckLtRoCYjETxXosj:synapse.textrp.io"
 USER = "@rGHSzEkv2hEko8UkNj7e5azR86g6cR2Vyc:synapse.textrp.io"
+ADMIN_MATRIX_USERS = "@rP9jGcAaVjpdqcdHbEckLtRoCYjETxXosj:synapse.textrp.io"

@@ -1,9 +1,10 @@
 import { Link } from "react-scroll";
 import { useState, useEffect } from "react";
-import { Menu, X, Hexagon } from "lucide-react";
+import { Menu, X, Hexagon, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import StoryViewer from "./StoryViewer";
+import { Link as RouterLink } from "wouter";
 
 interface Story {
   id: number;
@@ -173,6 +174,12 @@ export function Navigation() {
                 Consultation
               </Button>
             </Link>
+            <RouterLink href="/login" data-testid="link-nav-login">
+              <Button variant="outline" className="border-green-500/40 text-green-400 hover:bg-green-500/10 rounded-full px-4" data-testid="button-login-nav">
+                <LogIn className="w-4 h-4 mr-1" />
+                Login
+              </Button>
+            </RouterLink>
           </div>
 
           {/* Mobile Menu Button */}
@@ -205,12 +212,18 @@ export function Navigation() {
                 {link.name}
               </Link>
             ))}
-            <div className="pt-4">
+            <div className="pt-4 space-y-2">
               <Link to="contact" smooth={true} duration={500} onClick={() => setIsMobileMenuOpen(false)} data-testid="link-mobile-nav-contact">
                 <Button className="w-full bg-green-500 hover:bg-green-600 text-black font-bold rounded-lg" data-testid="button-mobile-consultation">
                   Book Consultation
                 </Button>
               </Link>
+              <RouterLink href="/login" onClick={() => setIsMobileMenuOpen(false)} data-testid="link-mobile-nav-login">
+                <Button variant="outline" className="w-full border-green-500/40 text-green-400 hover:bg-green-500/10 rounded-lg mt-2" data-testid="button-mobile-login">
+                  <LogIn className="w-4 h-4 mr-1" />
+                  Login
+                </Button>
+              </RouterLink>
             </div>
           </div>
         </div>

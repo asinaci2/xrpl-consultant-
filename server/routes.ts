@@ -8,6 +8,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { createChatRoom, sendMatrixMessage, getNewReplies, uploadFileToMatrix, uploadMediaToMatrix } from "./matrix";
 import { getUserTweets, searchTweets } from "./twitter";
 import { resolveMediaUrl, refreshMediaEntry } from "./media";
+import { loginWithMatrix, requireAdmin } from "./auth";
 import multer from "multer";
 
 const clients = new Map<string, Set<WebSocket>>();
@@ -90,6 +91,62 @@ export async function registerRoutes(
   // Start polling every 3 seconds
   setInterval(pollMatrixReplies, 3000);
 
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const loginSchema = z.object({
+        username: z.string().min(1),
+        password: z.string().min(1),
+      });
+      const { username, password } = loginSchema.parse(req.body);
+      const result = await loginWithMatrix(username, password);
+
+      req.session.userId = result.userId;
+      req.session.accessToken = result.accessToken;
+      req.session.displayName = result.displayName;
+      req.session.isAdmin = result.isAdmin;
+
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          res.status(500).json({ message: "Failed to save session" });
+          return;
+        }
+        res.json({
+          userId: result.userId,
+          displayName: result.displayName,
+          isAdmin: result.isAdmin,
+        });
+      });
+    } catch (err: any) {
+      console.error("Login error:", err);
+      res.status(401).json({ message: err.message || "Invalid credentials" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        res.status(500).json({ message: "Failed to logout" });
+        return;
+      }
+      res.clearCookie("connect.sid");
+      res.json({ message: "Logged out" });
+    });
+  });
+
+  app.get("/api/auth/me", (req, res) => {
+    if (!req.session.userId) {
+      res.status(401).json({ message: "Not authenticated" });
+      return;
+    }
+    res.json({
+      userId: req.session.userId,
+      displayName: req.session.displayName,
+      isAdmin: req.session.isAdmin,
+    });
+  });
+
   app.post(api.inquiries.create.path, async (req, res) => {
     try {
       const input = api.inquiries.create.input.parse(req.body);
@@ -143,8 +200,7 @@ export async function registerRoutes(
     }
   });
 
-  // Clear all chat messages
-  app.delete("/api/chat/clear", async (req, res) => {
+  app.delete("/api/chat/clear", requireAdmin, async (req, res) => {
     try {
       await storage.clearAllChatMessages();
       res.json({ message: "All chat messages cleared" });
@@ -320,7 +376,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/stories", upload.single("image"), async (req, res) => {
+  app.post("/api/stories", requireAdmin, upload.single("image"), async (req, res) => {
     try {
       const { content, authorName, authorImage, imageUrl: bodyImageUrl } = req.body;
       
@@ -390,7 +446,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/media", async (req, res) => {
+  app.post("/api/media", requireAdmin, async (req, res) => {
     try {
       const createMediaSchema = z.object({
         source: z.enum(["instagram", "tiktok", "gdrive", "manual"]),
@@ -430,7 +486,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/media/:id", async (req, res) => {
+  app.delete("/api/media/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -445,7 +501,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/media/:id", async (req, res) => {
+  app.patch("/api/media/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -475,7 +531,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/inquiries", async (_req, res) => {
+  app.get("/api/inquiries", requireAdmin, async (_req, res) => {
     try {
       const allInquiries = await storage.getAllInquiries();
       res.json(allInquiries);
@@ -485,7 +541,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/inquiries/:id", async (req, res) => {
+  app.delete("/api/inquiries/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -500,7 +556,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/stories/all", async (_req, res) => {
+  app.get("/api/stories/all", requireAdmin, async (_req, res) => {
     try {
       const allStories = await storage.getAllStories();
       res.json(allStories);
@@ -510,7 +566,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/stories/:id", async (req, res) => {
+  app.delete("/api/stories/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -525,7 +581,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/twitter/refresh", async (_req, res) => {
+  app.post("/api/twitter/refresh", requireAdmin, async (_req, res) => {
     try {
       const tweets = await getUserTweets(10, true);
       res.json({ message: "Twitter cache refreshed", count: tweets.length });
@@ -545,7 +601,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/projects/all", async (_req, res) => {
+  app.get("/api/projects/all", requireAdmin, async (_req, res) => {
     try {
       const allProjects = await storage.getAllProjects();
       res.json(allProjects);
@@ -555,7 +611,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/projects", async (req, res) => {
+  app.post("/api/projects", requireAdmin, async (req, res) => {
     try {
       const createSchema = z.object({
         title: z.string().min(1),
@@ -593,7 +649,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/projects/:id", async (req, res) => {
+  app.patch("/api/projects/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -629,7 +685,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/projects/:id", async (req, res) => {
+  app.delete("/api/projects/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {

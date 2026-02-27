@@ -12,7 +12,9 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, RefreshCw, ArrowLeft, Image, BookOpen, Mail, Twitter, Briefcase, Edit2, X } from "lucide-react";
+import { Trash2, Plus, RefreshCw, ArrowLeft, Image, BookOpen, Mail, Twitter, Briefcase, Edit2, X, LogOut, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 
 type CachedMedia = {
   id: number;
@@ -964,20 +966,48 @@ function ProjectsTab() {
 }
 
 export default function Admin() {
+  const { user, logout } = useAuth();
+  const [, setLocation] = useLocation();
+
+  const handleLogout = () => {
+    logout.mutate(undefined, {
+      onSuccess: () => setLocation("/login"),
+    });
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="text-green-400 hover:bg-green-500/10" data-testid="button-back-home">
-              <ArrowLeft className="w-5 h-5" />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="ghost" size="icon" className="text-green-400 hover:bg-green-500/10" data-testid="button-back-home">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-green-400 font-mono" data-testid="text-admin-title">
+                Admin Dashboard
+              </h1>
+              <p className="text-gray-500 text-sm">Manage your site content</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {user && (
+              <div className="flex items-center gap-2 text-sm text-gray-400 font-mono" data-testid="text-admin-user">
+                <User className="w-4 h-4 text-green-400" />
+                <span>{user.displayName}</span>
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="text-gray-400 hover:text-red-400 hover:bg-red-500/10"
+              data-testid="button-logout"
+            >
+              <LogOut className="w-4 h-4 mr-1" />
+              Logout
             </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-green-400 font-mono" data-testid="text-admin-title">
-              Admin Dashboard
-            </h1>
-            <p className="text-gray-500 text-sm">Manage your site content</p>
           </div>
         </div>
 

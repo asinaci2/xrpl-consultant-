@@ -62,7 +62,7 @@ shared/           # Shared code between client/server
 
 ### Database
 - **PostgreSQL**: Primary database, connection via `DATABASE_URL` environment variable
-- **connect-pg-simple**: Session storage (available but not currently active)
+- **connect-pg-simple**: PostgreSQL-backed session storage for authentication
 
 ### UI Component Library
 - **shadcn/ui**: Pre-built accessible components based on Radix UI primitives
@@ -147,6 +147,23 @@ shared/           # Shared code between client/server
   - `POST /api/projects` - Create a project
   - `PATCH /api/projects/:id` - Update project fields
   - `DELETE /api/projects/:id` - Delete a project
+
+### Authentication (Matrix Login)
+- **Service**: `server/auth.ts` - Matrix homeserver authentication via `synapse.textrp.io`
+- **Login Flow**: `POST /api/auth/login` → Matrix `/_matrix/client/v3/login` with `m.login.password`
+- **Session**: `express-session` with `connect-pg-simple` PostgreSQL-backed sessions (7-day cookie)
+- **Admin Control**: `ADMIN_MATRIX_USERS` env var (comma-separated Matrix user IDs)
+- **Middleware**: `requireAuth` (checks session exists), `requireAdmin` (checks session + admin flag)
+- **Frontend**: 
+  - `client/src/pages/Login.tsx` - Matrix-themed login page at `/login`
+  - `client/src/hooks/useAuth.ts` - Auth state hook (login/logout/me)
+  - Login redirects: admin → `/admin`, regular users → `https://app.textrp.io/#/room/#budzy-vibe:synapse.textrp.io`
+- **Protected Routes**: All admin CRUD endpoints require `requireAdmin` middleware
+- **Public Routes**: `GET /api/projects`, `GET /api/stories`, `GET /api/media/:section`, `GET /api/twitter/tweets`, `POST /api/inquiries`, chat endpoints
+- **Auth Endpoints**:
+  - `POST /api/auth/login` - Login with Matrix credentials
+  - `POST /api/auth/logout` - Destroy session
+  - `GET /api/auth/me` - Get current user info
 
 ### Featured Projects
 - **Database**: `projects` table with title, subtitle, description, impact, link, icon, color, tags, displayOrder, isActive
