@@ -46,14 +46,36 @@ export function getSSORedirectUrl(callbackUrl: string): string {
   return `${MATRIX_HOMESERVER}/_matrix/client/v3/login/sso/redirect/oidc-xumm?redirectUrl=${encodeURIComponent(callbackUrl)}`;
 }
 
-async function isRoomMember(accessToken: string): Promise<boolean> {
+async function isRoomMember(userId: string, userAccessToken: string): Promise<boolean> {
+  const botToken = process.env.ACCESS_TOKEN;
+
+  if (botToken) {
+    try {
+      const res = await fetch(
+        `${MATRIX_HOMESERVER}/_matrix/client/v3/rooms/${encodeURIComponent(ADMIN_MATRIX_ROOM)}/joined_members`,
+        { headers: { Authorization: `Bearer ${botToken}` } }
+      );
+      if (res.ok) {
+        const data = await res.json() as { joined: Record<string, unknown> };
+        const found = userId in data.joined;
+        console.log(`[auth] Bot room check: userId=${userId} inAdminRoom=${found} room=${ADMIN_MATRIX_ROOM}`);
+        return found;
+      }
+      console.warn(`[auth] Bot room check failed (${res.status}), falling back to user token`);
+    } catch (err) {
+      console.warn("[auth] Bot room check error, falling back to user token:", err);
+    }
+  }
+
   try {
     const res = await fetch(`${MATRIX_HOMESERVER}/_matrix/client/v3/joined_rooms`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { Authorization: `Bearer ${userAccessToken}` },
     });
     if (!res.ok) return false;
     const data = await res.json() as { joined_rooms: string[] };
-    return data.joined_rooms.includes(ADMIN_MATRIX_ROOM);
+    const found = data.joined_rooms.includes(ADMIN_MATRIX_ROOM);
+    console.log(`[auth] User token room check: userId=${userId} inAdminRoom=${found} room=${ADMIN_MATRIX_ROOM}`);
+    return found;
   } catch {
     return false;
   }
@@ -95,7 +117,7 @@ export async function exchangeLoginToken(loginToken: string) {
   } catch {
   }
 
-  const isAdmin = await isRoomMember(data.access_token);
+  const isAdmin = await isRoomMember(data.user_id, data.access_token);
 
   console.log(`[auth] Login: userId=${data.user_id} displayName=${displayName} isAdmin=${isAdmin} adminRoom=${ADMIN_MATRIX_ROOM}`);
 
