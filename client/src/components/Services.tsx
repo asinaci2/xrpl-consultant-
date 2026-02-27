@@ -125,7 +125,7 @@ export function Services() {
               <Badge 
                 key={index} 
                 variant="secondary" 
-                className="flex items-center gap-2"
+                className="skill-badge flex items-center gap-2"
                 data-testid={`badge-skill-${index}`}
               >
                 <skill.icon className="w-4 h-4" />

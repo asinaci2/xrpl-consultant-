@@ -250,6 +250,23 @@
   --tw-gradient-via: rgba(240,253,244,0.5) !important;
 }
 
+/* ── Core Expertise skill badges (day mode) ── */
+/* Indigo-blue palette, 15% larger than default text-xs/px-2.5/py-0.5 */
+[data-theme="day"] .skill-badge {
+  background-color: #dbe4ff !important;  /* indigo-100 */
+  color: #364fc7 !important;             /* indigo-700 */
+  border-color: #bac8ff !important;      /* indigo-200 */
+  font-size: 0.805rem !important;        /* text-xs (0.75rem) × 1.15 */
+  padding: 0.345rem 0.72rem !important;  /* py-0.5/px-2.5 × 1.15 */
+  gap: 0.46rem !important;
+}
+
+[data-theme="day"] .skill-badge svg {
+  width: 1.035rem !important;  /* w-4 (1rem) × 1.15 */
+  height: 1.035rem !important;
+  color: #4c6ef5 !important;   /* indigo-500 for icons */
+}
+
 /* ── Theme toggle button ── */
 .theme-toggle {
   transition: all 0.3s ease;
