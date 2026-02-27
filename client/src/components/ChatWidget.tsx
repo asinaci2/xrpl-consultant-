@@ -21,6 +21,14 @@ function generateSessionId(): string {
   return `visitor_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
 
+interface ChatHostConfig {
+  displayName: string;
+  title: string;
+  avatarUrl: string | null;
+  statusMessage: string;
+  isAvailable: boolean;
+}
+
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -32,6 +40,19 @@ export function ChatWidget() {
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: hostConfig } = useQuery<ChatHostConfig>({
+    queryKey: ["/api/chat/host-config"],
+    staleTime: 60_000,
+  });
+
+  const host: ChatHostConfig = hostConfig ?? {
+    displayName: "Edwin",
+    title: "XRPL Consultant",
+    avatarUrl: null,
+    statusMessage: "Usually replies within a few hours",
+    isAvailable: true,
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem("chat_session_id");
@@ -286,18 +307,33 @@ export function ChatWidget() {
               className="p-4 flex items-center justify-between gap-2 border-b border-green-500/30"
               style={{ background: "linear-gradient(90deg, #0a1a0a 0%, #0d2010 100%)" }}
             >
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <MessageCircle className="h-5 w-5 text-green-400" />
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <div className="flex items-center gap-3">
+                <div className="relative shrink-0">
+                  {host.avatarUrl ? (
+                    <img
+                      src={host.avatarUrl}
+                      alt={host.displayName}
+                      className="w-9 h-9 rounded-full object-cover border border-green-500/40"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center">
+                      <MessageCircle className="h-4 w-4 text-green-400" />
+                    </div>
+                  )}
+                  <span
+                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-black ${host.isAvailable ? "bg-green-400 animate-pulse" : "bg-gray-500"}`}
+                  />
                 </div>
-                <span 
-                  className="font-mono font-semibold text-green-400 tracking-wider" 
-                  data-testid="text-chat-header"
-                  style={{ textShadow: "0 0 10px rgba(0, 255, 100, 0.5)" }}
-                >
-                  MATRIX_CHAT
-                </span>
+                <div className="min-w-0">
+                  <span 
+                    className="font-mono font-semibold text-green-400 tracking-wide text-sm block truncate" 
+                    data-testid="text-chat-header"
+                    style={{ textShadow: "0 0 10px rgba(0, 255, 100, 0.5)" }}
+                  >
+                    {host.displayName}
+                  </span>
+                  <span className="text-green-500/60 text-xs font-mono block truncate">{host.title}</span>
+                </div>
               </div>
               <Button
                 size="icon"
@@ -312,20 +348,32 @@ export function ChatWidget() {
 
             {!sessionId ? (
               <form onSubmit={startSession} className="p-6 flex flex-col flex-1">
-                <div 
-                  className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-green-500/50 flex items-center justify-center"
-                  style={{ 
-                    background: "linear-gradient(135deg, #0a1a0a 0%, #0d2010 100%)",
-                    boxShadow: "0 0 20px rgba(0, 255, 100, 0.2)"
-                  }}
-                >
-                  <MessageCircle className="h-8 w-8 text-green-400" />
+                <div className="flex flex-col items-center mb-4">
+                  <div 
+                    className="w-16 h-16 rounded-full border-2 border-green-500/50 flex items-center justify-center relative mb-2"
+                    style={{ 
+                      background: "linear-gradient(135deg, #0a1a0a 0%, #0d2010 100%)",
+                      boxShadow: "0 0 20px rgba(0, 255, 100, 0.2)"
+                    }}
+                  >
+                    {host.avatarUrl ? (
+                      <img src={host.avatarUrl} alt={host.displayName} className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      <MessageCircle className="h-8 w-8 text-green-400" />
+                    )}
+                    <span
+                      className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-black ${host.isAvailable ? "bg-green-400 animate-pulse" : "bg-gray-500"}`}
+                    />
+                  </div>
+                  {host.statusMessage && (
+                    <p className="text-green-500/50 text-xs font-mono text-center">{host.statusMessage}</p>
+                  )}
                 </div>
                 <p 
                   className="text-center text-green-400/70 mb-4 text-sm font-mono" 
                   data-testid="text-chat-welcome"
                 >
-                  {">"} Initialize connection with Edwin_
+                  {">"} Initialize connection with {host.displayName}_
                 </p>
                 <div className="space-y-3 mb-4">
                   <div>

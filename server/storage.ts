@@ -7,6 +7,7 @@ import {
   projects,
   contactInfo,
   consultants,
+  chatHostConfig,
   type InsertInquiry, 
   type Inquiry,
   type InsertChatSession,
@@ -23,6 +24,8 @@ import {
   type ContactInfo,
   type InsertConsultant,
   type Consultant,
+  type InsertChatHostConfig,
+  type ChatHostConfig,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, gt, lt, and, asc, desc, isNull, or } from "drizzle-orm";
@@ -62,6 +65,8 @@ export interface IStorage {
   getConsultantBySlug(slug: string): Promise<Consultant | undefined>;
   createConsultant(data: InsertConsultant): Promise<Consultant>;
   updateConsultant(slug: string, data: Partial<InsertConsultant>): Promise<Consultant | undefined>;
+  getChatHostConfig(): Promise<ChatHostConfig | undefined>;
+  upsertChatHostConfig(data: Partial<InsertChatHostConfig>): Promise<ChatHostConfig>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -315,6 +320,29 @@ export class DatabaseStorage implements IStorage {
       .where(eq(consultants.slug, slug))
       .returning();
     return updated;
+  }
+
+  async getChatHostConfig(): Promise<ChatHostConfig | undefined> {
+    const [row] = await db.select().from(chatHostConfig).limit(1);
+    return row;
+  }
+
+  async upsertChatHostConfig(data: Partial<InsertChatHostConfig>): Promise<ChatHostConfig> {
+    const existing = await this.getChatHostConfig();
+    if (existing) {
+      const [updated] = await db
+        .update(chatHostConfig)
+        .set(data)
+        .where(eq(chatHostConfig.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(chatHostConfig)
+        .values({ consultantSlug: "asinaci", displayName: "", title: "", statusMessage: "", isAvailable: true, ...data })
+        .returning();
+      return created;
+    }
   }
 }
 

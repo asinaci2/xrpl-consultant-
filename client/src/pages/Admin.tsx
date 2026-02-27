@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, RefreshCw, ArrowLeft, Image, BookOpen, Mail, Twitter, Briefcase, Edit2, X, LogOut, User, ExternalLink, Phone } from "lucide-react";
+import { Trash2, Plus, RefreshCw, ArrowLeft, Image, BookOpen, Mail, Twitter, Briefcase, Edit2, X, LogOut, User, ExternalLink, Phone, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 
@@ -975,6 +975,177 @@ type ContactInfoData = {
   locationLine2: string;
 };
 
+type ChatHostConfigData = {
+  id: number;
+  consultantSlug: string;
+  displayName: string;
+  title: string;
+  avatarUrl: string | null;
+  statusMessage: string;
+  isAvailable: boolean;
+};
+
+function ChatProfileTab() {
+  const { toast } = useToast();
+
+  const { data: config, isLoading } = useQuery<ChatHostConfigData>({
+    queryKey: ["/api/chat/host-config"],
+  });
+
+  const [displayName, setDisplayName] = useState("");
+  const [title, setTitle] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isAvailable, setIsAvailable] = useState(true);
+
+  useEffect(() => {
+    if (config) {
+      setDisplayName(config.displayName);
+      setTitle(config.title);
+      setAvatarUrl(config.avatarUrl ?? "");
+      setStatusMessage(config.statusMessage);
+      setIsAvailable(config.isAvailable);
+    }
+  }, [config]);
+
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      apiRequest("PATCH", "/api/chat/host-config", {
+        displayName,
+        title,
+        avatarUrl: avatarUrl || null,
+        statusMessage,
+        isAvailable,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/host-config"] });
+      toast({ title: "Saved", description: "Chat profile updated successfully." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to save chat profile.", variant: "destructive" });
+    },
+  });
+
+  return (
+    <div className="grid lg:grid-cols-2 gap-6">
+      <Card className="bg-black/60 border-green-500/20">
+        <CardHeader>
+          <CardTitle className="text-green-400 text-lg flex items-center gap-2">
+            <MessageCircle className="w-5 h-5" />
+            Chat Widget Profile
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className="text-gray-400">Loading...</p>
+          ) : (
+            <div className="space-y-5">
+              <div>
+                <label className="text-gray-300 text-sm font-medium block mb-1">Display Name</label>
+                <Input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Edwin"
+                  className="bg-black/40 border-green-500/20 text-white"
+                  data-testid="input-chat-display-name"
+                />
+              </div>
+              <div>
+                <label className="text-gray-300 text-sm font-medium block mb-1">Title / Role</label>
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="XRPL Consultant"
+                  className="bg-black/40 border-green-500/20 text-white"
+                  data-testid="input-chat-title"
+                />
+              </div>
+              <div>
+                <label className="text-gray-300 text-sm font-medium block mb-1">Avatar URL <span className="text-gray-500 text-xs">(optional)</span></label>
+                <Input
+                  value={avatarUrl}
+                  onChange={(e) => setAvatarUrl(e.target.value)}
+                  placeholder="https://example.com/avatar.jpg"
+                  className="bg-black/40 border-green-500/20 text-white"
+                  data-testid="input-chat-avatar-url"
+                />
+              </div>
+              <div>
+                <label className="text-gray-300 text-sm font-medium block mb-1">Status Message</label>
+                <Input
+                  value={statusMessage}
+                  onChange={(e) => setStatusMessage(e.target.value)}
+                  placeholder="Usually replies within a few hours"
+                  className="bg-black/40 border-green-500/20 text-white"
+                  data-testid="input-chat-status-message"
+                />
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <p className="text-gray-300 text-sm font-medium">Available</p>
+                  <p className="text-gray-500 text-xs mt-0.5">Shows green dot when on, grey dot when off</p>
+                </div>
+                <Switch
+                  checked={isAvailable}
+                  onCheckedChange={setIsAvailable}
+                  data-testid="switch-chat-available"
+                />
+              </div>
+              <Button
+                onClick={() => saveMutation.mutate()}
+                disabled={saveMutation.isPending}
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                data-testid="button-save-chat-profile"
+              >
+                {saveMutation.isPending ? "Saving..." : "Save Chat Profile"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Live Preview */}
+      <div className="space-y-4">
+        <h3 className="text-gray-300 text-sm font-medium">Live Preview</h3>
+        <div
+          className="rounded-lg border border-green-500/30 overflow-hidden max-w-xs"
+          style={{ background: "linear-gradient(180deg, #0a0a0a 0%, #0d1f0d 100%)" }}
+        >
+          {/* Widget header preview */}
+          <div
+            className="p-3 flex items-center gap-3 border-b border-green-500/30"
+            style={{ background: "linear-gradient(90deg, #0a1a0a 0%, #0d2010 100%)" }}
+          >
+            <div className="relative shrink-0">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={displayName} className="w-10 h-10 rounded-full object-cover border border-green-500/30" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center">
+                  <MessageCircle className="w-5 h-5 text-green-400" />
+                </div>
+              )}
+              <span
+                className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-black ${isAvailable ? "bg-green-400" : "bg-gray-500"}`}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-green-400 font-mono font-semibold text-sm truncate" style={{ textShadow: "0 0 10px rgba(0,255,100,0.4)" }}>
+                {displayName || "Display Name"}
+              </p>
+              <p className="text-green-500/60 text-xs truncate">{title || "Title / Role"}</p>
+            </div>
+          </div>
+          {/* Status message preview */}
+          <div className="px-3 py-2">
+            <p className="text-green-400/50 font-mono text-xs">{">"} {statusMessage || "Status message..."}_</p>
+          </div>
+        </div>
+        <p className="text-gray-500 text-xs">Changes appear in the chat widget immediately after saving.</p>
+      </div>
+    </div>
+  );
+}
+
 function ContactTab() {
   const { toast } = useToast();
 
@@ -1223,6 +1394,14 @@ export default function Admin() {
               <Phone className="w-4 h-4 mr-2" />
               Contact
             </TabsTrigger>
+            <TabsTrigger
+              value="chat-profile"
+              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
+              data-testid="tab-chat-profile"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Chat Profile
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="media">
@@ -1242,6 +1421,9 @@ export default function Admin() {
           </TabsContent>
           <TabsContent value="contact">
             <ContactTab />
+          </TabsContent>
+          <TabsContent value="chat-profile">
+            <ChatProfileTab />
           </TabsContent>
         </Tabs>
       </div>

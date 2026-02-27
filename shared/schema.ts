@@ -194,3 +194,18 @@ export const insertContactInfoSchema = createInsertSchema(contactInfo).omit({ id
 
 export type InsertContactInfo = z.infer<typeof insertContactInfoSchema>;
 export type ContactInfo = typeof contactInfo.$inferSelect;
+
+export const chatHostConfig = pgTable("chat_host_config", {
+  id: serial("id").primaryKey(),
+  consultantSlug: text("consultant_slug").notNull().default("asinaci"),
+  displayName: text("display_name").notNull().default(""),
+  title: text("title").notNull().default(""),
+  avatarUrl: text("avatar_url"),
+  statusMessage: text("status_message").notNull().default(""),
+  isAvailable: boolean("is_available").notNull().default(true),
+});
+
+export const insertChatHostConfigSchema = createInsertSchema(chatHostConfig).omit({ id: true });
+
+export type InsertChatHostConfig = z.infer<typeof insertChatHostConfigSchema>;
+export type ChatHostConfig = typeof chatHostConfig.$inferSelect;

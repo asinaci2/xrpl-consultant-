@@ -753,6 +753,35 @@ export async function registerRoutes(
     }
   });
 
+  // Chat host config routes
+  app.get("/api/chat/host-config", async (_req, res) => {
+    try {
+      const config = await storage.getChatHostConfig();
+      res.json(config ?? {
+        id: 1,
+        consultantSlug: "asinaci",
+        displayName: "Edwin",
+        title: "XRPL Consultant",
+        avatarUrl: null,
+        statusMessage: "Usually replies within a few hours",
+        isAvailable: true,
+      });
+    } catch (err) {
+      console.error("Chat host config fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch chat host config" });
+    }
+  });
+
+  app.patch("/api/chat/host-config", requireAdmin, async (req, res) => {
+    try {
+      const updated = await storage.upsertChatHostConfig(req.body);
+      res.json(updated);
+    } catch (err) {
+      console.error("Chat host config update error:", err);
+      res.status(500).json({ message: "Failed to update chat host config" });
+    }
+  });
+
   // Consultant directory routes
   app.get("/api/consultants", async (_req, res) => {
     try {

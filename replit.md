@@ -159,13 +159,14 @@ shared/           # Shared code between client/server
 
 ### Admin Dashboard
 - **Page**: `client/src/pages/Admin.tsx` at route `/admin`
-- **Tabs**: Media, Projects, Stories, Inquiries, Tweets, Contact
+- **Tabs**: Media, Projects, Stories, Inquiries, Tweets, Contact, Chat Profile
 - **Projects Tab**: Add/edit/delete/toggle featured projects with title, subtitle, description, impact, URL, icon, color, tags
 - **Media Tab**: View/add/delete/toggle media entries; supports manual, Instagram, TikTok, Google Drive sources
 - **Stories Tab**: Create/delete stories with content, author name, optional image URL
 - **Inquiries Tab**: View/delete contact form submissions
 - **Contact Tab**: Edit "Get in Touch" section — headline, description, email, phone, office location (stored in `contact_info` table)
 - **Tweets Tab**: View cached tweets, force refresh from Twitter API
+- **Chat Profile Tab**: Configure the chat widget's displayed host info — display name, title/role, avatar URL, status message, availability toggle. Includes a live preview of the widget header. Persisted in `chat_host_config` table.
 - **Additional API Endpoints**:
   - `PATCH /api/media/:id` - Update media fields
   - `GET /api/inquiries` - List all inquiries
@@ -178,6 +179,8 @@ shared/           # Shared code between client/server
   - `POST /api/projects` - Create a project
   - `PATCH /api/projects/:id` - Update project fields
   - `DELETE /api/projects/:id` - Delete a project
+  - `GET /api/chat/host-config` - Get chat widget host profile (public)
+  - `PATCH /api/chat/host-config` - Update chat widget host profile (requireAdmin)
 
 ### Authentication (Matrix SSO via Xumm)
 - **Service**: `server/auth.ts` - Matrix homeserver SSO authentication via `synapse.textrp.io`
