@@ -67,6 +67,13 @@ export interface IStorage {
   updateConsultant(slug: string, data: Partial<InsertConsultant>): Promise<Consultant | undefined>;
   getChatHostConfig(): Promise<ChatHostConfig | undefined>;
   upsertChatHostConfig(data: Partial<InsertChatHostConfig>): Promise<ChatHostConfig>;
+  getConsultantByMatrixUserId(matrixUserId: string): Promise<Consultant | undefined>;
+  getAllProjectsBySlug(slug: string): Promise<Project[]>;
+  getAllStoriesBySlug(slug: string): Promise<Story[]>;
+  getAllMediaBySlug(slug: string): Promise<CachedMedia[]>;
+  updateContactInfoBySlug(slug: string, data: Partial<InsertContactInfo>): Promise<ContactInfo>;
+  getChatHostConfigBySlug(slug: string): Promise<ChatHostConfig | undefined>;
+  upsertChatHostConfigBySlug(slug: string, data: Partial<InsertChatHostConfig>): Promise<ChatHostConfig>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -340,6 +347,76 @@ export class DatabaseStorage implements IStorage {
       const [created] = await db
         .insert(chatHostConfig)
         .values({ consultantSlug: "asinaci", displayName: "", title: "", statusMessage: "", isAvailable: true, ...data })
+        .returning();
+      return created;
+    }
+  }
+
+  async getConsultantByMatrixUserId(matrixUserId: string): Promise<Consultant | undefined> {
+    const [row] = await db.select().from(consultants).where(eq(consultants.matrixUserId, matrixUserId));
+    return row;
+  }
+
+  async getAllProjectsBySlug(slug: string): Promise<Project[]> {
+    return await db
+      .select()
+      .from(projects)
+      .where(eq(projects.consultantSlug, slug))
+      .orderBy(asc(projects.displayOrder));
+  }
+
+  async getAllStoriesBySlug(slug: string): Promise<Story[]> {
+    return await db
+      .select()
+      .from(stories)
+      .where(eq(stories.consultantSlug, slug))
+      .orderBy(desc(stories.createdAt));
+  }
+
+  async getAllMediaBySlug(slug: string): Promise<CachedMedia[]> {
+    return await db
+      .select()
+      .from(cachedMedia)
+      .where(eq(cachedMedia.consultantSlug, slug))
+      .orderBy(asc(cachedMedia.displayOrder));
+  }
+
+  async updateContactInfoBySlug(slug: string, data: Partial<InsertContactInfo>): Promise<ContactInfo> {
+    const existing = await this.getContactInfoBySlug(slug);
+    if (existing) {
+      const [updated] = await db
+        .update(contactInfo)
+        .set(data)
+        .where(eq(contactInfo.consultantSlug, slug))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(contactInfo)
+        .values({ consultantSlug: slug, headline: "Ready to Connect?", subheading: "", email: "", phone: "", location: "", locationLine2: "", ...data })
+        .returning();
+      return created;
+    }
+  }
+
+  async getChatHostConfigBySlug(slug: string): Promise<ChatHostConfig | undefined> {
+    const [row] = await db.select().from(chatHostConfig).where(eq(chatHostConfig.consultantSlug, slug));
+    return row;
+  }
+
+  async upsertChatHostConfigBySlug(slug: string, data: Partial<InsertChatHostConfig>): Promise<ChatHostConfig> {
+    const existing = await this.getChatHostConfigBySlug(slug);
+    if (existing) {
+      const [updated] = await db
+        .update(chatHostConfig)
+        .set(data)
+        .where(eq(chatHostConfig.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(chatHostConfig)
+        .values({ consultantSlug: slug, displayName: "", title: "", statusMessage: "", isAvailable: true, ...data })
         .returning();
       return created;
     }

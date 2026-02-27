@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Directory from "@/pages/Directory";
 import ConsultantPage from "@/pages/ConsultantPage";
 import Admin from "@/pages/Admin";
+import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 import { ChatWidget } from "@/components/ChatWidget";
@@ -29,6 +30,28 @@ function ProtectedAdmin() {
   return <Admin />;
 }
 
+function ProtectedDashboard() {
+  const { isConsultant, isAdmin, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-green-400 font-mono animate-pulse">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Redirect to="/login" />;
+  }
+
+  if (!isConsultant && !isAdmin) {
+    return <Redirect to="/login" />;
+  }
+
+  return <Dashboard />;
+}
+
 function Router() {
   return (
     <Switch>
@@ -36,6 +59,7 @@ function Router() {
       <Route path="/c/:slug" component={ConsultantPage} />
       <Route path="/login" component={Login} />
       <Route path="/admin" component={ProtectedAdmin} />
+      <Route path="/dashboard" component={ProtectedDashboard} />
       <Route component={NotFound} />
     </Switch>
   );

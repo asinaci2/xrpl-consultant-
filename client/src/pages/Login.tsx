@@ -10,7 +10,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [, setLocation] = useLocation();
-  const { isAdmin, isAuthenticated, isLoading } = useAuth();
+  const { isAdmin, isConsultant, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -28,11 +28,13 @@ export default function Login() {
     if (!isLoading && isAuthenticated) {
       if (isAdmin) {
         setLocation("/admin");
+      } else if (isConsultant) {
+        setLocation("/dashboard");
       } else {
         window.location.href = "https://app.textrp.io/#/room/#budzy-vibe:synapse.textrp.io";
       }
     }
-  }, [isLoading, isAuthenticated, isAdmin, setLocation]);
+  }, [isLoading, isAuthenticated, isAdmin, isConsultant, setLocation]);
 
   const handleLogin = async () => {
     setError("");

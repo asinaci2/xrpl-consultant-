@@ -19,6 +19,7 @@ declare module "express-session" {
     accessToken: string;
     displayName: string;
     isAdmin: boolean;
+    consultantSlug?: string;
   }
 }
 
@@ -151,6 +152,18 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   }
   if (!req.session.isAdmin) {
     res.status(403).json({ message: "Admin access required" });
+    return;
+  }
+  next();
+}
+
+export function requireConsultant(req: Request, res: Response, next: NextFunction) {
+  if (!req.session.userId) {
+    res.status(401).json({ message: "Authentication required" });
+    return;
+  }
+  if (!req.session.consultantSlug && !req.session.isAdmin) {
+    res.status(403).json({ message: "Consultant access required" });
     return;
   }
   next();

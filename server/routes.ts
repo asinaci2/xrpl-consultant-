@@ -8,7 +8,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { createChatRoom, sendMatrixMessage, getNewReplies, uploadFileToMatrix, uploadMediaToMatrix } from "./matrix";
 import { getUserTweets, searchTweets } from "./twitter";
 import { resolveMediaUrl, refreshMediaEntry } from "./media";
-import { getSSORedirectUrl, exchangeLoginToken, requireAdmin } from "./auth";
+import { getSSORedirectUrl, exchangeLoginToken, requireAdmin, requireConsultant } from "./auth";
 import multer from "multer";
 
 const clients = new Map<string, Set<WebSocket>>();
@@ -109,10 +109,14 @@ export async function registerRoutes(
 
       const result = await exchangeLoginToken(loginToken);
 
+      const consultant = await storage.getConsultantByMatrixUserId(result.userId);
+      const consultantSlug = consultant?.slug;
+
       req.session.userId = result.userId;
       req.session.accessToken = result.accessToken;
       req.session.displayName = result.displayName;
       req.session.isAdmin = result.isAdmin;
+      req.session.consultantSlug = consultantSlug;
 
       req.session.save((err) => {
         if (err) {
@@ -123,6 +127,8 @@ export async function registerRoutes(
 
         if (result.isAdmin) {
           res.redirect("/admin");
+        } else if (consultantSlug) {
+          res.redirect("/dashboard");
         } else {
           res.redirect("https://app.textrp.io/#/room/#budzys-buddies:synapse.textrp.io");
         }
@@ -154,6 +160,7 @@ export async function registerRoutes(
       userId: req.session.userId,
       displayName: req.session.displayName,
       isAdmin: req.session.isAdmin,
+      consultantSlug: req.session.consultantSlug ?? null,
     });
   });
 
@@ -865,6 +872,218 @@ export async function registerRoutes(
       res.json(info ?? { ...CONTACT_DEFAULTS, consultantSlug: req.params.slug });
     } catch (err) {
       res.status(500).json({ message: "Failed to fetch contact info" });
+    }
+  });
+
+  // ─── Consultant Dashboard Routes (/api/dashboard/...) ───────────────────────
+  function getDashboardSlug(req: any): string | undefined {
+    return req.session.isAdmin
+      ? ((req.query.slug as string) ?? req.session.consultantSlug)
+      : req.session.consultantSlug;
+  }
+
+  // Profile
+  app.get("/api/dashboard/profile", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const consultant = await storage.getConsultantBySlug(slug);
+      if (!consultant) { res.status(404).json({ message: "Consultant not found" }); return; }
+      res.json(consultant);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
+  app.patch("/api/dashboard/profile", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const updated = await storage.updateConsultant(slug, req.body);
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // Projects
+  app.get("/api/dashboard/projects", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const data = await storage.getAllProjectsBySlug(slug);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch projects" });
+    }
+  });
+
+  app.post("/api/dashboard/projects", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const created = await storage.createProject({ ...req.body, consultantSlug: slug });
+      res.status(201).json(created);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create project" });
+    }
+  });
+
+  app.patch("/api/dashboard/projects/:id", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      const id = parseInt(req.params.id);
+      const all = await storage.getAllProjectsBySlug(slug!);
+      if (!all.find(p => p.id === id)) { res.status(403).json({ message: "Forbidden" }); return; }
+      const updated = await storage.updateProject(id, req.body);
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update project" });
+    }
+  });
+
+  app.delete("/api/dashboard/projects/:id", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      const id = parseInt(req.params.id);
+      const all = await storage.getAllProjectsBySlug(slug!);
+      if (!all.find(p => p.id === id)) { res.status(403).json({ message: "Forbidden" }); return; }
+      await storage.deleteProject(id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete project" });
+    }
+  });
+
+  // Stories
+  app.get("/api/dashboard/stories", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const data = await storage.getAllStoriesBySlug(slug);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch stories" });
+    }
+  });
+
+  app.post("/api/dashboard/stories", requireConsultant, upload.single("image"), async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const created = await storage.createStory({ ...req.body, consultantSlug: slug, expiresAt });
+      res.status(201).json(created);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create story" });
+    }
+  });
+
+  app.delete("/api/dashboard/stories/:id", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      const id = parseInt(req.params.id);
+      const all = await storage.getAllStoriesBySlug(slug!);
+      if (!all.find(s => s.id === id)) { res.status(403).json({ message: "Forbidden" }); return; }
+      await storage.deleteStory(id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete story" });
+    }
+  });
+
+  // Contact info
+  app.get("/api/dashboard/contact-info", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const info = await storage.getContactInfoBySlug(slug);
+      res.json(info ?? { ...CONTACT_DEFAULTS, consultantSlug: slug });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch contact info" });
+    }
+  });
+
+  app.patch("/api/dashboard/contact-info", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const updated = await storage.updateContactInfoBySlug(slug, req.body);
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update contact info" });
+    }
+  });
+
+  // Media
+  app.get("/api/dashboard/media", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const data = await storage.getAllMediaBySlug(slug);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch media" });
+    }
+  });
+
+  app.post("/api/dashboard/media", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const created = await storage.createMedia({ ...req.body, consultantSlug: slug });
+      res.status(201).json(created);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create media" });
+    }
+  });
+
+  app.patch("/api/dashboard/media/:id", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      const id = parseInt(req.params.id);
+      const all = await storage.getAllMediaBySlug(slug!);
+      if (!all.find(m => m.id === id)) { res.status(403).json({ message: "Forbidden" }); return; }
+      const updated = await storage.updateMedia(id, req.body);
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update media" });
+    }
+  });
+
+  app.delete("/api/dashboard/media/:id", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      const id = parseInt(req.params.id);
+      const all = await storage.getAllMediaBySlug(slug!);
+      if (!all.find(m => m.id === id)) { res.status(403).json({ message: "Forbidden" }); return; }
+      await storage.deleteMedia(id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete media" });
+    }
+  });
+
+  // Chat profile
+  app.get("/api/dashboard/chat-profile", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const config = await storage.getChatHostConfigBySlug(slug);
+      res.json(config ?? { consultantSlug: slug, displayName: "", title: "", avatarUrl: null, statusMessage: "", isAvailable: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch chat profile" });
+    }
+  });
+
+  app.patch("/api/dashboard/chat-profile", requireConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const updated = await storage.upsertChatHostConfigBySlug(slug, req.body);
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update chat profile" });
     }
   });
 

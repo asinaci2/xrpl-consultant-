@@ -5,6 +5,7 @@ type AuthUser = {
   userId: string;
   displayName: string;
   isAdmin: boolean;
+  consultantSlug: string | null;
 };
 
 export function useAuth() {
@@ -30,6 +31,8 @@ export function useAuth() {
     isLoading,
     isAuthenticated: !!user,
     isAdmin: !!user?.isAdmin,
+    isConsultant: !!user?.consultantSlug,
+    consultantSlug: user?.consultantSlug ?? null,
     logout: logoutMutation,
   };
 }
