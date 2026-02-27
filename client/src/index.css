@@ -97,6 +97,19 @@
 
 /* ─── Day Theme Overrides ─────────────────────────────────────────── */
 [data-theme="day"] {
+  /* ── CSS variable overrides (affects all shadcn components) ── */
+  --card:             0 0% 100%;       /* white cards */
+  --card-foreground:  222 47% 11%;     /* dark text on cards */
+  --border:           142 40% 82%;     /* soft green border */
+  --input:            142 40% 82%;
+  --muted:            140 30% 96%;     /* very light green-tinted bg */
+  --muted-foreground: 215 25% 38%;     /* readable muted text */
+  --secondary:        142 60% 90%;     /* pale green badges */
+  --secondary-foreground: 142 60% 18%; /* dark green text on badges */
+  --background:       0 0% 98%;
+  --foreground:       222 47% 11%;
+  --ring:             142 70% 40%;
+
   /* Root page background */
   background-color: #f0fdf4 !important;
 }
@@ -108,44 +121,65 @@
 
 /* Navigation */
 [data-theme="day"] .glass-nav {
-  background: rgba(255, 255, 255, 0.92) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(34, 197, 94, 0.25) !important;
+  border-bottom: 1px solid rgba(34, 197, 94, 0.2) !important;
   box-shadow: 0 1px 16px rgba(0,0,0,0.07);
 }
 
-/* All black/dark backgrounds → white/light */
-[data-theme="day"] [class*="bg-black"] {
-  background-color: rgba(255, 255, 255, 0.92) !important;
-}
-
-/* Section overrides */
+/* ── Section backgrounds ── */
 [data-theme="day"] section {
-  background-color: rgba(255, 255, 255, 0.88) !important;
-  backdrop-filter: blur(8px);
+  background-color: #ffffff !important;
+  backdrop-filter: none !important;
 }
 
-/* Alternate sections for rhythm */
 [data-theme="day"] section:nth-child(even) {
-  background-color: rgba(240, 253, 244, 0.95) !important;
+  background-color: #f0fdf4 !important;
 }
 
-/* Card / panel backgrounds */
-[data-theme="day"] [class*="bg-black/6"],
-[data-theme="day"] [class*="bg-black/7"],
-[data-theme="day"] [class*="bg-black/8"],
-[data-theme="day"] [class*="bg-black/9"] {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+/* ── All bg-black/* variants → white ── */
+[data-theme="day"] [class*="bg-black"] {
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
-/* White text → dark text */
+/* Slightly tinted panels (bg-black/40 bg-black/60 etc used as inner cards) */
+[data-theme="day"] [class*="bg-black/4"],
+[data-theme="day"] [class*="bg-black/5"],
+[data-theme="day"] [class*="bg-black/6"] {
+  background-color: #f8fafc !important;
+  box-shadow: none;
+}
+
+/* ── shadcn Card override ── */
+[data-theme="day"] .rounded-lg.border,
+[data-theme="day"] [class*="bg-card"] {
+  background-color: #ffffff !important;
+  border-color: rgba(34,197,94,0.2) !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06) !important;
+}
+
+/* ── Footer ── */
+[data-theme="day"] footer {
+  background-color: #f8fafb !important;
+  border-top-color: rgba(34,197,94,0.2) !important;
+}
+
+/* Footer social icon circles */
+[data-theme="day"] [class*="bg-white/5"],
+[data-theme="day"] [class*="bg-white/10"] {
+  background-color: #e2e8f0 !important;
+}
+[data-theme="day"] [class*="hover:bg-white/10"]:hover {
+  background-color: #cbd5e1 !important;
+}
+
+/* ── Text overrides ── */
 [data-theme="day"] .text-white,
 [data-theme="day"] [class*="text-white"] {
   color: #0f172a !important;
 }
 
-/* Gray text → darker grays */
 [data-theme="day"] .text-gray-300,
 [data-theme="day"] [class*="text-gray-3"] {
   color: #475569 !important;
@@ -161,10 +195,20 @@
   color: #94a3b8 !important;
 }
 
-/* Green text stays — works great on light backgrounds */
-/* Input / form fields */
+/* Keep green text as-is — reads well on light */
+
+/* ── Headings ── */
+[data-theme="day"] h1,
+[data-theme="day"] h2,
+[data-theme="day"] h3,
+[data-theme="day"] h4 {
+  color: #0f172a !important;
+}
+
+/* ── Inputs / forms ── */
 [data-theme="day"] input,
-[data-theme="day"] textarea {
+[data-theme="day"] textarea,
+[data-theme="day"] select {
   background-color: #f8fafc !important;
   color: #0f172a !important;
   border-color: rgba(34, 197, 94, 0.3) !important;
@@ -175,35 +219,27 @@
   color: #94a3b8 !important;
 }
 
-/* Borders */
-[data-theme="day"] [class*="border-green-500/2"] {
-  border-color: rgba(34, 197, 94, 0.3) !important;
+/* ── Borders ── */
+[data-theme="day"] [class*="border-green-500/"] {
+  border-color: rgba(34, 197, 94, 0.25) !important;
 }
 
-/* Mobile menu */
-[data-theme="day"] [class*="bg-black/95"] {
-  background-color: rgba(255, 255, 255, 0.98) !important;
-}
-
-/* Hero gradient text stays readable */
-[data-theme="day"] h1,
-[data-theme="day"] h2,
-[data-theme="day"] h3 {
-  color: #0f172a !important;
-}
-
-/* Keep green headings */
-[data-theme="day"] [class*="text-green"] {
-  /* intentionally not overriding — greens look great on light bg */
-}
-
-/* Badges / tags */
+/* ── Green background tints (icon containers, highlight pills) ── */
 [data-theme="day"] [class*="bg-green-500/1"],
 [data-theme="day"] [class*="bg-green-500/2"] {
-  background-color: rgba(34, 197, 94, 0.12) !important;
+  background-color: rgba(34, 197, 94, 0.1) !important;
 }
 
-/* Theme toggle button in nav */
+/* ── Image gradient overlays ── */
+[data-theme="day"] [class*="from-black"] {
+  --tw-gradient-from: rgba(240,253,244,0.85) !important;
+}
+
+[data-theme="day"] [class*="via-black"] {
+  --tw-gradient-via: rgba(240,253,244,0.5) !important;
+}
+
+/* ── Theme toggle button ── */
 .theme-toggle {
   transition: all 0.3s ease;
 }
@@ -214,13 +250,4 @@
 
 [data-theme="day"] .theme-toggle:hover {
   background-color: rgba(245, 158, 11, 0.1);
-}
-
-/* About/services image overlay */
-[data-theme="day"] [class*="from-black"] {
-  --tw-gradient-from: rgba(255,255,255,0.8) !important;
-}
-
-[data-theme="day"] [class*="via-black"] {
-  --tw-gradient-via: rgba(255,255,255,0.4) !important;
 }
