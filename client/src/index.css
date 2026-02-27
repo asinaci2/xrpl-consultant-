@@ -111,10 +111,10 @@
   /* ── CSS variable overrides (affects all shadcn components) ── */
   --card:             0 0% 100%;        /* pure white cards */
   --card-foreground:  222 47% 11%;      /* slate-900 */
-  --border:           215 20% 65%;      /* slate-400 */
-  --input:            215 20% 65%;
+  --border:           25 95% 53%;       /* orange-500 */
+  --input:            25 95% 53%;
   --muted:            210 40% 96%;      /* slate-100 */
-  --muted-foreground: 215 16% 47%;      /* slate-500 */
+  --muted-foreground: 215 25% 27%;      /* slate-700 — darker for readability */
   --secondary:        210 40% 93%;      /* slate-200 */
   --secondary-foreground: 222 47% 11%;
   --background:       210 40% 98%;      /* slate-50 */
@@ -128,13 +128,14 @@
 [data-theme="day"] body {
   background-color: #f8fafc;
   color: #0f172a;
+  font-weight: 500;
 }
 
 /* Navigation */
 [data-theme="day"] .glass-nav {
   background: rgba(248, 250, 252, 0.97) !important;
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25) !important;
+  border-bottom: 1px solid rgba(249, 115, 22, 0.35) !important;
   box-shadow: 0 1px 12px rgba(0,0,0,0.06);
 }
 
@@ -183,8 +184,8 @@
 [data-theme="day"] .rounded-lg.border,
 [data-theme="day"] [class*="bg-card"] {
   background-color: #ffffff !important;
-  border-color: rgba(148, 163, 184, 0.30) !important;
-  box-shadow: 0 2px 14px rgba(0,0,0,0.07) !important;
+  border-color: rgba(249, 115, 22, 0.35) !important;
+  box-shadow: 0 2px 14px rgba(249,115,22,0.08) !important;
 }
 
 /* ── MatrixTweets canvas wrapper ── */
@@ -195,7 +196,7 @@
 /* ── Footer ── */
 [data-theme="day"] footer {
   background-color: #e2e8f0 !important;
-  border-top-color: rgba(148, 163, 184, 0.3) !important;
+  border-top-color: rgba(249, 115, 22, 0.35) !important;
 }
 
 /* Footer social icon circles */
@@ -229,17 +230,22 @@
 
 [data-theme="day"] .text-gray-300,
 [data-theme="day"] [class*="text-gray-3"] {
-  color: #475569 !important;
+  color: #1e293b !important;
 }
 
 [data-theme="day"] .text-gray-400,
 [data-theme="day"] [class*="text-gray-4"] {
-  color: #64748b !important;
+  color: #334155 !important;
 }
 
 [data-theme="day"] .text-gray-500,
 [data-theme="day"] [class*="text-gray-5"] {
-  color: #94a3b8 !important;
+  color: #475569 !important;
+}
+
+[data-theme="day"] .text-gray-600,
+[data-theme="day"] [class*="text-gray-6"] {
+  color: #334155 !important;
 }
 
 /* ── Green → Teal accent remapping (better contrast on light backgrounds) ── */
@@ -276,6 +282,7 @@
 [data-theme="day"] h3,
 [data-theme="day"] h4 {
   color: #0f172a !important;
+  font-weight: 700 !important;
 }
 
 /* ── Inputs / forms ── */
@@ -284,7 +291,7 @@
 [data-theme="day"] select {
   background-color: #ffffff !important;
   color: #0f172a !important;
-  border-color: rgba(148, 163, 184, 0.5) !important;
+  border-color: rgba(249, 115, 22, 0.45) !important;
 }
 
 [data-theme="day"] input::placeholder,
