@@ -113,11 +113,52 @@ export async function registerRoutes(
       const consultant = await storage.getConsultantByMatrixUserId(result.userId);
       const consultantSlug = consultant?.slug;
 
+      let finalConsultantSlug = consultantSlug;
+
+      if (!result.isAdmin && !finalConsultantSlug) {
+        const { isConsultantRoomMember } = await import("./sync");
+        let isMember = isConsultantRoomMember(result.userId);
+
+        if (!isMember) {
+          const CONSULTANT_ROOM = process.env.CONSULTANT_MATRIX_ROOM;
+          if (CONSULTANT_ROOM) {
+            const { getRoomMembers } = await import("./matrix");
+            const members = await getRoomMembers(CONSULTANT_ROOM);
+            isMember = !!members?.includes(result.userId);
+            if (isMember) {
+              console.log(`[auth] Live room check: ${result.userId} is a consultant room member`);
+            }
+          }
+        }
+
+        if (isMember) {
+          const { getDisplayName } = await import("./matrix");
+          const displayName = await getDisplayName(result.userId) || result.displayName;
+          const localpart = result.userId.split(":")[0].replace("@", "");
+          const baseSlug = localpart.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+          const slugExists = await storage.getConsultantBySlug(baseSlug);
+          const newSlug = slugExists ? `${baseSlug}-${Date.now()}` : baseSlug;
+
+          try {
+            await storage.createConsultant({
+              slug: newSlug,
+              name: displayName,
+              matrixUserId: result.userId,
+              isActive: true,
+            });
+            finalConsultantSlug = newSlug;
+            console.log(`[auth] Auto-created consultant at login: ${displayName} (${result.userId}) → slug: ${newSlug}`);
+          } catch (err) {
+            console.error(`[auth] Failed to auto-create consultant for ${result.userId}:`, err);
+          }
+        }
+      }
+
       req.session.userId = result.userId;
       req.session.accessToken = result.accessToken;
       req.session.displayName = result.displayName;
       req.session.isAdmin = result.isAdmin;
-      req.session.consultantSlug = consultantSlug;
+      req.session.consultantSlug = finalConsultantSlug ?? undefined;
 
       req.session.save((err) => {
         if (err) {
@@ -126,11 +167,9 @@ export async function registerRoutes(
           return;
         }
 
-        if (result.isAdmin || consultantSlug) {
-          // Has a role — send to the role-aware welcome landing screen
+        if (result.isAdmin || finalConsultantSlug) {
           res.redirect("/welcome");
         } else {
-          // Authenticated via XRPL wallet but no role assigned — send to error page
           res.redirect("/login?error=no_role");
         }
       });
