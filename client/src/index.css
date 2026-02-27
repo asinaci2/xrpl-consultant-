@@ -96,82 +96,93 @@
 }
 
 /* ─── Day Theme Overrides ─────────────────────────────────────────── */
+/*
+  Grey palette:
+    Page bg        #d6dce5  (slate-300 toned)
+    Section odd    #dde3ec  (slightly lighter)
+    Section even   #cfd6e0  (slightly darker for rhythm)
+    Cards          #e8ecf2  (cool light grey — lifts off section bg)
+    Inner panels   #d0d8e4  (recessed sub-panels)
+    Footer         #c4cdd9
+    Nav            rgba(224,230,240,0.96)
+*/
+
 [data-theme="day"] {
   /* ── CSS variable overrides (affects all shadcn components) ── */
-  --card:             0 0% 100%;       /* white cards */
-  --card-foreground:  222 47% 11%;     /* dark text on cards */
-  --border:           142 40% 82%;     /* soft green border */
-  --input:            142 40% 82%;
-  --muted:            140 30% 96%;     /* very light green-tinted bg */
-  --muted-foreground: 215 25% 38%;     /* readable muted text */
-  --secondary:        142 60% 90%;     /* pale green badges */
-  --secondary-foreground: 142 60% 18%; /* dark green text on badges */
-  --background:       0 0% 98%;
+  --card:             214 20% 90%;     /* cool grey cards (#e2e7ef) */
+  --card-foreground:  222 47% 11%;     /* dark navy text */
+  --border:           214 20% 75%;     /* grey border */
+  --input:            214 20% 75%;
+  --muted:            214 18% 85%;
+  --muted-foreground: 215 25% 35%;
+  --secondary:        214 18% 80%;     /* grey-toned secondary / badges */
+  --secondary-foreground: 222 47% 14%;
+  --background:       214 18% 84%;
   --foreground:       222 47% 11%;
   --ring:             142 70% 40%;
 
   /* Root page background */
-  background-color: #f0fdf4 !important;
+  background-color: #d6dce5 !important;
 }
 
 [data-theme="day"] body {
-  background-color: #f0fdf4;
+  background-color: #d6dce5;
   color: #0f172a;
 }
 
 /* Navigation */
 [data-theme="day"] .glass-nav {
-  background: rgba(255, 255, 255, 0.95) !important;
+  background: rgba(224, 230, 240, 0.96) !important;
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(34, 197, 94, 0.2) !important;
-  box-shadow: 0 1px 16px rgba(0,0,0,0.07);
+  border-bottom: 1px solid rgba(100, 116, 139, 0.25) !important;
+  box-shadow: 0 1px 12px rgba(0,0,0,0.10);
 }
 
 /* ── Section backgrounds ── */
 [data-theme="day"] section {
-  background-color: #ffffff !important;
+  background-color: #dde3ec !important;
   backdrop-filter: none !important;
 }
 
 [data-theme="day"] section:nth-child(even) {
-  background-color: #f0fdf4 !important;
+  background-color: #cfd6e0 !important;
 }
 
-/* ── All bg-black/* variants → white ── */
+/* ── All bg-black/* variants → grey ── */
 [data-theme="day"] [class*="bg-black"] {
-  background-color: #ffffff !important;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  background-color: #e8ecf2 !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
 }
 
-/* Slightly tinted panels (bg-black/40 bg-black/60 etc used as inner cards) */
+/* Inner sub-panels (bg-black/40 bg-black/60 etc) */
 [data-theme="day"] [class*="bg-black/4"],
 [data-theme="day"] [class*="bg-black/5"],
 [data-theme="day"] [class*="bg-black/6"] {
-  background-color: #f8fafc !important;
+  background-color: #d0d8e4 !important;
   box-shadow: none;
 }
 
 /* ── shadcn Card override ── */
 [data-theme="day"] .rounded-lg.border,
 [data-theme="day"] [class*="bg-card"] {
-  background-color: #ffffff !important;
-  border-color: rgba(34,197,94,0.2) !important;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.06) !important;
+  background-color: #e8ecf2 !important;
+  border-color: rgba(100, 116, 139, 0.22) !important;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.09) !important;
 }
 
 /* ── Footer ── */
 [data-theme="day"] footer {
-  background-color: #f8fafb !important;
-  border-top-color: rgba(34,197,94,0.2) !important;
+  background-color: #c4cdd9 !important;
+  border-top-color: rgba(100, 116, 139, 0.3) !important;
 }
 
 /* Footer social icon circles */
 [data-theme="day"] [class*="bg-white/5"],
 [data-theme="day"] [class*="bg-white/10"] {
-  background-color: #e2e8f0 !important;
+  background-color: #b5c0ce !important;
 }
 [data-theme="day"] [class*="hover:bg-white/10"]:hover {
-  background-color: #cbd5e1 !important;
+  background-color: #a4b0bf !important;
 }
 
 /* ── Text overrides ── */
