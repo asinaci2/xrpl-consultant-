@@ -58,10 +58,12 @@ export default function StoriesHeader({ onStoryClick }: StoriesHeaderProps) {
         const latestStory = authorStories[authorStories.length - 1];
         const hasMultiple = authorStories.length > 1;
         
+        const startIndex = stories.findIndex(s => s.id === authorStories[0].id);
+
         return (
           <button
             key={authorName}
-            onClick={() => onStoryClick(authorStories, 0)}
+            onClick={() => onStoryClick(stories, startIndex)}
             className="flex flex-col items-center gap-2 shrink-0 group"
             data-testid={`story-bubble-${authorName.replace(/\s+/g, "-").toLowerCase()}`}
           >
