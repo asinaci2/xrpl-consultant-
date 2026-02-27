@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, RefreshCw, ArrowLeft, Image, BookOpen, Mail, Twitter, Briefcase, Edit2, X, LogOut, User } from "lucide-react";
+import { Trash2, Plus, RefreshCw, ArrowLeft, Image, BookOpen, Mail, Twitter, Briefcase, Edit2, X, LogOut, User, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 
@@ -999,6 +999,20 @@ export default function Admin() {
                 <span>{user.displayName}</span>
               </div>
             )}
+            <a
+              href="https://app.textrp.io/#/room/#budzy-vibe:synapse.textrp.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="link-textrp"
+            >
+              <Button
+                variant="ghost"
+                className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
+              >
+                <ExternalLink className="w-4 h-4 mr-1" />
+                TextRP
+              </Button>
+            </a>
             <Button
               variant="ghost"
               onClick={handleLogout}
