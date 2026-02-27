@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useCreateInquiry } from "@/hooks/use-inquiries";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -13,9 +14,24 @@ import { insertInquirySchema } from "@shared/schema";
 
 const formSchema = insertInquirySchema;
 
+const DEFAULTS = {
+  headline: "Ready to Innovate?",
+  subheading: "Schedule a consultation to discuss your blockchain strategy and how XRPL can transform your business.",
+  email: "contact@edwingutierrez.com",
+  phone: "+1 (555) 123-4567",
+  location: "San Francisco, CA",
+  locationLine2: "Available Worldwide Remote",
+};
+
 export function Contact() {
   const { toast } = useToast();
   const mutation = useCreateInquiry();
+
+  const { data: info } = useQuery<typeof DEFAULTS>({
+    queryKey: ["/api/contact-info"],
+  });
+
+  const contact = info ?? DEFAULTS;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,20 +63,18 @@ export function Contact() {
 
   return (
     <section id="contact" className="section-padding bg-black/85 backdrop-blur-sm text-white relative overflow-hidden">
-      {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16">
           
-          {/* Contact Info */}
           <div>
             <h2 className="text-green-400 font-semibold tracking-wide uppercase text-sm mb-3">Get in Touch</h2>
             <h3 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
-              Ready to Innovate?
+              {contact.headline}
             </h3>
             <p className="text-gray-300 text-lg mb-12 max-w-md">
-              Schedule a consultation to discuss your blockchain strategy and how XRPL can transform your business.
+              {contact.subheading}
             </p>
 
             <div className="space-y-8">
@@ -70,8 +84,8 @@ export function Contact() {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">Email</h4>
-                  <a href="mailto:contact@edwingutierrez.com" className="text-gray-300 hover:text-green-400 transition-colors">
-                    contact@edwingutierrez.com
+                  <a href={`mailto:${contact.email}`} className="text-gray-300 hover:text-green-400 transition-colors">
+                    {contact.email}
                   </a>
                 </div>
               </div>
@@ -82,7 +96,7 @@ export function Contact() {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">Phone</h4>
-                  <p className="text-gray-300">+1 (555) 123-4567</p>
+                  <p className="text-gray-300">{contact.phone}</p>
                 </div>
               </div>
 
@@ -93,15 +107,14 @@ export function Contact() {
                 <div>
                   <h4 className="font-bold text-lg mb-1">Office</h4>
                   <p className="text-gray-300">
-                    San Francisco, CA<br />
-                    Available Worldwide Remote
+                    {contact.location}<br />
+                    {contact.locationLine2}
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Form */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -163,6 +176,7 @@ export function Contact() {
                   type="submit" 
                   disabled={mutation.isPending}
                   className="w-full h-12 bg-green-500 hover:bg-green-600 text-black font-semibold rounded-lg text-lg shadow-lg shadow-green-500/20 transition-all hover:scale-[1.02]"
+                  data-testid="button-submit-inquiry"
                 >
                   {mutation.isPending ? (
                     <>

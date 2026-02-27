@@ -145,3 +145,18 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
 
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
+
+export const contactInfo = pgTable("contact_info", {
+  id: serial("id").primaryKey(),
+  headline: text("headline").notNull().default("Ready to Innovate?"),
+  subheading: text("subheading").notNull().default("Schedule a consultation to discuss your blockchain strategy and how XRPL can transform your business."),
+  email: text("email").notNull().default("contact@edwingutierrez.com"),
+  phone: text("phone").notNull().default("+1 (555) 123-4567"),
+  location: text("location").notNull().default("San Francisco, CA"),
+  locationLine2: text("location_line2").notNull().default("Available Worldwide Remote"),
+});
+
+export const insertContactInfoSchema = createInsertSchema(contactInfo).omit({ id: true });
+
+export type InsertContactInfo = z.infer<typeof insertContactInfoSchema>;
+export type ContactInfo = typeof contactInfo.$inferSelect;

@@ -5,6 +5,7 @@ import {
   stories,
   cachedMedia,
   projects,
+  contactInfo,
   type InsertInquiry, 
   type Inquiry,
   type InsertChatSession,
@@ -16,7 +17,9 @@ import {
   type InsertCachedMedia,
   type CachedMedia,
   type InsertProject,
-  type Project
+  type Project,
+  type InsertContactInfo,
+  type ContactInfo,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, gt, lt, and, asc, desc } from "drizzle-orm";
@@ -46,6 +49,8 @@ export interface IStorage {
   createProject(data: InsertProject): Promise<Project>;
   updateProject(id: number, data: Partial<InsertProject>): Promise<Project | undefined>;
   deleteProject(id: number): Promise<void>;
+  getContactInfo(): Promise<ContactInfo | undefined>;
+  updateContactInfo(data: Partial<InsertContactInfo>): Promise<ContactInfo>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -214,6 +219,30 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProject(id: number): Promise<void> {
     await db.delete(projects).where(eq(projects.id, id));
+  }
+
+  async getContactInfo(): Promise<ContactInfo | undefined> {
+    const [row] = await db.select().from(contactInfo).where(eq(contactInfo.id, 1));
+    return row;
+  }
+
+  async updateContactInfo(data: Partial<InsertContactInfo>): Promise<ContactInfo> {
+    const existing = await this.getContactInfo();
+    if (existing) {
+      const [updated] = await db.update(contactInfo).set(data).where(eq(contactInfo.id, 1)).returning();
+      return updated;
+    } else {
+      const defaults = {
+        headline: "Ready to Innovate?",
+        subheading: "Schedule a consultation to discuss your blockchain strategy and how XRPL can transform your business.",
+        email: "contact@edwingutierrez.com",
+        phone: "+1 (555) 123-4567",
+        location: "San Francisco, CA",
+        locationLine2: "Available Worldwide Remote",
+      };
+      const [created] = await db.insert(contactInfo).values({ id: 1, ...defaults, ...data }).returning();
+      return created;
+    }
   }
 }
 

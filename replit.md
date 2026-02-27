@@ -129,11 +129,12 @@ shared/           # Shared code between client/server
 
 ### Admin Dashboard
 - **Page**: `client/src/pages/Admin.tsx` at route `/admin`
-- **Tabs**: Media, Projects, Stories, Inquiries, Tweets
+- **Tabs**: Media, Projects, Stories, Inquiries, Tweets, Contact
 - **Projects Tab**: Add/edit/delete/toggle featured projects with title, subtitle, description, impact, URL, icon, color, tags
 - **Media Tab**: View/add/delete/toggle media entries; supports manual, Instagram, TikTok, Google Drive sources
 - **Stories Tab**: Create/delete stories with content, author name, optional image URL
 - **Inquiries Tab**: View/delete contact form submissions
+- **Contact Tab**: Edit "Get in Touch" section — headline, description, email, phone, office location (stored in `contact_info` table, served via `GET /api/contact-info`, updated via `PATCH /api/contact-info`)
 - **Tweets Tab**: View cached tweets, force refresh from Twitter API
 - **Additional API Endpoints**:
   - `PATCH /api/media/:id` - Update media fields (isActive, altText, displayOrder, section)

@@ -710,5 +710,34 @@ export async function registerRoutes(
     }
   });
 
+  const CONTACT_DEFAULTS = {
+    headline: "Ready to Innovate?",
+    subheading: "Schedule a consultation to discuss your blockchain strategy and how XRPL can transform your business.",
+    email: "contact@edwingutierrez.com",
+    phone: "+1 (555) 123-4567",
+    location: "San Francisco, CA",
+    locationLine2: "Available Worldwide Remote",
+  };
+
+  app.get("/api/contact-info", async (_req, res) => {
+    try {
+      const info = await storage.getContactInfo();
+      res.json(info ?? { id: 1, ...CONTACT_DEFAULTS });
+    } catch (err) {
+      console.error("Contact info fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch contact info" });
+    }
+  });
+
+  app.patch("/api/contact-info", requireAdmin, async (req, res) => {
+    try {
+      const updated = await storage.updateContactInfo(req.body);
+      res.json(updated);
+    } catch (err) {
+      console.error("Contact info update error:", err);
+      res.status(500).json({ message: "Failed to update contact info" });
+    }
+  });
+
   return httpServer;
 }
