@@ -122,6 +122,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center"
         onClick={onClose}
+        data-viewer="story"
         data-testid="story-viewer-overlay"
       >
         <motion.div
@@ -165,7 +166,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
               animate="center"
               exit="exit"
               transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="absolute inset-0"
+              className="absolute inset-0 pointer-events-none"
             >
               {/* Story background / image */}
               {currentStory.imageUrl && (

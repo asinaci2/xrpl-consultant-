@@ -312,6 +312,67 @@
   color: #4c6ef5 !important;
 }
 
+/* ─── Story Viewer — always dark, regardless of page theme ───────── */
+/*
+  The story viewer renders into a portal on document.body and inherits
+  data-theme="day" from <html>. These rules restore dark styling with
+  higher specificity (coming later in the file) than day-mode !important rules.
+*/
+
+/* 1. The overlay itself has data-viewer="story" + bg-black/95 */
+[data-viewer="story"][class*="bg-black"] {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+  box-shadow: none !important;
+}
+
+/* 2. The card container — restore the dark green-to-black gradient */
+[data-viewer="story"] .rounded-2xl {
+  background-image: linear-gradient(to bottom, #0d1f0d, #0a0a0a) !important;
+  background-color: transparent !important;
+  box-shadow: 0 0 40px rgba(74,222,128,0.2), 0 0 80px rgba(74,222,128,0.1) !important;
+}
+
+/* 3. Arbitrary hex dark backgrounds inside the viewer (avatar circle, etc.) */
+[data-viewer="story"] [class*="bg-[#0"] {
+  background-color: #0a0a0a !important;
+  background-image: none !important;
+}
+
+/* 4. Gradient overlay inside each story slide (from-black/50 to-black/70) */
+[data-viewer="story"] [class*="from-black"] {
+  --tw-gradient-from: rgba(0, 0, 0, 0.5) !important;
+  background-image: var(--tw-gradient-stops) !important;
+}
+[data-viewer="story"] [class*="to-black"] {
+  --tw-gradient-to: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* 5. Arbitrary hex dark gradients (card's from-[#0d1f0d] to-[#0a0a0a]) */
+[data-viewer="story"] [class*="from-[#0"],
+[data-viewer="story"] [class*="to-[#0"] {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+/* 6. White text — restore for author name, timestamps */
+[data-viewer="story"] .text-white,
+[data-viewer="story"] [class*="text-white"] {
+  color: white !important;
+}
+
+/* 7. White/transparent UI elements (progress bars, dots) */
+[data-viewer="story"] [class*="bg-white/"] {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 8. Heading overrides — keep white inside viewer */
+[data-viewer="story"] h1,
+[data-viewer="story"] h2,
+[data-viewer="story"] h3,
+[data-viewer="story"] h4 {
+  color: white !important;
+}
+
 /* ── Theme toggle button ── */
 .theme-toggle {
   transition: all 0.3s ease;
