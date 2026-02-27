@@ -1,12 +1,29 @@
 import { motion } from "framer-motion";
 import { Award, BookOpen, UserCheck } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2664&auto=format&fit=crop";
+
+interface CachedMedia {
+  id: number;
+  imageUrl: string;
+  altText: string | null;
+  section: string;
+}
 
 export function About() {
+  const { data: media = [], isLoading } = useQuery<CachedMedia[]>({
+    queryKey: ["/api/media/about"],
+  });
+
+  const aboutImage = media.length > 0 ? media[0] : null;
+  const imageSrc = aboutImage?.imageUrl || FALLBACK_IMAGE;
+  const imageAlt = aboutImage?.altText || "Edwin Gutierrez Consulting";
+
   return (
     <section id="about" className="section-padding bg-black/80 backdrop-blur-sm border-y border-green-500/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Image Side */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -15,14 +32,13 @@ export function About() {
             className="relative order-2 lg:order-1"
           >
             <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl">
-               {/* Professional consultant headshot or working shot */}
               <img 
-                src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2664&auto=format&fit=crop" 
-                alt="Edwin Gutierrez Consulting" 
+                src={imageSrc}
+                alt={imageAlt}
                 className="w-full h-auto object-cover"
+                data-testid="img-about"
               />
             </div>
-            {/* Decorative background element */}
             <div className="absolute -top-4 -left-4 w-full h-full border-2 border-green-500/30 rounded-2xl -z-0"></div>
             
             <div className="absolute -bottom-8 -right-8 bg-black/80 backdrop-blur-md p-6 rounded-xl shadow-xl border border-green-500/30 max-w-xs z-20">
@@ -38,7 +54,6 @@ export function About() {
             </div>
           </motion.div>
 
-          {/* Text Side */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}

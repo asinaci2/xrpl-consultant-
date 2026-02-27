@@ -2,11 +2,12 @@ import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
-import { insertChatSessionSchema, insertChatMessageSchema, insertStorySchema } from "@shared/schema";
+import { insertChatSessionSchema, insertChatMessageSchema, insertStorySchema, insertCachedMediaSchema } from "@shared/schema";
 import { z } from "zod";
 import { WebSocketServer, WebSocket } from "ws";
 import { createChatRoom, sendMatrixMessage, getNewReplies, uploadFileToMatrix, uploadMediaToMatrix } from "./matrix";
 import { getUserTweets, searchTweets } from "./twitter";
+import { resolveMediaUrl, refreshMediaEntry } from "./media";
 import multer from "multer";
 
 const clients = new Map<string, Set<WebSocket>>();
@@ -355,6 +356,90 @@ export async function registerRoutes(
         return;
       }
       res.status(500).json({ message: "Failed to create story" });
+    }
+  });
+
+  app.get("/api/media/:section", async (req, res) => {
+    try {
+      const { section } = req.params;
+      const media = await storage.getMediaBySection(section);
+
+      for (const entry of media) {
+        if (entry.source !== "manual") {
+          await refreshMediaEntry(entry);
+        }
+      }
+
+      const freshMedia = await storage.getMediaBySection(section);
+      res.json(freshMedia);
+    } catch (err) {
+      console.error("Media fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch media" });
+    }
+  });
+
+  app.get("/api/media", async (req, res) => {
+    try {
+      const media = await storage.getAllMedia();
+      res.json(media);
+    } catch (err) {
+      console.error("Media fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch media" });
+    }
+  });
+
+  app.post("/api/media", async (req, res) => {
+    try {
+      const createMediaSchema = z.object({
+        source: z.enum(["instagram", "tiktok", "gdrive", "manual"]),
+        sourceUrl: z.string().url(),
+        section: z.string().min(1),
+        altText: z.string().nullable().optional(),
+        displayOrder: z.number().int().optional(),
+      });
+
+      const input = createMediaSchema.parse(req.body);
+
+      const resolved = await resolveMediaUrl(input.source, input.sourceUrl);
+      if (!resolved) {
+        res.status(400).json({ message: "Could not resolve image from the provided URL" });
+        return;
+      }
+
+      const media = await storage.createMedia({
+        source: input.source,
+        sourceUrl: input.sourceUrl,
+        imageUrl: resolved.imageUrl,
+        title: resolved.title || null,
+        section: input.section,
+        altText: input.altText || null,
+        isActive: true,
+        displayOrder: input.displayOrder || 0,
+      });
+
+      res.status(201).json(media);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message, errors: err.errors });
+        return;
+      }
+      console.error("Media creation error:", err);
+      res.status(500).json({ message: "Failed to create media entry" });
+    }
+  });
+
+  app.delete("/api/media/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid ID" });
+        return;
+      }
+      await storage.deleteMedia(id);
+      res.json({ message: "Media entry deleted" });
+    } catch (err) {
+      console.error("Media deletion error:", err);
+      res.status(500).json({ message: "Failed to delete media entry" });
     }
   });
 

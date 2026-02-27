@@ -2,8 +2,26 @@ import { motion } from "framer-motion";
 import { Link } from "react-scroll";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop";
+
+interface CachedMedia {
+  id: number;
+  imageUrl: string;
+  altText: string | null;
+  section: string;
+}
 
 export function Hero() {
+  const { data: media = [], isLoading } = useQuery<CachedMedia[]>({
+    queryKey: ["/api/media/hero"],
+  });
+
+  const heroImage = media.length > 0 ? media[0] : null;
+  const imageSrc = heroImage?.imageUrl || FALLBACK_IMAGE;
+  const imageAlt = heroImage?.altText || "Blockchain Technology Visualization";
+
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/70 z-[1]" />
@@ -71,9 +89,10 @@ export function Hero() {
             <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-green-500/10 border border-green-500/20 aspect-square">
                <div className="absolute inset-0 bg-black/20 z-10"></div>
                <img 
-                 src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop" 
-                 alt="Blockchain Technology Visualization"
+                 src={imageSrc}
+                 alt={imageAlt}
                  className="w-full h-full object-cover"
+                 data-testid="img-hero"
                />
                
                <motion.div 

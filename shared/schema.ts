@@ -98,3 +98,27 @@ export const insertStorySchema = createInsertSchema(stories).omit({
 
 export type InsertStory = z.infer<typeof insertStorySchema>;
 export type Story = typeof stories.$inferSelect;
+
+export const cachedMedia = pgTable("cached_media", {
+  id: serial("id").primaryKey(),
+  source: text("source").notNull(),
+  sourceUrl: text("source_url").notNull(),
+  imageUrl: text("image_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  title: text("title"),
+  section: text("section").notNull(),
+  altText: text("alt_text"),
+  isActive: boolean("is_active").default(true),
+  displayOrder: integer("display_order").default(0),
+  fetchedAt: timestamp("fetched_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCachedMediaSchema = createInsertSchema(cachedMedia).omit({
+  id: true,
+  fetchedAt: true,
+  createdAt: true,
+});
+
+export type InsertCachedMedia = z.infer<typeof insertCachedMediaSchema>;
+export type CachedMedia = typeof cachedMedia.$inferSelect;

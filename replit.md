@@ -106,3 +106,23 @@ shared/           # Shared code between client/server
   - `GET /api/stories` - Returns active (non-expired) stories
   - `POST /api/stories` - Creates new story with optional image upload to Matrix
 - **Styling**: Matrix cyberpunk theme with green glows, dark gradients, monospace fonts
+
+### Cached Media System
+- **Service**: `server/media.ts` - Multi-source image resolver with database caching
+- **Database**: `cached_media` table with source, sourceUrl, imageUrl, section, altText, displayOrder, isActive, fetchedAt
+- **Sources**: Instagram (oEmbed), TikTok (oEmbed), Google Drive (direct link parsing), Manual URLs
+- **Caching**: 6-hour refresh interval for oEmbed sources, rate limit backoff on 429 errors
+- **Auto-seed**: Seeds Hero and About section images on first run if table is empty
+- **Endpoints**:
+  - `GET /api/media/:section` - Returns cached media for a section (e.g., `/api/media/hero`)
+  - `GET /api/media` - Returns all media entries
+  - `POST /api/media` - Creates new media entry (resolves image URL from source)
+  - `DELETE /api/media/:id` - Removes a media entry
+- **Frontend**: Hero.tsx and About.tsx fetch images from `/api/media/hero` and `/api/media/about` with fallback URLs
+- **Usage**: Add images via API: `POST /api/media` with `{source: "instagram|tiktok|gdrive|manual", sourceUrl: "...", section: "hero|about"}`
+
+### Visual Theme
+- **Full-page Matrix rain**: Fixed canvas background (z-0) behind all content via `MatrixRain` component in Home.tsx
+- **Dark theme**: All sections use semi-transparent dark backgrounds (bg-black/70 to bg-black/90) with backdrop-blur
+- **Color scheme**: Green accents (green-400/500), white headings, gray-300/400 body text, green-500/20 borders
+- **Navigation**: Glass-nav effect with bg-black/80 backdrop-blur, green accent buttons

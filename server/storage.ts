@@ -3,6 +3,7 @@ import {
   chatSessions, 
   chatMessages,
   stories,
+  cachedMedia,
   type InsertInquiry, 
   type Inquiry,
   type InsertChatSession,
@@ -10,10 +11,12 @@ import {
   type InsertChatMessage,
   type ChatMessage,
   type InsertStory,
-  type Story
+  type Story,
+  type InsertCachedMedia,
+  type CachedMedia
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, gt, lt } from "drizzle-orm";
+import { eq, gt, lt, and, asc } from "drizzle-orm";
 
 export interface IStorage {
   createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
@@ -26,6 +29,11 @@ export interface IStorage {
   createStory(story: InsertStory): Promise<Story>;
   getActiveStories(): Promise<Story[]>;
   deleteExpiredStories(): Promise<void>;
+  getMediaBySection(section: string): Promise<CachedMedia[]>;
+  getAllMedia(): Promise<CachedMedia[]>;
+  createMedia(data: InsertCachedMedia): Promise<CachedMedia>;
+  updateMedia(id: number, data: Partial<InsertCachedMedia>): Promise<CachedMedia | undefined>;
+  deleteMedia(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -100,6 +108,42 @@ export class DatabaseStorage implements IStorage {
   async deleteExpiredStories(): Promise<void> {
     const now = new Date();
     await db.delete(stories).where(lt(stories.expiresAt, now));
+  }
+
+  async getMediaBySection(section: string): Promise<CachedMedia[]> {
+    return await db
+      .select()
+      .from(cachedMedia)
+      .where(and(eq(cachedMedia.section, section), eq(cachedMedia.isActive, true)))
+      .orderBy(asc(cachedMedia.displayOrder));
+  }
+
+  async getAllMedia(): Promise<CachedMedia[]> {
+    return await db
+      .select()
+      .from(cachedMedia)
+      .orderBy(asc(cachedMedia.section), asc(cachedMedia.displayOrder));
+  }
+
+  async createMedia(data: InsertCachedMedia): Promise<CachedMedia> {
+    const [created] = await db
+      .insert(cachedMedia)
+      .values(data)
+      .returning();
+    return created;
+  }
+
+  async updateMedia(id: number, data: Partial<InsertCachedMedia>): Promise<CachedMedia | undefined> {
+    const [updated] = await db
+      .update(cachedMedia)
+      .set(data)
+      .where(eq(cachedMedia.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteMedia(id: number): Promise<void> {
+    await db.delete(cachedMedia).where(eq(cachedMedia.id, id));
   }
 }
 
