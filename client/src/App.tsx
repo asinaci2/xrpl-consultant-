@@ -12,6 +12,8 @@ import Welcome from "@/pages/Welcome";
 import NotFound from "@/pages/not-found";
 import { ChatWidget } from "@/components/ChatWidget";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
+import { Sun, Moon } from "lucide-react";
 
 function ProtectedAdmin() {
   const { isAdmin, isLoading } = useAuth();
@@ -67,6 +69,20 @@ function Router() {
   );
 }
 
+function GlobalThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <button
+      onClick={toggleTheme}
+      className="fixed bottom-5 right-5 z-50 w-10 h-10 rounded-full bg-black/60 border border-green-500/30 backdrop-blur-md flex items-center justify-center text-gray-300 hover:text-yellow-400 hover:border-yellow-400/40 hover:bg-black/80 transition-all duration-200 shadow-lg"
+      data-testid="button-theme-toggle-global"
+      title={theme === "matrix" ? "Switch to Day Mode" : "Switch to Night Mode"}
+    >
+      {theme === "matrix" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+    </button>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -74,6 +90,7 @@ function App() {
         <Toaster />
         <Router />
         <ChatWidget />
+        <GlobalThemeToggle />
       </TooltipProvider>
     </QueryClientProvider>
   );

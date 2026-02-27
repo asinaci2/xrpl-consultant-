@@ -1,11 +1,10 @@
 import { Link } from "react-scroll";
 import { useState, useEffect } from "react";
-import { Menu, X, Hexagon, LogIn, Sun, Moon } from "lucide-react";
+import { Menu, X, Hexagon, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import StoryViewer from "./StoryViewer";
 import { Link as RouterLink } from "wouter";
-import { useTheme } from "@/hooks/useTheme";
 
 interface Story {
   id: number;
@@ -118,7 +117,6 @@ function StoriesInNav() {
 export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -184,16 +182,6 @@ export function Navigation() {
                 Login
               </Button>
             </RouterLink>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="theme-toggle text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10 rounded-full"
-              data-testid="button-theme-toggle"
-              title={theme === "matrix" ? "Switch to Day Mode" : "Switch to Matrix Mode"}
-            >
-              {theme === "matrix" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -238,14 +226,6 @@ export function Navigation() {
                   Login
                 </Button>
               </RouterLink>
-              <Button
-                variant="outline"
-                onClick={() => { toggleTheme(); setIsMobileMenuOpen(false); }}
-                className="w-full border-yellow-400/30 text-yellow-400 hover:bg-yellow-400/10 rounded-lg mt-2"
-                data-testid="button-mobile-theme-toggle"
-              >
-                {theme === "matrix" ? <><Sun className="w-4 h-4 mr-2" />Day Mode</> : <><Moon className="w-4 h-4 mr-2" />Matrix Mode</>}
-              </Button>
             </div>
           </div>
         </div>
