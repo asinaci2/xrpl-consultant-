@@ -74,7 +74,7 @@ function GlobalThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="fixed bottom-5 right-5 z-50 w-10 h-10 rounded-full bg-black/60 border border-green-500/30 backdrop-blur-md flex items-center justify-center text-gray-300 hover:text-yellow-400 hover:border-yellow-400/40 hover:bg-black/80 transition-all duration-200 shadow-lg"
+      className="fixed bottom-5 left-5 z-50 w-10 h-10 rounded-full bg-black/60 border border-green-500/30 backdrop-blur-md flex items-center justify-center text-gray-300 hover:text-yellow-400 hover:border-yellow-400/40 hover:bg-black/80 transition-all duration-200 shadow-lg"
       data-testid="button-theme-toggle-global"
       title={theme === "matrix" ? "Switch to Day Mode" : "Switch to Night Mode"}
     >
