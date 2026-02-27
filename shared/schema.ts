@@ -122,3 +122,26 @@ export const insertCachedMediaSchema = createInsertSchema(cachedMedia).omit({
 
 export type InsertCachedMedia = z.infer<typeof insertCachedMediaSchema>;
 export type CachedMedia = typeof cachedMedia.$inferSelect;
+
+export const projects = pgTable("projects", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  subtitle: text("subtitle").notNull(),
+  description: text("description").notNull(),
+  impact: text("impact").notNull(),
+  link: text("link"),
+  icon: text("icon").notNull().default("Briefcase"),
+  color: text("color").notNull().default("bg-green-500"),
+  tags: text("tags").array().notNull(),
+  displayOrder: integer("display_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertProjectSchema = createInsertSchema(projects).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type Project = typeof projects.$inferSelect;

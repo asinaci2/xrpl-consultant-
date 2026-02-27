@@ -4,6 +4,7 @@ import {
   chatMessages,
   stories,
   cachedMedia,
+  projects,
   type InsertInquiry, 
   type Inquiry,
   type InsertChatSession,
@@ -13,7 +14,9 @@ import {
   type InsertStory,
   type Story,
   type InsertCachedMedia,
-  type CachedMedia
+  type CachedMedia,
+  type InsertProject,
+  type Project
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, gt, lt, and, asc, desc } from "drizzle-orm";
@@ -38,6 +41,11 @@ export interface IStorage {
   createMedia(data: InsertCachedMedia): Promise<CachedMedia>;
   updateMedia(id: number, data: Partial<InsertCachedMedia>): Promise<CachedMedia | undefined>;
   deleteMedia(id: number): Promise<void>;
+  getActiveProjects(): Promise<Project[]>;
+  getAllProjects(): Promise<Project[]>;
+  createProject(data: InsertProject): Promise<Project>;
+  updateProject(id: number, data: Partial<InsertProject>): Promise<Project | undefined>;
+  deleteProject(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -170,6 +178,42 @@ export class DatabaseStorage implements IStorage {
 
   async deleteMedia(id: number): Promise<void> {
     await db.delete(cachedMedia).where(eq(cachedMedia.id, id));
+  }
+
+  async getActiveProjects(): Promise<Project[]> {
+    return await db
+      .select()
+      .from(projects)
+      .where(eq(projects.isActive, true))
+      .orderBy(asc(projects.displayOrder));
+  }
+
+  async getAllProjects(): Promise<Project[]> {
+    return await db
+      .select()
+      .from(projects)
+      .orderBy(asc(projects.displayOrder));
+  }
+
+  async createProject(data: InsertProject): Promise<Project> {
+    const [created] = await db
+      .insert(projects)
+      .values(data)
+      .returning();
+    return created;
+  }
+
+  async updateProject(id: number, data: Partial<InsertProject>): Promise<Project | undefined> {
+    const [updated] = await db
+      .update(projects)
+      .set(data)
+      .where(eq(projects.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteProject(id: number): Promise<void> {
+    await db.delete(projects).where(eq(projects.id, id));
   }
 }
 

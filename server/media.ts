@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { cachedMedia } from "@shared/schema";
+import { cachedMedia, projects } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import type { InsertCachedMedia, CachedMedia } from "@shared/schema";
 
@@ -218,5 +218,69 @@ const SEED_IMAGES = [
     }
   } catch (error) {
     console.error("Error seeding media cache:", error);
+  }
+
+  try {
+    const existingProjects = await db.select().from(projects);
+    if (existingProjects.length === 0) {
+      console.log("No projects found, seeding initial projects...");
+      const seedProjects = [
+        {
+          title: "TextRP Ambassador",
+          subtitle: "XRPL-Native Messaging Platform",
+          description: "Drove visibility for app.textrp.io through X Spaces hosting, beta launches, and community Q&A sessions. Promoted $TXT token utility for rewards and gating, wallet integration, and cross-platform bridging.",
+          impact: "Built a tight-knit XRPL network with consistent daily engagement and scam-resistant growth messaging.",
+          tags: ["Privacy-Focused", "$TXT Utility", "Community Growth"],
+          link: "https://app.textrp.io",
+          icon: "MessageSquare",
+          color: "bg-blue-500",
+          displayOrder: 0,
+          isActive: true,
+        },
+        {
+          title: "Budzy Movement",
+          subtitle: "Community Morale & Engagement Brand",
+          description: "A motivational community ethos centered on 'get yo budzy on' - a positive mindset for staying locked in, grinding, and manifesting success. Fosters morale and long-term holder energy across XRPL projects.",
+          impact: "Used in Spaces hosting and daily updates to rally the fam - helps combat burnout in bearish or slow-build phases.",
+          tags: ["Morale Building", "Content Strategy", "Holder Energy"],
+          icon: "Heart",
+          color: "bg-pink-500",
+          displayOrder: 1,
+          isActive: true,
+        },
+        {
+          title: "Crypto Fam Radio",
+          subtitle: "X Spaces Hosting & Community Voice",
+          description: "Frequent co-hosting and participation in X Spaces featuring XRPL discussions, project spotlights, and welcoming newcomers. Positions as a reliable community voice bridging builders and audiences.",
+          impact: "Regular engagement establishing trust as a connector between XRPL projects and their communities.",
+          tags: ["X Spaces", "AMA Facilitation", "Networking"],
+          link: "https://x.com/cryptofamradio",
+          icon: "Radio",
+          color: "bg-purple-500",
+          displayOrder: 2,
+          isActive: true,
+        },
+        {
+          title: "XRP Warlords Strategy",
+          subtitle: "XRPL NFT/GameFi Community Growth",
+          description: "Supporting XRPL gaming innovators through visibility boosts, contest-style engagement, and builder shoutouts. Advise on token-gating chats, community morale, and scam-resistant onboarding for gaming communities.",
+          impact: "Aligned with #Budzy's 'locked in' grind mentality for real utility launches in the NFT/GameFi space.",
+          tags: ["GameFi", "NFT Strategy", "PVP Utility"],
+          link: "https://xrp.cafe",
+          icon: "Gamepad2",
+          color: "bg-orange-500",
+          displayOrder: 3,
+          isActive: true,
+        },
+      ];
+      for (const seed of seedProjects) {
+        await db.insert(projects).values(seed);
+      }
+      console.log(`Seeded ${seedProjects.length} initial projects`);
+    } else {
+      console.log(`Found ${existingProjects.length} projects in database`);
+    }
+  } catch (error) {
+    console.error("Error seeding projects:", error);
   }
 })();

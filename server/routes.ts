@@ -535,5 +535,114 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/projects", async (_req, res) => {
+    try {
+      const activeProjects = await storage.getActiveProjects();
+      res.json(activeProjects);
+    } catch (err) {
+      console.error("Projects fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch projects" });
+    }
+  });
+
+  app.get("/api/projects/all", async (_req, res) => {
+    try {
+      const allProjects = await storage.getAllProjects();
+      res.json(allProjects);
+    } catch (err) {
+      console.error("Projects fetch error:", err);
+      res.status(500).json({ message: "Failed to fetch projects" });
+    }
+  });
+
+  app.post("/api/projects", async (req, res) => {
+    try {
+      const createSchema = z.object({
+        title: z.string().min(1),
+        subtitle: z.string().min(1),
+        description: z.string().min(1),
+        impact: z.string().min(1),
+        link: z.string().url().nullable().optional(),
+        icon: z.string().min(1).optional(),
+        color: z.string().min(1).optional(),
+        tags: z.array(z.string()),
+        displayOrder: z.number().int().optional(),
+        isActive: z.boolean().optional(),
+      });
+      const input = createSchema.parse(req.body);
+      const project = await storage.createProject({
+        title: input.title,
+        subtitle: input.subtitle,
+        description: input.description,
+        impact: input.impact,
+        link: input.link || null,
+        icon: input.icon || "Briefcase",
+        color: input.color || "bg-green-500",
+        tags: input.tags,
+        displayOrder: input.displayOrder || 0,
+        isActive: input.isActive ?? true,
+      });
+      res.status(201).json(project);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message, errors: err.errors });
+        return;
+      }
+      console.error("Project creation error:", err);
+      res.status(500).json({ message: "Failed to create project" });
+    }
+  });
+
+  app.patch("/api/projects/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid ID" });
+        return;
+      }
+      const updateSchema = z.object({
+        title: z.string().min(1).optional(),
+        subtitle: z.string().min(1).optional(),
+        description: z.string().min(1).optional(),
+        impact: z.string().min(1).optional(),
+        link: z.string().url().nullable().optional(),
+        icon: z.string().min(1).optional(),
+        color: z.string().min(1).optional(),
+        tags: z.array(z.string()).optional(),
+        displayOrder: z.number().int().optional(),
+        isActive: z.boolean().optional(),
+      });
+      const input = updateSchema.parse(req.body);
+      const updated = await storage.updateProject(id, input);
+      if (!updated) {
+        res.status(404).json({ message: "Project not found" });
+        return;
+      }
+      res.json(updated);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message });
+        return;
+      }
+      console.error("Project update error:", err);
+      res.status(500).json({ message: "Failed to update project" });
+    }
+  });
+
+  app.delete("/api/projects/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid ID" });
+        return;
+      }
+      await storage.deleteProject(id);
+      res.json({ message: "Project deleted" });
+    } catch (err) {
+      console.error("Project deletion error:", err);
+      res.status(500).json({ message: "Failed to delete project" });
+    }
+  });
+
   return httpServer;
 }

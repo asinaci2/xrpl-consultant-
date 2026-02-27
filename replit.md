@@ -129,7 +129,8 @@ shared/           # Shared code between client/server
 
 ### Admin Dashboard
 - **Page**: `client/src/pages/Admin.tsx` at route `/admin`
-- **Tabs**: Media, Stories, Inquiries, Tweets
+- **Tabs**: Media, Projects, Stories, Inquiries, Tweets
+- **Projects Tab**: Add/edit/delete/toggle featured projects with title, subtitle, description, impact, URL, icon, color, tags
 - **Media Tab**: View/add/delete/toggle media entries; supports manual, Instagram, TikTok, Google Drive sources
 - **Stories Tab**: Create/delete stories with content, author name, optional image URL
 - **Inquiries Tab**: View/delete contact form submissions
@@ -141,3 +142,14 @@ shared/           # Shared code between client/server
   - `GET /api/stories/all` - List all stories (including expired)
   - `DELETE /api/stories/:id` - Delete a story
   - `POST /api/twitter/refresh` - Force refresh Twitter cache
+  - `GET /api/projects` - List active projects
+  - `GET /api/projects/all` - List all projects (including inactive)
+  - `POST /api/projects` - Create a project
+  - `PATCH /api/projects/:id` - Update project fields
+  - `DELETE /api/projects/:id` - Delete a project
+
+### Featured Projects
+- **Database**: `projects` table with title, subtitle, description, impact, link, icon, color, tags, displayOrder, isActive
+- **Frontend**: `client/src/components/Projects.tsx` fetches from `/api/projects` with icon name-to-component mapping
+- **Auto-seed**: 4 initial projects seeded on first run (TextRP Ambassador, Budzy Movement, Crypto Fam Radio, XRP Warlords)
+- **Icons**: Mapped by name string (MessageSquare, Heart, Radio, Gamepad2, Briefcase, Globe, Star, Zap, Shield, Code, Users, Rocket, Award, Target)
