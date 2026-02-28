@@ -1,4 +1,4 @@
-import { getRoomMembers, getDisplayName, getMatrixClient, getBotJoinedRooms, getRoomProfile } from "./matrix";
+import { getRoomMembers, getDisplayName, getMatrixClient, getBotJoinedRooms, getRoomProfile, getUserAvatar } from "./matrix";
 import type { IStorage } from "./storage";
 
 const ADMIN_MATRIX_ROOM = process.env.ADMIN_MATRIX_ROOM || "!imueijCPGUZihXVrif:synapse.textrp.io";
@@ -137,9 +137,13 @@ async function syncProfileRooms(storage: IStorage): Promise<void> {
     if (consultant.profileRoomId) {
       const roomProfile = await getRoomProfile(consultant.profileRoomId);
       if (roomProfile.name && !roomProfile.name.startsWith("Chat with ")) {
+        const avatarUrl = roomProfile.avatarUrl
+          ?? (consultant.matrixUserId ? await getUserAvatar(consultant.matrixUserId) : null)
+          ?? consultant.avatarUrl
+          ?? undefined;
         await storage.upsertChatHostConfigBySlug(consultant.slug, {
           displayName: roomProfile.name,
-          avatarUrl: roomProfile.avatarUrl ?? consultant.avatarUrl ?? undefined,
+          avatarUrl,
           statusMessage: roomProfile.topic ?? undefined,
         });
         console.log(`[sync] Updated chat profile for ${consultant.slug} from linked room ${consultant.profileRoomId}`);
@@ -180,9 +184,13 @@ async function syncProfileRooms(storage: IStorage): Promise<void> {
     if (!matchedConsultant) continue;
 
     await storage.updateConsultant(matchedConsultant.slug, { profileRoomId: roomId });
+    const avatarUrl = roomProfile.avatarUrl
+      ?? (matchedConsultant.matrixUserId ? await getUserAvatar(matchedConsultant.matrixUserId) : null)
+      ?? matchedConsultant.avatarUrl
+      ?? undefined;
     await storage.upsertChatHostConfigBySlug(matchedConsultant.slug, {
       displayName: roomProfile.name,
-      avatarUrl: roomProfile.avatarUrl ?? matchedConsultant.avatarUrl ?? undefined,
+      avatarUrl,
       statusMessage: roomProfile.topic ?? undefined,
     });
     syncedSlugs.add(matchedConsultant.slug);

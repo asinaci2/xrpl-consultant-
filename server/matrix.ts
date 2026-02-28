@@ -314,9 +314,31 @@ function mxcToHttps(mxcUrl: string): string {
   return `${MATRIX_HOMESERVER}/_matrix/media/v3/download/${server}/${mediaId}`;
 }
 
-export async function getRoomProfile(roomId: string): Promise<{ name: string | null; avatarUrl: string | null; topic: string | null }> {
+export async function getRoomProfile(roomIdOrAlias: string): Promise<{ name: string | null; avatarUrl: string | null; topic: string | null }> {
   const botToken = process.env.ACCESS_TOKEN;
   if (!botToken) return { name: null, avatarUrl: null, topic: null };
+
+  let roomId = roomIdOrAlias;
+
+  // Resolve room alias (e.g. #budzys-buddies:synapse.textrp.io) to a room ID
+  if (roomIdOrAlias.startsWith("#")) {
+    try {
+      const res = await fetch(
+        `${MATRIX_HOMESERVER}/_matrix/client/v3/directory/room/${encodeURIComponent(roomIdOrAlias)}`,
+        { headers: { Authorization: `Bearer ${botToken}` } }
+      );
+      if (res.ok) {
+        const data = await res.json() as { room_id: string };
+        roomId = data.room_id;
+      } else {
+        console.warn(`[matrix] Could not resolve room alias ${roomIdOrAlias}: HTTP ${res.status}`);
+        return { name: null, avatarUrl: null, topic: null };
+      }
+    } catch (err) {
+      console.warn(`[matrix] Error resolving room alias ${roomIdOrAlias}:`, err);
+      return { name: null, avatarUrl: null, topic: null };
+    }
+  }
 
   async function getStateEvent(type: string): Promise<any> {
     try {
@@ -344,6 +366,24 @@ export async function getRoomProfile(roomId: string): Promise<{ name: string | n
   const topic = topicEvent?.topic ?? null;
 
   return { name, avatarUrl, topic };
+}
+
+export async function getUserAvatar(userId: string): Promise<string | null> {
+  const botToken = process.env.ACCESS_TOKEN;
+  if (!botToken) return null;
+  try {
+    const res = await fetch(
+      `${MATRIX_HOMESERVER}/_matrix/client/v3/profile/${encodeURIComponent(userId)}/avatar_url`,
+      { headers: { Authorization: `Bearer ${botToken}` } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json() as { avatar_url?: string };
+    const mxc = data.avatar_url;
+    if (mxc?.startsWith("mxc://")) return mxcToHttps(mxc);
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getDisplayName(userId: string): Promise<string> {
