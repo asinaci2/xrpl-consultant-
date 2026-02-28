@@ -13,6 +13,7 @@ export type ConsultantProfile = {
   locationLine2: string;
   contactHeadline: string;
   profileRoomId: string | null;
+  calendarUrl: string | null;
 };
 
 export type ProjectEntry = {

@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, User, MessageCircle, ExternalLink, LogOut, Shield,
   UserCircle, Briefcase, Clock, Mail, Layout, Quote, Wallet,
-  ChevronDown, ChevronUp
+  ChevronDown, ChevronUp, Calendar
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminSlugContext } from "@/components/dashboard/context";
 import { ProfileTab } from "@/components/dashboard/ProfileTab";
 import { ProjectsTab } from "@/components/dashboard/ProjectsTab";
 import { StoriesTab } from "@/components/dashboard/StoriesTab";
-import { ContactInfoTab } from "@/components/dashboard/ContactInfoTab";
+import { SchedulingTab } from "@/components/dashboard/SchedulingTab";
 import { MediaTab } from "@/components/dashboard/MediaTab";
 import { ChatWidgetTab } from "@/components/dashboard/ChatWidgetTab";
 import { TestimonialsTab } from "@/components/dashboard/TestimonialsTab";
@@ -183,7 +183,7 @@ export default function Dashboard() {
               <TabsTrigger value="profile" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400" data-testid="tab-profile"><UserCircle className="w-4 h-4 mr-2" />Profile</TabsTrigger>
               <TabsTrigger value="projects" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-400" data-testid="tab-projects"><Briefcase className="w-4 h-4 mr-2" />Projects</TabsTrigger>
               <TabsTrigger value="stories" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white text-gray-400" data-testid="tab-stories"><Clock className="w-4 h-4 mr-2" />Stories</TabsTrigger>
-              <TabsTrigger value="contact" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white text-gray-400" data-testid="tab-contact"><Mail className="w-4 h-4 mr-2" />Contact</TabsTrigger>
+              <TabsTrigger value="scheduling" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-gray-400" data-testid="tab-scheduling"><Calendar className="w-4 h-4 mr-2" />Scheduling</TabsTrigger>
               <TabsTrigger value="media" className="data-[state=active]:bg-orange-600 data-[state=active]:text-white text-gray-400" data-testid="tab-media"><Layout className="w-4 h-4 mr-2" />Media</TabsTrigger>
               <TabsTrigger value="chat-profile" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white text-gray-400" data-testid="tab-chat-profile"><MessageCircle className="w-4 h-4 mr-2" />Chat Widget</TabsTrigger>
               <TabsTrigger value="testimonials" className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white text-gray-400" data-testid="tab-testimonials"><Quote className="w-4 h-4 mr-2" />Testimonials</TabsTrigger>
@@ -193,7 +193,7 @@ export default function Dashboard() {
             <TabsContent value="profile"><ProfileTab slug={slug} /></TabsContent>
             <TabsContent value="projects"><ProjectsTab slug={slug} /></TabsContent>
             <TabsContent value="stories"><StoriesTab slug={slug} /></TabsContent>
-            <TabsContent value="contact"><ContactInfoTab slug={slug} /></TabsContent>
+            <TabsContent value="scheduling"><SchedulingTab slug={slug} /></TabsContent>
             <TabsContent value="media"><MediaTab slug={slug} /></TabsContent>
             <TabsContent value="chat-profile"><ChatWidgetTab slug={slug} /></TabsContent>
             <TabsContent value="testimonials"><TestimonialsTab slug={slug} /></TabsContent>
