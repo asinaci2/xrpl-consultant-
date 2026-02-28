@@ -1230,6 +1230,61 @@ export async function registerRoutes(
     }
   });
 
+  // Testimonials — public read
+  app.get("/api/c/:slug/testimonials", async (req, res) => {
+    try {
+      const data = await storage.getTestimonialsBySlug(req.params.slug);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch testimonials" });
+    }
+  });
+
+  // Testimonials — dashboard CRUD
+  app.get("/api/dashboard/testimonials", requireVerifiedConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const data = await storage.getTestimonialsBySlug(slug);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch testimonials" });
+    }
+  });
+
+  app.post("/api/dashboard/testimonials", requireVerifiedConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const { authorName, authorTitle, content, sortOrder } = req.body;
+      const created = await storage.createTestimonial({ consultantSlug: slug, authorName, authorTitle: authorTitle ?? "", content, sortOrder: sortOrder ?? 0 });
+      res.status(201).json(created);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create testimonial" });
+    }
+  });
+
+  app.patch("/api/dashboard/testimonials/:id", requireVerifiedConsultant, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { authorName, authorTitle, content, sortOrder } = req.body;
+      const updated = await storage.updateTestimonial(id, { authorName, authorTitle, content, sortOrder });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update testimonial" });
+    }
+  });
+
+  app.delete("/api/dashboard/testimonials/:id", requireVerifiedConsultant, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTestimonial(id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete testimonial" });
+    }
+  });
+
   app.get("/api/admin/sync-status", requireAdmin, async (_req, res) => {
     const { getSyncStatus } = await import("./sync");
     res.json(getSyncStatus());

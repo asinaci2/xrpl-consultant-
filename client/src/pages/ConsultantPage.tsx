@@ -23,6 +23,7 @@ interface Consultant {
   specialties: string[];
   twitterUsername: string | null;
   matrixUserId: string | null;
+  calendarUrl: string | null;
   email: string;
   phone: string;
   location: string;
@@ -96,7 +97,7 @@ export default function ConsultantPage() {
         <Services />
         <ConsultantProjects slug={slug} />
         <About />
-        <Testimonials />
+        <Testimonials slug={slug} />
         <ConsultantContact consultant={consultant} slug={slug} />
       </main>
 

@@ -8,6 +8,7 @@ import {
   contactInfo,
   consultants,
   chatHostConfig,
+  testimonials,
   type InsertInquiry, 
   type Inquiry,
   type InsertChatSession,
@@ -26,6 +27,8 @@ import {
   type Consultant,
   type InsertChatHostConfig,
   type ChatHostConfig,
+  type InsertTestimonial,
+  type Testimonial,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, gt, lt, and, asc, desc, isNull, isNotNull, or } from "drizzle-orm";
@@ -75,6 +78,10 @@ export interface IStorage {
   updateContactInfoBySlug(slug: string, data: Partial<InsertContactInfo>): Promise<ContactInfo>;
   getChatHostConfigBySlug(slug: string): Promise<ChatHostConfig | undefined>;
   upsertChatHostConfigBySlug(slug: string, data: Partial<InsertChatHostConfig>): Promise<ChatHostConfig>;
+  getTestimonialsBySlug(slug: string): Promise<Testimonial[]>;
+  createTestimonial(data: InsertTestimonial): Promise<Testimonial>;
+  updateTestimonial(id: number, data: Partial<InsertTestimonial>): Promise<Testimonial | undefined>;
+  deleteTestimonial(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -429,6 +436,32 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  async getTestimonialsBySlug(slug: string): Promise<Testimonial[]> {
+    return await db
+      .select()
+      .from(testimonials)
+      .where(eq(testimonials.consultantSlug, slug))
+      .orderBy(asc(testimonials.sortOrder));
+  }
+
+  async createTestimonial(data: InsertTestimonial): Promise<Testimonial> {
+    const [created] = await db.insert(testimonials).values(data).returning();
+    return created;
+  }
+
+  async updateTestimonial(id: number, data: Partial<InsertTestimonial>): Promise<Testimonial | undefined> {
+    const [updated] = await db
+      .update(testimonials)
+      .set(data)
+      .where(eq(testimonials.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTestimonial(id: number): Promise<void> {
+    await db.delete(testimonials).where(eq(testimonials.id, id));
   }
 }
 

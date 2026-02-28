@@ -18,6 +18,7 @@ export const consultants = pgTable("consultants", {
   locationLine2: text("location_line2").notNull().default(""),
   contactHeadline: text("contact_headline").notNull().default("Ready to Connect?"),
   profileRoomId: text("profile_room_id"),
+  calendarUrl: text("calendar_url"),
   isActive: boolean("is_active").default(true),
   displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -214,3 +215,17 @@ export const insertChatHostConfigSchema = createInsertSchema(chatHostConfig).omi
 
 export type InsertChatHostConfig = z.infer<typeof insertChatHostConfigSchema>;
 export type ChatHostConfig = typeof chatHostConfig.$inferSelect;
+
+export const testimonials = pgTable("testimonials", {
+  id: serial("id").primaryKey(),
+  consultantSlug: text("consultant_slug").notNull(),
+  authorName: text("author_name").notNull(),
+  authorTitle: text("author_title").notNull().default(""),
+  content: text("content").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const insertTestimonialSchema = createInsertSchema(testimonials).omit({ id: true });
+
+export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
+export type Testimonial = typeof testimonials.$inferSelect;

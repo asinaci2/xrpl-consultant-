@@ -1,19 +1,6 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Loader2 } from "lucide-react";
+import { Mail, Phone, MapPin, CalendarDays, ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { insertInquirySchema } from "@shared/schema";
-
-const formSchema = insertInquirySchema.pick({ name: true, email: true, message: true });
 
 interface Consultant {
   name: string;
@@ -22,6 +9,7 @@ interface Consultant {
   location: string;
   locationLine2: string;
   contactHeadline: string;
+  calendarUrl: string | null;
 }
 
 interface ContactInfo {
@@ -34,8 +22,6 @@ interface ContactInfo {
 }
 
 export function ConsultantContact({ consultant, slug }: { consultant: Consultant; slug: string }) {
-  const { toast } = useToast();
-
   const { data: info } = useQuery<ContactInfo>({
     queryKey: ["/api/c/:slug/contact-info", slug],
     queryFn: async () => {
@@ -53,27 +39,13 @@ export function ConsultantContact({ consultant, slug }: { consultant: Consultant
     locationLine2: info?.locationLine2 ?? consultant.locationLine2,
   };
 
-  const mutation = useMutation({
-    mutationFn: (values: z.infer<typeof formSchema>) =>
-      apiRequest("POST", "/api/inquiries", { ...values, consultantSlug: slug }),
-  });
+  const calendarUrl = consultant.calendarUrl;
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { name: "", email: "", message: "" },
-  });
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    mutation.mutate(values, {
-      onSuccess: () => {
-        toast({ title: "Inquiry Sent", description: `${consultant.name} will be in touch shortly.` });
-        form.reset();
-      },
-      onError: () => {
-        toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
-      },
-    });
-  }
+  const embedUrl = calendarUrl
+    ? calendarUrl.includes("?")
+      ? `${calendarUrl}&gv=true`
+      : `${calendarUrl}?gv=true`
+    : null;
 
   return (
     <section id="contact" className="section-padding bg-black/85 backdrop-blur-sm text-white relative overflow-hidden">
@@ -86,33 +58,39 @@ export function ConsultantContact({ consultant, slug }: { consultant: Consultant
             <p className="text-gray-300 text-lg mb-12 max-w-md">{contact.subheading}</p>
 
             <div className="space-y-8">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                  <Mail className="w-5 h-5 text-green-400" />
+              {contact.email && (
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                    <Mail className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg mb-1">Email</h4>
+                    <a href={`mailto:${contact.email}`} className="text-gray-300 hover:text-green-400 transition-colors">{contact.email}</a>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-lg mb-1">Email</h4>
-                  <a href={`mailto:${contact.email}`} className="text-gray-300 hover:text-green-400 transition-colors">{contact.email}</a>
+              )}
+              {contact.phone && (
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                    <Phone className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg mb-1">Phone</h4>
+                    <p className="text-gray-300">{contact.phone}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                  <Phone className="w-5 h-5 text-green-400" />
+              )}
+              {contact.location && (
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                    <MapPin className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg mb-1">Office</h4>
+                    <p className="text-gray-300">{contact.location}<br />{contact.locationLine2}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-lg mb-1">Phone</h4>
-                  <p className="text-gray-300">{contact.phone}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                  <MapPin className="w-5 h-5 text-green-400" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-lg mb-1">Office</h4>
-                  <p className="text-gray-300">{contact.location}<br />{contact.locationLine2}</p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -121,48 +99,43 @@ export function ConsultantContact({ consultant, slug }: { consultant: Consultant
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className="bg-black/60 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-green-500/20"
+            className="flex flex-col"
           >
-            <h4 className="text-2xl font-display font-bold text-white mb-6">Send a Message</h4>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-300 font-medium">Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" className="bg-black/40 border-green-500/20 focus:border-green-400 h-12 rounded-lg text-white placeholder:text-gray-500" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="email" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-300 font-medium">Email Address</FormLabel>
-                    <FormControl>
-                      <Input placeholder="john@company.com" className="bg-black/40 border-green-500/20 focus:border-green-400 h-12 rounded-lg text-white placeholder:text-gray-500" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="message" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-300 font-medium">How can I help?</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Tell me about your project needs..." className="bg-black/40 border-green-500/20 focus:border-green-400 min-h-[150px] rounded-lg resize-none text-white placeholder:text-gray-500" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <Button
-                  type="submit"
-                  disabled={mutation.isPending}
-                  className="w-full h-12 bg-green-500 hover:bg-green-600 text-black font-semibold rounded-lg text-lg shadow-lg shadow-green-500/20 transition-all hover:scale-[1.02]"
-                  data-testid="button-submit-inquiry"
+            <div className="flex items-center gap-3 mb-4">
+              <CalendarDays className="w-6 h-6 text-green-400" />
+              <h4 className="text-2xl font-display font-bold text-white">Schedule a Meeting</h4>
+            </div>
+
+            {embedUrl ? (
+              <div className="flex flex-col gap-3 flex-1">
+                <div className="rounded-2xl overflow-hidden border border-green-500/20 shadow-2xl bg-white flex-1 min-h-[560px]">
+                  <iframe
+                    src={embedUrl}
+                    title="Schedule a meeting"
+                    className="w-full h-full min-h-[560px]"
+                    frameBorder="0"
+                    data-testid="iframe-calendar"
+                    allow="camera; microphone"
+                  />
+                </div>
+                <a
+                  href={calendarUrl!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid="link-open-calendar"
+                  className="inline-flex items-center gap-2 text-sm text-green-400 hover:text-green-300 transition-colors font-mono self-start"
                 >
-                  {mutation.isPending ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Sending...</> : "Submit Inquiry"}
-                </Button>
-              </form>
-            </Form>
+                  <ExternalLink className="w-4 h-4" />
+                  Open in browser
+                </a>
+              </div>
+            ) : (
+              <div className="flex-1 min-h-[300px] rounded-2xl border border-green-500/20 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center gap-4 p-8 text-center">
+                <CalendarDays className="w-12 h-12 text-green-400/40" />
+                <p className="text-gray-400 text-lg">Calendar scheduling coming soon</p>
+                <p className="text-gray-600 text-sm">Check back shortly or reach out via email or phone.</p>
+              </div>
+            )}
           </motion.div>
         </div>
       </div>

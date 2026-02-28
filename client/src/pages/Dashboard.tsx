@@ -18,6 +18,7 @@ import {
   Mail, MapPin, Globe, Clock, Layout, TrendingUp,
   MessageSquare, Heart, Radio, Gamepad2, Star, Zap,
   Shield, Code, Users, Rocket, Award, Target, Link2, AlertCircle, CheckCircle2, Hash,
+  CalendarDays, Quote,
   type LucideIcon,
 } from "lucide-react";
 import { SiInstagram, SiTiktok, SiX, SiSnapchat } from "react-icons/si";
@@ -202,6 +203,7 @@ function ProfileTab({ slug }: { slug: string }) {
   const [location, setLocation] = useState("");
   const [locationLine2, setLocationLine2] = useState("");
   const [twitterUsername, setTwitterUsername] = useState("");
+  const [calendarUrl, setCalendarUrl] = useState("");
 
   useEffect(() => {
     if (profile) {
@@ -216,6 +218,7 @@ function ProfileTab({ slug }: { slug: string }) {
       setLocation(profile.location);
       setLocationLine2(profile.locationLine2);
       setTwitterUsername(profile.twitterUsername ?? "");
+      setCalendarUrl((profile as any).calendarUrl ?? "");
     }
   }, [profile]);
 
@@ -234,6 +237,7 @@ function ProfileTab({ slug }: { slug: string }) {
         contactHeadline,
         email, phone, location, locationLine2,
         twitterUsername: twitterUsername || null,
+        calendarUrl: calendarUrl || null,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/profile", override] });
@@ -287,6 +291,11 @@ function ProfileTab({ slug }: { slug: string }) {
               <div>
                 <FieldLabel icon={AtSign}>Twitter / X Username <span className="text-gray-500 text-xs ml-1">(without @)</span></FieldLabel>
                 <Input value={twitterUsername} onChange={e => setTwitterUsername(e.target.value)} placeholder="YourHandle" className="bg-black/40 border-green-500/20 text-white" data-testid="input-profile-twitter" />
+              </div>
+              <div>
+                <FieldLabel icon={CalendarDays}>Google Calendar Booking URL</FieldLabel>
+                <Input value={calendarUrl} onChange={e => setCalendarUrl(e.target.value)} placeholder="https://calendar.google.com/calendar/appointments/schedules/..." className="bg-black/40 border-green-500/20 text-white" data-testid="input-profile-calendar-url" />
+                <p className="text-xs text-gray-500 mt-1">Paste your Google Calendar Appointment Scheduling URL — visitors will see an embedded booking widget on your profile page.</p>
               </div>
             </CardContent>
           </Card>
@@ -1750,6 +1759,166 @@ function ChatProfileTab({ slug, matrixUserId, profileRoomId }: { slug: string; m
   );
 }
 
+// ── Testimonials Tab ───────────────────────────────────────────────────────────
+function TestimonialsTab({ slug }: { slug: string }) {
+  const { toast } = useToast();
+  const sp = useSlugParam();
+  const override = useAdminSlug();
+
+  const { data: testimonials = [], isLoading } = useQuery<{ id: number; authorName: string; authorTitle: string; content: string; sortOrder: number }[]>({
+    queryKey: ["/api/dashboard/testimonials", override],
+    queryFn: () => fetch(`/api/dashboard/testimonials${sp}`, { credentials: "include" }).then(r => r.json()),
+  });
+
+  const [editing, setEditing] = useState<number | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+
+  const [addName, setAddName] = useState("");
+  const [addTitle, setAddTitle] = useState("");
+  const [addContent, setAddContent] = useState("");
+
+  const createMutation = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/dashboard/testimonials${sp}`, { authorName: addName, authorTitle: addTitle, content: addContent }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/testimonials", override] });
+      queryClient.invalidateQueries({ queryKey: ["/api/c/:slug/testimonials", override || slug] });
+      setAddName(""); setAddTitle(""); setAddContent("");
+      toast({ title: "Testimonial added" });
+    },
+    onError: () => toast({ title: "Error", description: "Failed to add testimonial.", variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("PATCH", `/api/dashboard/testimonials/${id}${sp}`, { authorName: editName, authorTitle: editTitle, content: editContent }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/testimonials", override] });
+      queryClient.invalidateQueries({ queryKey: ["/api/c/:slug/testimonials", override || slug] });
+      setEditing(null);
+      toast({ title: "Testimonial updated" });
+    },
+    onError: () => toast({ title: "Error", description: "Failed to update testimonial.", variant: "destructive" }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/dashboard/testimonials/${id}${sp}`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/testimonials", override] });
+      queryClient.invalidateQueries({ queryKey: ["/api/c/:slug/testimonials", override || slug] });
+      toast({ title: "Testimonial deleted" });
+    },
+    onError: () => toast({ title: "Error", description: "Failed to delete testimonial.", variant: "destructive" }),
+  });
+
+  function startEdit(t: { id: number; authorName: string; authorTitle: string; content: string }) {
+    setEditing(t.id);
+    setEditName(t.authorName);
+    setEditTitle(t.authorTitle);
+    setEditContent(t.content);
+  }
+
+  if (isLoading) return <p className="text-gray-400 p-4">Loading...</p>;
+
+  return (
+    <div className="space-y-5">
+      <SectionBanner
+        icon={Quote}
+        iconBg="bg-yellow-500/15"
+        iconColor="text-yellow-400"
+        borderColor="border-yellow-500"
+        section="Testimonials Section"
+        description="Add client testimonials that appear on your public profile page, displayed as quote cards above the contact section."
+        slug={slug}
+      />
+
+      {/* Add new */}
+      <Card className="bg-black/60 border-green-500/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-green-400 text-base flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Add Testimonial
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <FieldLabel icon={User}>Client Name</FieldLabel>
+              <Input value={addName} onChange={e => setAddName(e.target.value)} placeholder="Jane Smith" className="bg-black/40 border-green-500/20 text-white" data-testid="input-add-testimonial-name" />
+            </div>
+            <div>
+              <FieldLabel icon={Briefcase}>Title / Company <span className="text-gray-500 text-xs ml-1">(optional)</span></FieldLabel>
+              <Input value={addTitle} onChange={e => setAddTitle(e.target.value)} placeholder="CEO, Acme Corp" className="bg-black/40 border-green-500/20 text-white" data-testid="input-add-testimonial-title" />
+            </div>
+          </div>
+          <div>
+            <FieldLabel icon={FileText}>Testimonial</FieldLabel>
+            <Textarea value={addContent} onChange={e => setAddContent(e.target.value)} rows={3} placeholder="What did this client say about working with you?" className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600" data-testid="input-add-testimonial-content" />
+          </div>
+          <Button
+            onClick={() => createMutation.mutate()}
+            disabled={!addName.trim() || !addContent.trim() || createMutation.isPending}
+            className="bg-green-600 hover:bg-green-700 text-white"
+            data-testid="button-add-testimonial"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add Testimonial
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* List */}
+      {testimonials.length === 0 ? (
+        <Card className="bg-black/40 border-green-500/10">
+          <CardContent className="py-10 text-center text-gray-500">
+            No testimonials yet — add one above.
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {testimonials.map(t => (
+            <Card key={t.id} className="bg-black/60 border-green-500/20" data-testid={`card-testimonial-item-${t.id}`}>
+              <CardContent className="pt-4 space-y-3">
+                {editing === t.id ? (
+                  <>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <Input value={editName} onChange={e => setEditName(e.target.value)} className="bg-black/40 border-green-500/20 text-white" placeholder="Client Name" data-testid={`input-edit-name-${t.id}`} />
+                      <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} className="bg-black/40 border-green-500/20 text-white" placeholder="Title / Company" data-testid={`input-edit-title-${t.id}`} />
+                    </div>
+                    <Textarea value={editContent} onChange={e => setEditContent(e.target.value)} rows={3} className="bg-black/40 border-green-500/20 text-white" data-testid={`input-edit-content-${t.id}`} />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => updateMutation.mutate(t.id)} disabled={updateMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white" data-testid={`button-save-testimonial-${t.id}`}>Save</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditing(null)} className="border-gray-600 text-gray-400" data-testid={`button-cancel-edit-${t.id}`}>Cancel</Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="text-gray-300 italic text-sm">"{t.content}"</p>
+                        <p className="text-white font-semibold text-sm mt-2">{t.authorName}</p>
+                        {t.authorTitle && <p className="text-gray-500 text-xs">{t.authorTitle}</p>}
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <Button size="sm" variant="outline" onClick={() => startEdit(t)} className="border-green-500/30 text-green-400 hover:bg-green-500/10" data-testid={`button-edit-testimonial-${t.id}`}>
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => deleteMutation.mutate(t.id)} disabled={deleteMutation.isPending} className="border-red-500/30 text-red-400 hover:bg-red-500/10" data-testid={`button-delete-testimonial-${t.id}`}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Dashboard Page ────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { user, logout, consultantSlug, isAdmin, matrixUserId, displayName } = useAuth();
@@ -1899,6 +2068,9 @@ export default function Dashboard() {
             <TabsTrigger value="chat-profile" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white text-gray-400" data-testid="tab-chat-profile">
               <MessageCircle className="w-4 h-4 mr-2" />Chat Widget
             </TabsTrigger>
+            <TabsTrigger value="testimonials" className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white text-gray-400" data-testid="tab-testimonials">
+              <Quote className="w-4 h-4 mr-2" />Testimonials
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
@@ -1922,6 +2094,9 @@ export default function Dashboard() {
           </TabsContent>
           <TabsContent value="chat-profile">
             <ChatProfileTab slug={slug} matrixUserId={profile?.matrixUserId ?? matrixUserId} profileRoomId={profile?.profileRoomId} />
+          </TabsContent>
+          <TabsContent value="testimonials">
+            <TestimonialsTab slug={slug} />
           </TabsContent>
         </Tabs>
       </div>
