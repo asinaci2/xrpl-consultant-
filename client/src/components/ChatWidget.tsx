@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ChatMessage {
   id: number;
@@ -34,6 +35,7 @@ interface ChatWidgetProps {
 }
 
 export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
+  const { isAuthenticated, isLoading: authIsLoading, displayName: authDisplayName, matrixUserId } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -44,6 +46,7 @@ export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const autoInitAttempted = useRef(false);
 
   const configUrl = consultantSlug
     ? `/api/chat/host-config/${consultantSlug}`
@@ -88,6 +91,11 @@ export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
         setVisitorName("");
       });
   }, [consultantSlug]);
+
+  // Reset auto-init guard when widget closes so it can re-init if session is lost
+  useEffect(() => {
+    if (!isOpen) autoInitAttempted.current = false;
+  }, [isOpen]);
 
   const { data: messages = [] } = useQuery<ChatMessage[]>({
     queryKey: ["/api/chat/sessions", sessionId, "messages"],
@@ -141,6 +149,17 @@ export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
       localStorage.setItem(nameStorageKey, name);
     },
   });
+
+  // Auto-start session for SSO-authenticated users — skip the identity form
+  useEffect(() => {
+    if (!isOpen || sessionId || authIsLoading || !isAuthenticated) return;
+    if (autoInitAttempted.current) return;
+    autoInitAttempted.current = true;
+    const name = authDisplayName || (matrixUserId ? matrixUserId.split(":")[0].replace("@", "") : "Visitor");
+    const email = matrixUserId ?? "visitor@textrp.io";
+    const newSessionId = generateSessionId();
+    createSessionMutation.mutate({ newSessionId, name, email });
+  }, [isOpen, sessionId, authIsLoading, isAuthenticated]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async ({ content }: { content: string }) => {
@@ -360,6 +379,25 @@ export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
             </div>
 
             {!sessionId ? (
+              isAuthenticated ? (
+                <div className="p-6 flex flex-col flex-1 items-center justify-center" data-testid="section-auto-connecting">
+                  <div 
+                    className="w-16 h-16 rounded-full border-2 border-green-500/50 flex items-center justify-center relative mb-4"
+                    style={{ background: "linear-gradient(135deg, #0a1a0a 0%, #0d2010 100%)", boxShadow: "0 0 20px rgba(0, 255, 100, 0.2)" }}
+                  >
+                    {host.avatarUrl ? (
+                      <img src={host.avatarUrl} alt={host.displayName} className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      <MessageCircle className="h-8 w-8 text-green-400" />
+                    )}
+                    <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-black bg-green-400 animate-pulse" />
+                  </div>
+                  <Loader2 className="h-5 w-5 text-green-400 animate-spin mb-3" />
+                  <p className="text-green-400/70 text-sm font-mono text-center" data-testid="text-auto-connecting">
+                    {">"} Connecting as <span className="text-green-300">{authDisplayName || "you"}</span>...
+                  </p>
+                </div>
+              ) : (
               <form onSubmit={startSession} className="p-6 flex flex-col flex-1">
                 <div className="flex flex-col items-center mb-4">
                   <div 
@@ -429,8 +467,15 @@ export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
                   {createSessionMutation.isPending ? "CONNECTING..." : "[ CONNECT ]"}
                 </Button>
               </form>
+              )
             ) : (
               <>
+                {visitorName && (
+                  <div className="px-4 py-1.5 border-b border-green-500/10 bg-green-500/5 flex items-center gap-1.5" data-testid="text-chatting-as">
+                    <span className="text-green-500/40 font-mono text-xs">chatting as</span>
+                    <span className="text-green-400/70 font-mono text-xs font-semibold">{visitorName}</span>
+                  </div>
+                )}
                 <div 
                   className="flex-1 p-4 overflow-y-auto" 
                   style={{ height: "300px", background: "rgba(0, 10, 0, 0.5)" }}
