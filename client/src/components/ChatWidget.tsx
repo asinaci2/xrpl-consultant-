@@ -137,8 +137,8 @@ export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
     },
     onSuccess: (_, { newSessionId, name }) => {
       setSessionId(newSessionId);
-      localStorage.setItem("chat_session_id", newSessionId);
-      localStorage.setItem("chat_visitor_name", name);
+      localStorage.setItem(sessionStorageKey, newSessionId);
+      localStorage.setItem(nameStorageKey, name);
     },
   });
 
