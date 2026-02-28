@@ -63,9 +63,12 @@ export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
     isAvailable: true,
   };
 
+  const sessionStorageKey = `chat_session_id_${consultantSlug ?? "global"}`;
+  const nameStorageKey = `chat_visitor_name_${consultantSlug ?? "global"}`;
+
   useEffect(() => {
-    const stored = localStorage.getItem("chat_session_id");
-    const storedName = localStorage.getItem("chat_visitor_name");
+    const stored = localStorage.getItem(sessionStorageKey);
+    const storedName = localStorage.getItem(nameStorageKey);
     if (!stored) return;
     if (storedName) setVisitorName(storedName);
 
@@ -74,17 +77,17 @@ export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
         if (res.ok) {
           setSessionId(stored);
         } else {
-          localStorage.removeItem("chat_session_id");
-          localStorage.removeItem("chat_visitor_name");
+          localStorage.removeItem(sessionStorageKey);
+          localStorage.removeItem(nameStorageKey);
           setVisitorName("");
         }
       })
       .catch(() => {
-        localStorage.removeItem("chat_session_id");
-        localStorage.removeItem("chat_visitor_name");
+        localStorage.removeItem(sessionStorageKey);
+        localStorage.removeItem(nameStorageKey);
         setVisitorName("");
       });
-  }, []);
+  }, [consultantSlug]);
 
   const { data: messages = [] } = useQuery<ChatMessage[]>({
     queryKey: ["/api/chat/sessions", sessionId, "messages"],
