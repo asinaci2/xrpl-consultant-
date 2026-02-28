@@ -228,7 +228,10 @@ export function ProjectsTab({ slug }: { slug: string }) {
                 return (
                   <Card key={p.id} className="bg-black/60 border-green-500/10 overflow-hidden" data-testid={`card-project-${p.id}`}>
                     <div className="p-4 flex items-start gap-4">
-                      <div className={`p-2.5 rounded-lg shrink-0 ${p.color}/10 border border-${p.color.split('-')[1]}-500/20`}>
+                      <div
+                        className="p-2.5 rounded-lg shrink-0"
+                        style={{ backgroundColor: `${hexColor}1a`, border: `1px solid ${hexColor}33` }}
+                      >
                         <Icon className="w-5 h-5" style={{ color: hexColor }} />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -243,18 +246,18 @@ export function ProjectsTab({ slug }: { slug: string }) {
                             </Button>
                           </div>
                         </div>
-                        <p className="text-blue-400/80 text-xs font-medium">{p.subtitle}</p>
-                        <p className="text-gray-400 text-xs mt-2 line-clamp-2 leading-relaxed">{p.description}</p>
+                        <p className="text-white/70 text-xs font-medium">{p.subtitle}</p>
+                        <p className="text-white/50 text-xs mt-2 line-clamp-2 leading-relaxed">{p.description}</p>
                         {p.impact && (
                           <div className="flex items-center gap-1.5 mt-2 px-2 py-1 rounded bg-green-500/5 border border-green-500/10 w-fit">
                             <Zap className="w-3 h-3 text-green-400" />
-                            <span className="text-[10px] text-green-400/80 font-mono uppercase tracking-wider">{p.impact}</span>
+                            <span className="text-[10px] text-white/60 font-mono uppercase tracking-wider">{p.impact}</span>
                           </div>
                         )}
                         {p.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-3">
                             {p.tags.map(t => (
-                              <span key={t} className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] text-gray-500">{t}</span>
+                              <span key={t} className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] text-white/50">{t}</span>
                             ))}
                           </div>
                         )}
