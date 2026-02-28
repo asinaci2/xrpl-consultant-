@@ -1235,6 +1235,27 @@ export async function registerRoutes(
     res.json(getSyncStatus());
   });
 
+  app.get("/api/admin/pending-invites", requireAdmin, async (_req, res) => {
+    try {
+      const CONSULTANT_ROOM = process.env.CONSULTANT_MATRIX_ROOM;
+      if (!CONSULTANT_ROOM) {
+        res.json({ pending: [] });
+        return;
+      }
+      const { getRoomInvitedMembers } = await import("./matrix");
+      const invited = await getRoomInvitedMembers(CONSULTANT_ROOM);
+      const allConsultants = await storage.getAllConsultants();
+      const activeMatrixIds = new Set(
+        allConsultants.filter(c => c.isActive).map(c => c.matrixUserId).filter(Boolean)
+      );
+      const pending = invited.filter(id => !activeMatrixIds.has(id));
+      res.json({ pending });
+    } catch (err) {
+      console.error("pending-invites error:", err);
+      res.status(500).json({ message: "Failed to fetch pending invites" });
+    }
+  });
+
   app.post("/api/admin/add-consultant", requireAdmin, async (req, res) => {
     try {
       const { matrixUserId } = req.body;

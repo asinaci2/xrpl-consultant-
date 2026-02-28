@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, RefreshCw, ArrowLeft, Image, BookOpen, Mail, Twitter, Briefcase, Edit2, X, LogOut, User, ExternalLink, Phone, MessageCircle, Shield, Activity, UserPlus, CheckCircle2, LayoutDashboard, BadgeCheck, BadgeX } from "lucide-react";
+import { Trash2, Plus, RefreshCw, ArrowLeft, Image, BookOpen, Mail, Twitter, Briefcase, Edit2, X, LogOut, User, ExternalLink, Phone, MessageCircle, Shield, Activity, UserPlus, CheckCircle2, LayoutDashboard, BadgeCheck, BadgeX, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 type CachedMedia = {
@@ -1398,6 +1398,12 @@ function SyncTab() {
     refetchInterval: 30_000,
   });
 
+  const { data: pendingData, isLoading: pendingLoading } = useQuery<{ pending: string[] }>({
+    queryKey: ["/api/admin/pending-invites"],
+    refetchInterval: 30_000,
+  });
+  const pendingInvites = pendingData?.pending ?? [];
+
   const [matrixId, setMatrixId] = useState("");
   const [addedConsultant, setAddedConsultant] = useState<{ name: string; slug: string } | null>(null);
 
@@ -1411,6 +1417,7 @@ function SyncTab() {
       setAddedConsultant({ name: consultant.name, slug: consultant.slug });
       setMatrixId("");
       queryClient.invalidateQueries({ queryKey: ["/api/consultants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pending-invites"] });
       if (created) {
         toast({ title: "Consultant created", description: `${consultant.name} added with slug /${consultant.slug}` });
       } else if (reactivated) {
@@ -1507,6 +1514,50 @@ function SyncTab() {
           )}
         </CardContent>
       </Card>
+
+      {(pendingLoading || pendingInvites.length > 0) && (
+        <Card className="bg-black/60 border-amber-500/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-amber-400 text-base flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Pending Invites
+              {pendingInvites.length > 0 && (
+                <Badge className="ml-1 bg-amber-500/20 text-amber-300 border-amber-500/30 text-xs">
+                  {pendingInvites.length}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-gray-400 text-sm">
+              These users were invited to the consultant room but haven't accepted yet.
+              Click <span className="text-amber-300">Add</span> to create their consultant account immediately.
+            </p>
+            {pendingLoading ? (
+              <p className="text-gray-500 text-sm">Checking invites...</p>
+            ) : (
+              <div className="space-y-2">
+                {pendingInvites.map((id) => (
+                  <div key={id} className="flex items-center gap-2 bg-black/40 rounded-lg px-3 py-2 border border-amber-500/10" data-testid={`pending-invite-${id}`}>
+                    <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span className="text-gray-300 text-xs font-mono flex-1 break-all">{id}</span>
+                    <Button
+                      size="sm"
+                      onClick={() => addMutation.mutate(id)}
+                      disabled={addMutation.isPending}
+                      className="bg-amber-600 hover:bg-amber-700 text-white text-xs px-3 shrink-0"
+                      data-testid={`button-add-pending-${id}`}
+                    >
+                      {addMutation.isPending ? <RefreshCw className="w-3 h-3 animate-spin" /> : <UserPlus className="w-3 h-3" />}
+                      <span className="ml-1.5">Add</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="bg-black/60 border-blue-500/20">
         <CardHeader className="pb-3">

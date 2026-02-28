@@ -264,6 +264,29 @@ export async function getRoomMembers(roomId: string): Promise<string[] | null> {
   }
 }
 
+export async function getRoomInvitedMembers(roomId: string): Promise<string[]> {
+  const botToken = process.env.ACCESS_TOKEN;
+  if (!botToken) {
+    console.warn("[matrix] getRoomInvitedMembers: no ACCESS_TOKEN set");
+    return [];
+  }
+  try {
+    const res = await fetch(
+      `${MATRIX_HOMESERVER}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/members?membership=invite`,
+      { headers: { Authorization: `Bearer ${botToken}` } }
+    );
+    if (!res.ok) {
+      console.warn(`[matrix] getRoomInvitedMembers failed for ${roomId}: HTTP ${res.status}`);
+      return [];
+    }
+    const data = await res.json() as { chunk: Array<{ state_key: string }> };
+    return (data.chunk ?? []).map(e => e.state_key).filter(Boolean);
+  } catch (err) {
+    console.warn("[matrix] getRoomInvitedMembers error:", err);
+    return [];
+  }
+}
+
 export async function getBotJoinedRooms(): Promise<string[]> {
   const botToken = process.env.ACCESS_TOKEN;
   if (!botToken) return [];
