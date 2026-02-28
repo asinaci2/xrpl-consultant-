@@ -20,7 +20,7 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
 
     const characters = "$TXT$XRP$BWTCK$COPE";
     const letters = characters.split("");
-    const fontSize = 14;
+    const fontSize = 18;
 
     let columns: number;
     let drops: number[];
@@ -36,27 +36,32 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
     const draw = () => {
       const day = isDayMode();
 
-      // Trail fill: slow fade keeps column trails visible for longer
       ctx.fillStyle = day
-        ? "rgba(255, 255, 255, 0.08)" // Day: slow white fade — ~40 frames trail = dense columns
-        : "rgba(0, 0, 0, 0.05)";      // Dark: black fade — classic rain trail
+        ? "rgba(255, 255, 255, 0.15)" // Day: faster fade = shorter, sparser trails
+        : "rgba(0, 0, 0, 0.05)";      // Dark: slow fade = classic long trail
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.font = `${fontSize}px monospace`;
 
       for (let i = 0; i < drops.length; i++) {
+        // Skip ~half the columns each frame — thins out the effect
+        if (Math.random() > 0.55) {
+          drops[i]++;
+          continue;
+        }
+
         const text = letters[Math.floor(Math.random() * letters.length)];
         const x = i * fontSize;
         const y = drops[i] * fontSize;
 
         const progress = y / canvas.height;
         const alpha = day
-          ? Math.max(0.6, 1 - progress * 0.3)   // day: 0.7–1.0, always bold
-          : Math.max(0.2, 1 - progress * 0.5);   // dark: 0.2–1.0, classic fade
+          ? Math.max(0.15, 0.4 - progress * 0.25) // day: 0.15–0.4, light ghost
+          : Math.max(0.1, 0.7 - progress * 0.5);  // dark: 0.1–0.7, subtle fade
 
         ctx.fillStyle = day
-          ? `rgba(234, 88, 12, ${alpha})`          // orange-600 — high contrast on white
-          : `rgba(147, 51, 234, ${alpha})`;         // purple-600 — bright on black
+          ? `rgba(234, 88, 12, ${alpha})`   // orange-600, semi-transparent
+          : `rgba(147, 51, 234, ${alpha})`; // purple-600, classic
 
         ctx.fillText(text, x, y);
 
