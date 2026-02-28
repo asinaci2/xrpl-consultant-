@@ -208,7 +208,7 @@
 [data-theme="day"] canvas[data-testid="canvas-matrix-rain"] {
   opacity: 1 !important;
   mix-blend-mode: multiply !important;
-  z-index: 50 !important;
+  z-index: 5 !important;
 }
 
 /* ── Footer ── */
@@ -264,6 +264,23 @@
 [data-theme="day"] .text-gray-600,
 [data-theme="day"] [class*="text-gray-6"] {
   color: #334155 !important;
+}
+
+/* ── Purple text → legible on white in day mode ── */
+/* text-purple-200 / text-purple-300 are near-invisible on white; darken them */
+[data-theme="day"] [class*="text-purple-2"] { color: #6d28d9 !important; } /* violet-700 */
+[data-theme="day"] [class*="text-purple-3"] { color: #7c3aed !important; } /* violet-600 */
+[data-theme="day"] [class*="text-purple-4"] { color: #7c3aed !important; } /* violet-600 */
+[data-theme="day"] [class*="text-purple-5"] { color: #6d28d9 !important; } /* violet-700 */
+
+/* Purple borders — increase opacity so they're visible on white */
+[data-theme="day"] [class*="border-purple"] {
+  border-color: rgba(109, 40, 217, 0.30) !important;
+}
+
+/* Purple tint backgrounds (bg-purple-500/20, bg-purple-500/30 etc.) → keep as soft purple */
+[data-theme="day"] [class*="bg-purple-5"][class*="/"] {
+  background-color: rgba(109, 40, 217, 0.08) !important;
 }
 
 /* ── Green → Purple accent remapping (Fortuna DAO palette) ── */
