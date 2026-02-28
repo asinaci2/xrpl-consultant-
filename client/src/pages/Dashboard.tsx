@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, User, MessageCircle, ExternalLink, LogOut, Shield,
   UserCircle, Briefcase, Clock, Mail, Layout, Quote, Wallet,
-  ChevronDown, ChevronUp, Calendar
+  ChevronDown, ChevronUp, Calendar, Network
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminSlugContext } from "@/components/dashboard/context";
@@ -24,7 +24,16 @@ import { RecommendationsTab } from "@/components/dashboard/RecommendationsTab";
 import { VisitorTestimonialsTab } from "@/components/dashboard/VisitorTestimonialsTab";
 import { ConsultantProfile } from "@/components/dashboard/types";
 import { MatrixRain } from "@/components/MatrixRain";
-import { Network } from "lucide-react";
+
+const TRIGGER_CLASS = "w-full justify-start text-sm px-3 py-2 h-auto data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded";
+
+function SidebarGroup({ label }: { label: string }) {
+  return (
+    <p className="px-2 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-600 select-none">
+      {label}
+    </p>
+  );
+}
 
 function VisitorDashboard() {
   const { displayName, matrixUserId, logout } = useAuth();
@@ -104,7 +113,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-black text-white relative">
         <MatrixRain className="fixed inset-0 w-full h-full opacity-15 pointer-events-none" />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
           <div className={`mb-6 rounded-xl border px-4 py-3 flex items-center justify-between gap-4 flex-wrap ${overrideSlug ? "border-blue-500/30 bg-blue-500/5" : isAdmin ? "border-amber-500/30 bg-amber-500/5" : "border-green-500/20 bg-green-500/5"}`} data-testid="banner-identity">
             <div className="flex items-center gap-3 min-w-0">
               {overrideSlug ? <Shield className="w-4 h-4 text-blue-400 shrink-0" /> : isAdmin ? <Shield className="w-4 h-4 text-amber-400 shrink-0" /> : <User className="w-4 h-4 text-green-400 shrink-0" />}
@@ -178,26 +187,59 @@ export default function Dashboard() {
             {walletOpen && <div className="mt-2"><WalletTab /></div>}
           </div>
 
-          <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="bg-black/60 border border-green-500/20 p-1 flex-wrap h-auto gap-1">
-              <TabsTrigger value="profile" className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400" data-testid="tab-profile"><UserCircle className="w-4 h-4 mr-2" />Profile</TabsTrigger>
-              <TabsTrigger value="projects" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-400" data-testid="tab-projects"><Briefcase className="w-4 h-4 mr-2" />Projects</TabsTrigger>
-              <TabsTrigger value="stories" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white text-gray-400" data-testid="tab-stories"><Clock className="w-4 h-4 mr-2" />Stories</TabsTrigger>
-              <TabsTrigger value="scheduling" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-gray-400" data-testid="tab-scheduling"><Calendar className="w-4 h-4 mr-2" />Scheduling</TabsTrigger>
-              <TabsTrigger value="media" className="data-[state=active]:bg-orange-600 data-[state=active]:text-white text-gray-400" data-testid="tab-media"><Layout className="w-4 h-4 mr-2" />Media</TabsTrigger>
-              <TabsTrigger value="chat-profile" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white text-gray-400" data-testid="tab-chat-profile"><MessageCircle className="w-4 h-4 mr-2" />Chat Widget</TabsTrigger>
-              <TabsTrigger value="testimonials" className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white text-gray-400" data-testid="tab-testimonials"><Quote className="w-4 h-4 mr-2" />Testimonials</TabsTrigger>
-              <TabsTrigger value="synergies" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-gray-400" data-testid="tab-synergies"><Network className="w-4 h-4 mr-2" />Synergies</TabsTrigger>
+          <Tabs defaultValue="profile" orientation="vertical" className="flex items-start gap-6">
+            <TabsList className="flex flex-col h-auto w-44 shrink-0 bg-black/60 border border-green-500/20 p-2 rounded-lg sticky top-6 self-start">
+              <SidebarGroup label="Identity" />
+              <TabsTrigger value="profile" className={TRIGGER_CLASS} data-testid="tab-profile">
+                <UserCircle className="w-4 h-4 mr-2 shrink-0" />
+                Profile
+              </TabsTrigger>
+              <TabsTrigger value="scheduling" className={TRIGGER_CLASS} data-testid="tab-scheduling">
+                <Calendar className="w-4 h-4 mr-2 shrink-0" />
+                Scheduling
+              </TabsTrigger>
+              <TabsTrigger value="chat-profile" className={TRIGGER_CLASS} data-testid="tab-chat-profile">
+                <MessageCircle className="w-4 h-4 mr-2 shrink-0" />
+                Chat Widget
+              </TabsTrigger>
+
+              <div className="border-t border-green-500/10 mx-2 my-1" />
+              <SidebarGroup label="Content" />
+              <TabsTrigger value="projects" className={TRIGGER_CLASS} data-testid="tab-projects">
+                <Briefcase className="w-4 h-4 mr-2 shrink-0" />
+                Projects
+              </TabsTrigger>
+              <TabsTrigger value="stories" className={TRIGGER_CLASS} data-testid="tab-stories">
+                <Clock className="w-4 h-4 mr-2 shrink-0" />
+                Stories
+              </TabsTrigger>
+              <TabsTrigger value="media" className={TRIGGER_CLASS} data-testid="tab-media">
+                <Layout className="w-4 h-4 mr-2 shrink-0" />
+                Media
+              </TabsTrigger>
+
+              <div className="border-t border-green-500/10 mx-2 my-1" />
+              <SidebarGroup label="Community" />
+              <TabsTrigger value="testimonials" className={TRIGGER_CLASS} data-testid="tab-testimonials">
+                <Quote className="w-4 h-4 mr-2 shrink-0" />
+                Testimonials
+              </TabsTrigger>
+              <TabsTrigger value="synergies" className={TRIGGER_CLASS} data-testid="tab-synergies">
+                <Network className="w-4 h-4 mr-2 shrink-0" />
+                Synergies
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="profile"><ProfileTab slug={slug} /></TabsContent>
-            <TabsContent value="projects"><ProjectsTab slug={slug} /></TabsContent>
-            <TabsContent value="stories"><StoriesTab slug={slug} /></TabsContent>
-            <TabsContent value="scheduling"><SchedulingTab slug={slug} /></TabsContent>
-            <TabsContent value="media"><MediaTab slug={slug} /></TabsContent>
-            <TabsContent value="chat-profile"><ChatWidgetTab slug={slug} /></TabsContent>
-            <TabsContent value="testimonials"><TestimonialsTab slug={slug} /></TabsContent>
-            <TabsContent value="synergies"><SynergiesTab slug={slug} /></TabsContent>
+            <div className="flex-1 min-w-0">
+              <TabsContent value="profile" className="mt-0"><ProfileTab slug={slug} /></TabsContent>
+              <TabsContent value="projects" className="mt-0"><ProjectsTab slug={slug} /></TabsContent>
+              <TabsContent value="stories" className="mt-0"><StoriesTab slug={slug} /></TabsContent>
+              <TabsContent value="scheduling" className="mt-0"><SchedulingTab slug={slug} /></TabsContent>
+              <TabsContent value="media" className="mt-0"><MediaTab slug={slug} /></TabsContent>
+              <TabsContent value="chat-profile" className="mt-0"><ChatWidgetTab slug={slug} /></TabsContent>
+              <TabsContent value="testimonials" className="mt-0"><TestimonialsTab slug={slug} /></TabsContent>
+              <TabsContent value="synergies" className="mt-0"><SynergiesTab slug={slug} /></TabsContent>
+            </div>
           </Tabs>
         </div>
       </div>
