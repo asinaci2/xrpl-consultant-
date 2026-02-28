@@ -8,6 +8,8 @@ This project is a multi-tenant consultant directory designed for the TextRP / XR
 
 Preferred communication style: Simple, everyday language.
 
+Development philosophy: Keep code modular — split concerns into components, hooks, utilities, and config files rather than large monolithic blocks. Avoid hardcoding values inline; URLs, labels, color tokens, limits, and config should live in constants or config objects. Prefer data-driven patterns — render from arrays/objects rather than repeated JSX blocks.
+
 ## System Architecture
 
 ### Core Technologies
