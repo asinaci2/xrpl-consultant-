@@ -83,7 +83,8 @@
 /* Custom Utilities for Premium Feel */
 @layer utilities {
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(to right, #9333EA, #F97316);
   }
   
   .glass-nav {
@@ -111,15 +112,15 @@
   /* ── CSS variable overrides (affects all shadcn components) ── */
   --card:             0 0% 100%;        /* pure white cards */
   --card-foreground:  222 47% 11%;      /* slate-900 */
-  --border:           25 95% 53%;       /* orange-500 */
-  --input:            25 95% 53%;
+  --border:           271 81% 56%;      /* purple-500 */
+  --input:            271 81% 56%;
   --muted:            210 40% 96%;      /* slate-100 */
   --muted-foreground: 215 25% 27%;      /* slate-700 — darker for readability */
   --secondary:        210 40% 93%;      /* slate-200 */
   --secondary-foreground: 222 47% 11%;
   --background:       210 40% 98%;      /* slate-50 */
   --foreground:       222 47% 11%;      /* slate-900 */
-  --ring:             174 72% 40%;      /* teal ring */
+  --ring:             271 81% 56%;      /* purple ring */
 
   /* Root page background */
   background-color: #f8fafc !important;
@@ -135,7 +136,7 @@
 [data-theme="day"] .glass-nav {
   background: rgba(248, 250, 252, 0.97) !important;
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(249, 115, 22, 0.35) !important;
+  border-bottom: 1px solid rgba(147, 51, 234, 0.35) !important;
   box-shadow: 0 1px 12px rgba(0,0,0,0.06);
 }
 
@@ -184,8 +185,8 @@
 [data-theme="day"] .rounded-lg.border,
 [data-theme="day"] [class*="bg-card"] {
   background-color: #ffffff !important;
-  border-color: rgba(249, 115, 22, 0.35) !important;
-  box-shadow: 0 2px 14px rgba(249,115,22,0.08) !important;
+  border-color: rgba(147, 51, 234, 0.35) !important;
+  box-shadow: 0 2px 14px rgba(147,51,234,0.08) !important;
 }
 
 /* ── MatrixTweets canvas wrapper ── */
@@ -196,7 +197,7 @@
 /* ── Footer ── */
 [data-theme="day"] footer {
   background-color: #e2e8f0 !important;
-  border-top-color: rgba(249, 115, 22, 0.35) !important;
+  border-top-color: rgba(147, 51, 234, 0.35) !important;
 }
 
 /* Footer social icon circles */
@@ -248,32 +249,32 @@
   color: #334155 !important;
 }
 
-/* ── Green → Teal accent remapping (better contrast on light backgrounds) ── */
+/* ── Green → Purple accent remapping (Fortuna DAO palette) ── */
 /* text */
-[data-theme="day"] [class*="text-green-3"] { color: #14b8a6 !important; }
-[data-theme="day"] [class*="text-green-4"] { color: #0d9488 !important; }
-[data-theme="day"] [class*="text-green-5"] { color: #0f766e !important; }
-[data-theme="day"] [class*="text-green-6"] { color: #115e59 !important; }
+[data-theme="day"] [class*="text-green-3"] { color: #A855F7 !important; }
+[data-theme="day"] [class*="text-green-4"] { color: #9333EA !important; }
+[data-theme="day"] [class*="text-green-5"] { color: #7E22CE !important; }
+[data-theme="day"] [class*="text-green-6"] { color: #6B21A8 !important; }
 
 /* borders */
 [data-theme="day"] [class*="border-green"] {
-  border-color: rgba(13, 148, 136, 0.35) !important;
+  border-color: rgba(147, 51, 234, 0.35) !important;
 }
 
 /* solid backgrounds */
 [data-theme="day"] [class*="bg-green-4"],
 [data-theme="day"] [class*="bg-green-5"] {
-  background-color: #0d9488 !important;
+  background-color: #9333EA !important;
 }
 
 /* translucent tint backgrounds (e.g. bg-green-500/10, bg-green-400/20) */
 [data-theme="day"] [class*="bg-green-"][class*="/"] {
-  background-color: rgba(13, 148, 136, 0.12) !important;
+  background-color: rgba(147, 51, 234, 0.12) !important;
 }
 
 /* ring */
 [data-theme="day"] [class*="ring-green"] {
-  --tw-ring-color: rgba(13, 148, 136, 0.5) !important;
+  --tw-ring-color: rgba(147, 51, 234, 0.5) !important;
 }
 
 /* ── Headings ── */
@@ -291,7 +292,7 @@
 [data-theme="day"] select {
   background-color: #ffffff !important;
   color: #0f172a !important;
-  border-color: rgba(249, 115, 22, 0.45) !important;
+  border-color: rgba(147, 51, 234, 0.45) !important;
 }
 
 [data-theme="day"] input::placeholder,
@@ -299,7 +300,7 @@
   color: #94a3b8 !important;
 }
 
-/* (green border + tint overrides handled by the teal block above) */
+/* (green border + tint overrides handled by the purple block above) */
 
 /* ── Standard named gradient overlays ── */
 [data-theme="day"] [class*="from-black"] {
@@ -320,11 +321,11 @@
   background-color: #f1f5f9 !important;
 }
 
-/* ── Core Expertise skill badges (day mode) ── */
+/* ── Core Expertise skill badges (day mode — Fortuna DAO purple) ── */
 [data-theme="day"] .skill-badge {
-  background-color: #dbe4ff !important;
-  color: #364fc7 !important;
-  border-color: #bac8ff !important;
+  background-color: #ede9fe !important;
+  color: #6D28D9 !important;
+  border-color: #c4b5fd !important;
   font-size: 0.805rem !important;
   padding: 0.345rem 0.72rem !important;
   gap: 0.46rem !important;
@@ -333,7 +334,7 @@
 [data-theme="day"] .skill-badge svg {
   width: 1.035rem !important;
   height: 1.035rem !important;
-  color: #4c6ef5 !important;
+  color: #7C3AED !important;
 }
 
 /* ─── Story Viewer — always dark, regardless of page theme ───────── */
@@ -403,11 +404,11 @@
 }
 
 [data-theme="day"] .theme-toggle {
-  color: #f59e0b;
+  color: #9333EA;
 }
 
 [data-theme="day"] .theme-toggle:hover {
-  background-color: rgba(245, 158, 11, 0.1);
+  background-color: rgba(147, 51, 234, 0.1);
 }
 
 /* ── Global floating theme toggle (day mode) ── */
