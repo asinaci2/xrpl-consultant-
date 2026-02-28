@@ -1244,7 +1244,7 @@ export async function registerRoutes(
       }
       const { getRoomInvitedMembers } = await import("./matrix");
       const invited = await getRoomInvitedMembers(CONSULTANT_ROOM);
-      const allConsultants = await storage.getAllConsultants();
+      const allConsultants = await storage.getConsultants();
       const activeMatrixIds = new Set(
         allConsultants.filter(c => c.isActive).map(c => c.matrixUserId).filter(Boolean)
       );
