@@ -109,7 +109,7 @@ export function Projects() {
                     </p>
 
                     <div className="bg-black/40 rounded-lg p-3 mb-4 border border-green-500/10">
-                      <p className="text-sm text-white" data-testid={`text-project-impact-${project.id}`}>
+                      <p className="text-sm text-gray-300" data-testid={`text-project-impact-${project.id}`}>
                         <span className="font-semibold text-green-400">Impact:</span> {project.impact}
                       </p>
                     </div>
