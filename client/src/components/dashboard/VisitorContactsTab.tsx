@@ -51,7 +51,7 @@ export function VisitorContactsTab() {
         ) : contacts.length === 0 ? (
           <div className="text-center py-6">
             <BookmarkPlus className="w-10 h-10 text-green-500/20 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm mb-4">No saved contacts yet. Browse the directory and save consultants you want to keep track of.</p>
+            <p className="text-white/70 text-sm mb-4">No saved contacts yet. Browse the directory and save consultants you want to keep track of.</p>
             <Link href="/">
               <Button variant="outline" size="sm" className="border-green-500/30 text-green-400 hover:bg-green-500/10 rounded-full" data-testid="button-browse-directory">
                 Browse Directory
@@ -70,7 +70,7 @@ export function VisitorContactsTab() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-semibold text-sm truncate">{c.consultantName}</p>
-                  {c.consultantTagline && <p className="text-gray-500 text-xs truncate">{c.consultantTagline}</p>}
+                  {c.consultantTagline && <p className="text-white/60 text-xs truncate">{c.consultantTagline}</p>}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Link href={`/c/${c.consultantSlug}`}>

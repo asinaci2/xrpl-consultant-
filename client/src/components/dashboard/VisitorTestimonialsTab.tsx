@@ -35,8 +35,8 @@ export function VisitorTestimonialsTab() {
         {myTestimonials.length === 0 ? (
           <div className="text-center py-6">
             <Quote className="w-10 h-10 text-green-500/20 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm">You haven't submitted any testimonials yet.</p>
-            <p className="text-gray-600 text-xs mt-1">Visit a consultant's page to share your experience.</p>
+            <p className="text-white/70 text-sm">You haven't submitted any testimonials yet.</p>
+            <p className="text-white/60 text-xs mt-1">Visit a consultant's page to share your experience.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -48,7 +48,7 @@ export function VisitorTestimonialsTab() {
                   </Link>
                   {statusBadge(t.status)}
                 </div>
-                <p className="text-gray-400 text-sm italic">"{t.content}"</p>
+                <p className="text-white/80 text-sm italic">"{t.content}"</p>
               </div>
             ))}
           </div>

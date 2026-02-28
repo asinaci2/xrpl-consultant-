@@ -38,10 +38,10 @@ function VisitorDashboard() {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-semibold text-green-400">Visitor</span>
-                <span className="text-gray-400 text-sm">·</span>
-                <span className="text-gray-300 text-sm font-mono">{displayName}</span>
+                <span className="text-white/40 text-sm">·</span>
+                <span className="text-white text-sm font-mono">{displayName}</span>
               </div>
-              <p className="text-xs text-gray-600 font-mono">{matrixUserId}</p>
+              <p className="text-xs text-white/60 font-mono">{matrixUserId}</p>
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={() => logout.mutate()} className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 text-xs" data-testid="button-logout">
@@ -64,7 +64,7 @@ function VisitorDashboard() {
         <VisitorTestimonialsTab />
 
         <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-6 text-center">
-          <p className="text-gray-400 text-sm mb-4">Discover consultants in the TextRP ecosystem and build your personal network.</p>
+          <p className="text-white/80 text-sm mb-4">Discover consultants in the TextRP ecosystem and build your personal network.</p>
           <Link href="/">
             <Button className="bg-green-500 hover:bg-green-600 text-black font-bold rounded-full px-6" data-testid="button-explore-directory">
               Explore the Directory
