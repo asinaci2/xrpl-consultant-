@@ -18,7 +18,9 @@ import {
   Shield,
   ExternalLink,
   LogOut,
-  BarChart2
+  BarChart2,
+  Calendar,
+  Quote
 } from "lucide-react";
 
 import { MediaTab } from "@/components/admin/MediaTab";
@@ -31,6 +33,8 @@ import { ChatProfileTab } from "@/components/admin/ChatProfileTab";
 import { ConsultantsTab } from "@/components/admin/ConsultantsTab";
 import { SyncTab } from "@/components/admin/SyncTab";
 import { AnalyticsTab } from "@/components/admin/AnalyticsTab";
+import { SchedulingTab } from "@/components/admin/SchedulingTab";
+import { TestimonialsTab } from "@/components/admin/TestimonialsTab";
 import { MatrixRain } from "@/components/MatrixRain";
 
 export default function Admin() {
@@ -199,6 +203,22 @@ export default function Admin() {
               <BarChart2 className="w-4 h-4 mr-2" />
               Analytics
             </TabsTrigger>
+            <TabsTrigger
+              value="scheduling"
+              className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-gray-400"
+              data-testid="tab-scheduling"
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Scheduling
+            </TabsTrigger>
+            <TabsTrigger
+              value="testimonials"
+              className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white text-gray-400"
+              data-testid="tab-testimonials"
+            >
+              <Quote className="w-4 h-4 mr-2" />
+              Testimonials
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="media">
@@ -230,6 +250,12 @@ export default function Admin() {
           </TabsContent>
           <TabsContent value="analytics">
             <AnalyticsTab />
+          </TabsContent>
+          <TabsContent value="scheduling">
+            <SchedulingTab />
+          </TabsContent>
+          <TabsContent value="testimonials">
+            <TestimonialsTab />
           </TabsContent>
         </Tabs>
       </div>
