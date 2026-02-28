@@ -34,14 +34,14 @@ function VisitorDashboard() {
       <div className="relative z-10 max-w-3xl mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap rounded-xl border border-green-500/20 bg-green-500/5 px-4 py-3">
           <div className="flex items-center gap-3">
-            <Wallet className="w-4 h-4 text-green-400 shrink-0" />
+            <Wallet className="w-4 h-4 shrink-0" style={{ color: 'white' }} />
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-semibold text-green-400">Visitor</span>
-                <span className="text-white/40 text-sm">·</span>
-                <span className="text-white text-sm font-mono">{displayName}</span>
+                <span className="text-sm font-semibold" style={{ color: 'white' }}>Visitor</span>
+                <span className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>·</span>
+                <span className="text-sm font-mono" style={{ color: 'white' }}>{displayName}</span>
               </div>
-              <p className="text-xs text-white/60 font-mono">{matrixUserId}</p>
+              <p className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.65)' }}>{matrixUserId}</p>
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={() => logout.mutate()} className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 text-xs" data-testid="button-logout">
