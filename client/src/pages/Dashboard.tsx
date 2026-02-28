@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, User, MessageCircle, ExternalLink, LogOut, Shield,
   UserCircle, Briefcase, Clock, Mail, Layout, Quote, Wallet,
-  ChevronDown, ChevronUp, Calendar, Network
+  ChevronDown, ChevronUp, Calendar, Network, Users, Star
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminSlugContext } from "@/components/dashboard/context";
@@ -39,27 +39,27 @@ function VisitorDashboard() {
   const { displayName, matrixUserId, logout } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white relative">
+    <div className="min-h-screen bg-black text-white relative">
       <MatrixRain className="fixed inset-0 w-full h-full opacity-15 pointer-events-none" />
-      <div className="relative z-10 max-w-3xl mx-auto px-4 py-8 space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap rounded-xl border border-green-500/20 bg-green-500/5 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Wallet className="w-4 h-4 text-green-400 shrink-0" />
-            <div>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-6 rounded-xl border border-green-500/20 bg-green-500/5 px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0">
+            <User className="w-4 h-4 text-green-400 shrink-0" />
+            <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-semibold uppercase tracking-wide text-green-600 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">Visitor</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">Visitor</span>
                 <span className="text-white/40 text-sm">·</span>
-                <span className="text-white text-sm font-mono">{displayName}</span>
+                <span className="text-white text-sm font-mono" data-testid="text-display-name">{displayName}</span>
               </div>
-              <p className="text-xs text-white/60 font-mono">{matrixUserId}</p>
+              <p className="text-xs text-white/50 font-mono truncate" data-testid="text-matrix-id">{matrixUserId}</p>
             </div>
           </div>
-          <button onClick={() => logout.mutate()} className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-purple-200 bg-purple-500/30 border border-purple-500/50 hover:bg-purple-500/45 hover:border-purple-500/70 px-3 py-1 rounded-full transition-colors" data-testid="button-logout">
-            <LogOut className="w-3 h-3" />Sign Out
-          </button>
+          <Button variant="ghost" size="sm" onClick={() => logout.mutate()} className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 text-xs shrink-0" data-testid="button-logout">
+            <LogOut className="w-3.5 h-3.5 mr-1" />Sign Out
+          </Button>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mb-8">
           <Link href="/" className="text-green-400/60 hover:text-green-400 transition-colors" data-testid="link-back-directory">
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -69,20 +69,42 @@ function VisitorDashboard() {
           </div>
         </div>
 
-        <WalletTab />
-        <VisitorContactsTab />
-        <RecommendationsTab />
-        <VisitorTestimonialsTab />
+        <Tabs defaultValue="wallet" orientation="vertical" className="flex items-start gap-6">
+          <TabsList className="flex flex-col h-auto w-44 shrink-0 bg-black/60 border border-green-500/20 p-2 rounded-lg sticky top-6 self-start">
+            <SidebarGroup label="My Account" />
+            <TabsTrigger value="wallet" className={TRIGGER_CLASS} data-testid="tab-wallet">
+              <Wallet className="w-4 h-4 mr-2 shrink-0" />
+              Wallet
+            </TabsTrigger>
+            <TabsTrigger value="contacts" className={TRIGGER_CLASS} data-testid="tab-contacts">
+              <Users className="w-4 h-4 mr-2 shrink-0" />
+              My Contacts
+            </TabsTrigger>
+            <TabsTrigger value="recommendations" className={TRIGGER_CLASS} data-testid="tab-recommendations">
+              <Star className="w-4 h-4 mr-2 shrink-0" />
+              For You
+            </TabsTrigger>
+            <TabsTrigger value="testimonials" className={TRIGGER_CLASS} data-testid="tab-testimonials">
+              <Quote className="w-4 h-4 mr-2 shrink-0" />
+              Testimonials
+            </TabsTrigger>
 
-        <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-6 text-center">
-          <p className="text-white/80 text-sm mb-4">Discover consultants in the TextRP ecosystem and build your personal network.</p>
-          <Link href="/">
-            <Button className="bg-green-500 hover:bg-green-600 text-black font-bold rounded-full px-6" data-testid="button-explore-directory">
-              Explore the Directory
-              <ExternalLink className="w-4 h-4 ml-2" />
-            </Button>
-          </Link>
-        </div>
+            <div className="border-t border-green-500/10 mx-2 my-2" />
+            <Link href="/" className="w-full" data-testid="link-explore-directory">
+              <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-green-500/70 hover:text-green-400 hover:bg-white/5 rounded transition-colors">
+                <ExternalLink className="w-4 h-4 shrink-0" />
+                Directory
+              </button>
+            </Link>
+          </TabsList>
+
+          <div className="flex-1 min-w-0">
+            <TabsContent value="wallet" className="mt-0"><WalletTab /></TabsContent>
+            <TabsContent value="contacts" className="mt-0"><VisitorContactsTab /></TabsContent>
+            <TabsContent value="recommendations" className="mt-0"><RecommendationsTab /></TabsContent>
+            <TabsContent value="testimonials" className="mt-0"><VisitorTestimonialsTab /></TabsContent>
+          </div>
+        </Tabs>
       </div>
     </div>
   );
