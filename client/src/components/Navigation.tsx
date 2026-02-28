@@ -1,6 +1,7 @@
 import { Link } from "react-scroll";
 import { useState, useEffect } from "react";
-import { Menu, X, Hexagon, LogIn } from "lucide-react";
+import { Menu, X, LogIn } from "lucide-react";
+import logo from "@assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import StoryViewer from "./StoryViewer";
@@ -142,14 +143,11 @@ export function Navigation() {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <div 
-            className="flex-shrink-0 flex items-center gap-2 cursor-pointer" 
+            className="flex-shrink-0 flex items-center cursor-pointer" 
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             data-testid="button-logo-home"
           >
-            <Hexagon className="w-8 h-8 text-green-400 fill-green-400/20" />
-            <span className="font-display font-bold text-xl tracking-tight text-white">
-              Edwin Gutierrez
-            </span>
+            <img src={logo} alt="Fortuna DAO" className="h-10 w-auto" />
           </div>
 
           {/* Stories in Nav */}

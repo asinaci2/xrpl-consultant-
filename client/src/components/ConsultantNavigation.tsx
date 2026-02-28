@@ -1,6 +1,7 @@
 import { Link as ScrollLink } from "react-scroll";
 import { useState, useEffect } from "react";
-import { Menu, X, Hexagon, LogIn, Sun, Moon, ArrowLeft } from "lucide-react";
+import { Menu, X, LogIn, Sun, Moon, ArrowLeft } from "lucide-react";
+import logo from "@assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import StoryViewer from "./StoryViewer";
@@ -132,8 +133,7 @@ export function ConsultantNavigation({ consultant, slug }: { consultant: Consult
               className="flex items-center gap-2 cursor-pointer"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             >
-              <Hexagon className="w-8 h-8 text-green-400 fill-green-400/20" />
-              <span className="font-display font-bold text-xl tracking-tight text-white">{consultant.name}</span>
+              <img src={logo} alt="Fortuna DAO" className="h-9 w-auto" />
             </div>
           </div>
 

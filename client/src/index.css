@@ -393,6 +393,21 @@
   background-color: #9333EA !important;
 }
 
+/* Input fields — Fortuna DAO dark surface color */
+:root:not([data-theme="day"]) input,
+:root:not([data-theme="day"]) textarea,
+:root:not([data-theme="day"]) select {
+  background-color: #151B23 !important;
+  border-color: #374151 !important;
+  color: #ffffff;
+}
+
+/* Primary action buttons — Fortuna DAO purple glow shadow */
+:root:not([data-theme="day"]) [class*="bg-green-5"],
+:root:not([data-theme="day"]) [class*="bg-purple-5"] {
+  box-shadow: rgba(147, 51, 234, 0.3) 0px 10px 15px -3px, rgba(147, 51, 234, 0.3) 0px 4px 6px -4px !important;
+}
+
 /* ─── Story Viewer — always dark, regardless of page theme ───────── */
 /*
   The story viewer renders into a portal on document.body and inherits
