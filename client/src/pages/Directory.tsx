@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearch } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Hexagon, LayoutDashboard, LogIn, Shield, Users, X, ExternalLink, Code, Lightbulb, Share2, TrendingUp, Layers } from "lucide-react";
+import { ArrowRight, Hexagon, LayoutDashboard, LogIn, Shield, Users, X, ExternalLink, Code, Lightbulb, Share2, TrendingUp, Layers, Globe } from "lucide-react";
 import { MatrixRain } from "@/components/MatrixRain";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useMemo } from "react";
 import { TEXTRP_APP_URL, SPECIALTY_CATEGORIES, CATEGORY_ORDER, CATEGORY_COLORS } from "@/lib/constants";
+import { EcosystemDirectory } from "@/components/EcosystemDirectory";
 
 const CATEGORY_ICONS: Record<string, any> = {
   Technical: Code,
@@ -36,6 +37,7 @@ export default function Directory() {
   const isVisitor = new URLSearchParams(search).get("visitor") === "1";
   const [dismissedVisitor, setDismissedVisitor] = useState(false);
 
+  const [view, setView] = useState<"consultants" | "ecosystem">("consultants");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeSpecialty, setActiveSpecialty] = useState<string | null>(null);
 
@@ -190,7 +192,45 @@ export default function Directory() {
           </div>
         </section>
 
+        {/* View Toggle */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+          <div className="inline-flex items-center gap-1 p-1 rounded-xl border border-green-500/20 bg-black/50 backdrop-blur-sm">
+            <button
+              onClick={() => setView("consultants")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-mono transition-all duration-200 ${
+                view === "consultants"
+                  ? "bg-green-500/20 border border-green-500/40 text-green-400"
+                  : "text-gray-500 hover:text-gray-300"
+              }`}
+              data-testid="button-view-consultants"
+            >
+              <Users className="w-4 h-4" />
+              Consultants
+            </button>
+            <button
+              onClick={() => setView("ecosystem")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-mono transition-all duration-200 ${
+                view === "ecosystem"
+                  ? "bg-green-500/20 border border-green-500/40 text-green-400"
+                  : "text-gray-500 hover:text-gray-300"
+              }`}
+              data-testid="button-view-ecosystem"
+            >
+              <Globe className="w-4 h-4" />
+              XRPL Ecosystem
+            </button>
+          </div>
+        </div>
+
+        {/* Ecosystem View */}
+        {view === "ecosystem" && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+            <EcosystemDirectory />
+          </section>
+        )}
+
         {/* Consultant Grid */}
+        {view === "consultants" && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
@@ -373,6 +413,7 @@ export default function Directory() {
             </motion.div>
           )}
         </section>
+        )}
 
         {/* Footer */}
         <footer className="border-t border-green-500/20 py-8 text-center">

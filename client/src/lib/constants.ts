@@ -113,6 +113,41 @@ export function getConsultantsForSpecialties<T extends { specialties: string[] }
   );
 }
 
+// ── XRPL Ecosystem Directory ───────────────────────────────────────────────────
+
+export const ECOSYSTEM_CATEGORIES = [
+  "DeFi / AMM / Lending",
+  "Real World Assets (RWA) / Tokenization",
+  "Payments / Wallets / Stablecoins",
+  "NFTs & Gaming",
+  "Infrastructure / Tools / Developer Libraries",
+  "Sidechain / EVM / Interoperability / Identity",
+  "DAOs / Governance / Community",
+  "Emerging / Other",
+] as const;
+
+export type EcosystemCategory = typeof ECOSYSTEM_CATEGORIES[number];
+
+export const ECOSYSTEM_STATUS_OPTIONS = [
+  "Live",
+  "Beta",
+  "Mainnet",
+  "Testnet",
+  "Coming Soon",
+  "Deprecated",
+] as const;
+
+export type EcosystemStatus = typeof ECOSYSTEM_STATUS_OPTIONS[number];
+
+export const ECOSYSTEM_STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
+  "Live":        { bg: "bg-green-500/10",  border: "border-green-500/30",  text: "text-green-400"  },
+  "Beta":        { bg: "bg-amber-500/10",  border: "border-amber-500/30",  text: "text-amber-400"  },
+  "Mainnet":     { bg: "bg-blue-500/10",   border: "border-blue-500/30",   text: "text-blue-400"   },
+  "Testnet":     { bg: "bg-orange-500/10", border: "border-orange-500/30", text: "text-orange-400" },
+  "Coming Soon": { bg: "bg-purple-500/10", border: "border-purple-500/30", text: "text-purple-400" },
+  "Deprecated":  { bg: "bg-red-500/10",    border: "border-red-500/30",    text: "text-red-400"    },
+};
+
 // Returns a sorted list of consultants by how many of the target specialties they cover
 export function rankConsultantsByComplementCoverage<T extends { specialties: string[] }>(
   complementSpecialties: string[],

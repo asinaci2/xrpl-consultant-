@@ -2,7 +2,7 @@ import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
-import { insertChatSessionSchema, insertChatMessageSchema, insertStorySchema, insertCachedMediaSchema } from "@shared/schema";
+import { insertChatSessionSchema, insertChatMessageSchema, insertStorySchema, insertCachedMediaSchema, insertEcosystemProjectSchema } from "@shared/schema";
 import { z } from "zod";
 import { WebSocketServer, WebSocket } from "ws";
 import { createChatRoom, sendMatrixMessage, getNewReplies, uploadFileToMatrix, uploadMediaToMatrix } from "./matrix";
@@ -1510,6 +1510,58 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ message: "Failed to remove contact" });
+    }
+  });
+
+  // Ecosystem Projects
+  app.get("/api/ecosystem", async (_req, res) => {
+    try {
+      const data = await storage.getEcosystemProjects();
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch ecosystem projects" });
+    }
+  });
+
+  app.get("/api/ecosystem/all", requireAdmin, async (_req, res) => {
+    try {
+      const data = await storage.getAllEcosystemProjects();
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch ecosystem projects" });
+    }
+  });
+
+  app.post("/api/ecosystem", requireAdmin, async (req, res) => {
+    try {
+      const parsed = insertEcosystemProjectSchema.safeParse(req.body);
+      if (!parsed.success) { res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() }); return; }
+      const project = await storage.createEcosystemProject(parsed.data);
+      res.status(201).json(project);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create ecosystem project" });
+    }
+  });
+
+  app.patch("/api/ecosystem/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const parsed = insertEcosystemProjectSchema.partial().safeParse(req.body);
+      if (!parsed.success) { res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() }); return; }
+      const updated = await storage.updateEcosystemProject(id, parsed.data);
+      if (!updated) { res.status(404).json({ message: "Not found" }); return; }
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update ecosystem project" });
+    }
+  });
+
+  app.delete("/api/ecosystem/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteEcosystemProject(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete ecosystem project" });
     }
   });
 

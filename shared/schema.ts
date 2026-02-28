@@ -245,3 +245,26 @@ export const insertTestimonialSchema = createInsertSchema(testimonials).omit({ i
 
 export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
 export type Testimonial = typeof testimonials.$inferSelect;
+
+export const ecosystemProjects = pgTable("ecosystem_projects", {
+  id: serial("id").primaryKey(),
+  category: text("category").notNull(),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  website: text("website"),
+  xHandle: text("x_handle"),
+  token: text("token"),
+  xrplFeatures: text("xrpl_features").array().notNull().default([]),
+  status: text("status").notNull().default("Live"),
+  displayOrder: integer("display_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertEcosystemProjectSchema = createInsertSchema(ecosystemProjects).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertEcosystemProject = z.infer<typeof insertEcosystemProjectSchema>;
+export type EcosystemProject = typeof ecosystemProjects.$inferSelect;

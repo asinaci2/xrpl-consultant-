@@ -10,6 +10,7 @@ import {
   chatHostConfig,
   testimonials,
   visitorContacts,
+  ecosystemProjects,
   type InsertInquiry, 
   type Inquiry,
   type InsertChatSession,
@@ -31,6 +32,8 @@ import {
   type InsertTestimonial,
   type Testimonial,
   type VisitorContact,
+  type InsertEcosystemProject,
+  type EcosystemProject,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, gt, lt, and, asc, desc, isNull, isNotNull, or } from "drizzle-orm";
@@ -93,6 +96,11 @@ export interface IStorage {
   addVisitorContact(userId: string, consultantSlug: string, note?: string): Promise<VisitorContact>;
   removeVisitorContact(userId: string, consultantSlug: string): Promise<void>;
   isVisitorContact(userId: string, consultantSlug: string): Promise<boolean>;
+  getEcosystemProjects(): Promise<EcosystemProject[]>;
+  getAllEcosystemProjects(): Promise<EcosystemProject[]>;
+  createEcosystemProject(data: InsertEcosystemProject): Promise<EcosystemProject>;
+  updateEcosystemProject(id: number, data: Partial<InsertEcosystemProject>): Promise<EcosystemProject | undefined>;
+  deleteEcosystemProject(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -560,6 +568,39 @@ export class DatabaseStorage implements IStorage {
       .from(visitorContacts)
       .where(and(eq(visitorContacts.userId, userId), eq(visitorContacts.consultantSlug, consultantSlug)));
     return !!row;
+  }
+
+  async getEcosystemProjects(): Promise<EcosystemProject[]> {
+    return await db
+      .select()
+      .from(ecosystemProjects)
+      .where(eq(ecosystemProjects.isActive, true))
+      .orderBy(asc(ecosystemProjects.category), asc(ecosystemProjects.displayOrder));
+  }
+
+  async getAllEcosystemProjects(): Promise<EcosystemProject[]> {
+    return await db
+      .select()
+      .from(ecosystemProjects)
+      .orderBy(asc(ecosystemProjects.category), asc(ecosystemProjects.displayOrder));
+  }
+
+  async createEcosystemProject(data: InsertEcosystemProject): Promise<EcosystemProject> {
+    const [created] = await db.insert(ecosystemProjects).values(data).returning();
+    return created;
+  }
+
+  async updateEcosystemProject(id: number, data: Partial<InsertEcosystemProject>): Promise<EcosystemProject | undefined> {
+    const [updated] = await db
+      .update(ecosystemProjects)
+      .set(data)
+      .where(eq(ecosystemProjects.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteEcosystemProject(id: number): Promise<void> {
+    await db.delete(ecosystemProjects).where(eq(ecosystemProjects.id, id));
   }
 }
 

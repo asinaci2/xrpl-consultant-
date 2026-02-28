@@ -20,7 +20,8 @@ import {
   LogOut,
   BarChart2,
   Calendar,
-  Quote
+  Quote,
+  Globe
 } from "lucide-react";
 
 import { MediaTab } from "@/components/admin/MediaTab";
@@ -35,6 +36,7 @@ import { SyncTab } from "@/components/admin/SyncTab";
 import { AnalyticsTab } from "@/components/admin/AnalyticsTab";
 import { SchedulingTab } from "@/components/admin/SchedulingTab";
 import { TestimonialsTab } from "@/components/admin/TestimonialsTab";
+import { EcosystemTab } from "@/components/admin/EcosystemTab";
 import { MatrixRain } from "@/components/MatrixRain";
 
 const TRIGGER_CLASS = "w-full justify-start text-sm px-3 py-2 h-auto data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded";
@@ -147,6 +149,10 @@ export default function Admin() {
               <Twitter className="w-4 h-4 mr-2 shrink-0" />
               Tweets
             </TabsTrigger>
+            <TabsTrigger value="ecosystem" className={TRIGGER_CLASS} data-testid="tab-ecosystem">
+              <Globe className="w-4 h-4 mr-2 shrink-0" />
+              Ecosystem
+            </TabsTrigger>
 
             <div className="border-t border-green-500/10 mx-2 my-1" />
             <SidebarGroup label="People" />
@@ -223,6 +229,9 @@ export default function Admin() {
             </TabsContent>
             <TabsContent value="testimonials" className="mt-0">
               <TestimonialsTab />
+            </TabsContent>
+            <TabsContent value="ecosystem" className="mt-0">
+              <EcosystemTab />
             </TabsContent>
           </div>
         </Tabs>
