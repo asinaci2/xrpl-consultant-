@@ -48,10 +48,6 @@ function ProtectedDashboard() {
     return <Redirect to="/login" />;
   }
 
-  if (!isConsultant && !isAdmin) {
-    return <Redirect to="/login" />;
-  }
-
   return <Dashboard />;
 }
 

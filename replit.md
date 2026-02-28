@@ -18,7 +18,7 @@ Preferred communication style: Simple, everyday language.
 -   **Database**: PostgreSQL
 -   **ORM**: Drizzle ORM
 -   **Shared Schema**: Database schemas are defined in `shared/schema.ts` and used by both frontend and backend.
--   **Key Entities**: `consultants`, `projects`, `stories`, `cached_media`, `cached_tweets`, `contact_info`, `chat_host_config`.
+-   **Key Entities**: `consultants`, `projects`, `stories`, `cached_media`, `cached_tweets`, `contact_info`, `chat_host_config`, `testimonials`, `visitor_contacts`.
 
 ### Multi-Tenant Design
 -   Consultants are managed via unique slugs (`/c/:slug`).
@@ -36,9 +36,12 @@ Preferred communication style: Simple, everyday language.
     -   **Projects**: Consultant project showcases.
     -   **Media**: Cached images/videos from various sources (Instagram, TikTok, Google Drive).
 -   **Twitter Integration**: Displays consultant's tweets, with caching and rate limiting.
+-   **Testimonials System**: Visitors can submit testimonials for consultants from their profile page (pending approval). Consultants approve/reject from their dashboard Testimonials tab. Manual dashboard adds are auto-approved.
+-   **Visitor Dashboard**: Logged-in users without a consultant/admin role get a lightweight personal dashboard at `/dashboard` with: (1) XRPL wallet display (balance, NFT count, owner count, links to Bithomp/XRPScan — derived from Matrix user ID), (2) My Contacts (saved consultants from the directory), (3) My Testimonials (all submissions with status badges).
+-   **Save to Contacts**: Visitors can save consultants to their personal contact list via a "Save to My Contacts" button on each consultant's profile hero section. Stored in `visitor_contacts` table.
 -   **Admin Dashboard**: Centralized management for consultants, media, projects, stories, inquiries, and chat profiles.
 -   **Consultant Dashboard**: Self-service portal for consultants to manage their profile, projects, stories, media, and chat settings.
--   **Authentication**: SSO via Matrix homeserver and Xumm (XRPL wallet), with role-based access control (Admin, Consultant).
+-   **Authentication**: SSO via Matrix homeserver and Xumm (XRPL wallet), with role-based access control (Admin, Consultant, Visitor).
 
 ### UI/UX and Visual Theme
 -   **Design System**: Tailwind CSS with shadcn/ui components for a consistent and accessible interface.
@@ -72,3 +75,4 @@ Preferred communication style: Simple, everyday language.
 -   **Twitter API v2**: For fetching and displaying tweets (with OAuth 1.0a).
 -   **Instagram oEmbed**: For embedding Instagram media.
 -   **TikTok oEmbed**: For embedding TikTok media.
+-   **XRPL Public API** (`xrplcluster.com`): Proxied server-side to fetch visitor wallet data (balance, NFTs, owner count) — no API key required.

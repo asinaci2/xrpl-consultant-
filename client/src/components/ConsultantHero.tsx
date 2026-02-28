@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import { Link } from "react-scroll";
-import { ArrowRight, CheckCircle2, ExternalLink } from "lucide-react";
+import { ArrowRight, CheckCircle2, ExternalLink, BookmarkPlus, BookmarkCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop";
 
@@ -23,12 +26,49 @@ interface Consultant {
 }
 
 export function ConsultantHero({ consultant, slug }: { consultant: Consultant; slug: string }) {
+  const { toast } = useToast();
+  const { matrixUserId, consultantSlug: mySlug, isAdmin, isAuthenticated } = useAuth();
+
+  const isVisitor = isAuthenticated && !mySlug && !isAdmin;
+
   const { data: media = [] } = useQuery<CachedMedia[]>({
     queryKey: ["/api/c/:slug/media/hero", slug],
     queryFn: async () => {
       const res = await fetch(`/api/c/${slug}/media/hero`);
       return res.json();
     },
+  });
+
+  const { data: contactStatus } = useQuery<{ saved: boolean }>({
+    queryKey: ["/api/visitor/contacts/:slug", slug],
+    queryFn: async () => {
+      const res = await fetch(`/api/visitor/contacts/${slug}`, { credentials: "include" });
+      if (!res.ok) return { saved: false };
+      return res.json();
+    },
+    enabled: isVisitor,
+  });
+
+  const isSaved = contactStatus?.saved ?? false;
+
+  const saveMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/visitor/contacts", { consultantSlug: slug }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/visitor/contacts/:slug", slug] });
+      queryClient.invalidateQueries({ queryKey: ["/api/visitor/contacts"] });
+      toast({ title: "Saved to contacts", description: `${consultant.name} has been added to your contacts.` });
+    },
+    onError: () => toast({ title: "Error", description: "Could not save contact.", variant: "destructive" }),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: () => apiRequest("DELETE", `/api/visitor/contacts/${slug}`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/visitor/contacts/:slug", slug] });
+      queryClient.invalidateQueries({ queryKey: ["/api/visitor/contacts"] });
+      toast({ title: "Removed from contacts", description: `${consultant.name} was removed from your contacts.` });
+    },
+    onError: () => toast({ title: "Error", description: "Could not remove contact.", variant: "destructive" }),
   });
 
   const heroImage = media.length > 0 ? media[0] : null;
@@ -64,7 +104,7 @@ export function ConsultantHero({ consultant, slug }: { consultant: Consultant; s
               {consultant.bio || "Expert guidance on XRP Ledger strategy, tokenization, and cross-border payment solutions."}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <Link to="contact" smooth={true} duration={500}>
                 <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 rounded-full bg-green-500 hover:bg-green-600 text-black font-bold shadow-lg shadow-green-500/30">
                   Start Your Strategy
@@ -77,6 +117,36 @@ export function ConsultantHero({ consultant, slug }: { consultant: Consultant; s
                 </Button>
               </Link>
             </div>
+
+            {isVisitor && (
+              <div className="mb-6">
+                {isSaved ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeMutation.mutate()}
+                    disabled={removeMutation.isPending}
+                    className="border-green-500/40 text-green-400 hover:bg-red-500/10 hover:border-red-500/40 hover:text-red-400 rounded-full gap-2 transition-colors"
+                    data-testid="button-unsave-contact"
+                  >
+                    <BookmarkCheck className="w-4 h-4" />
+                    Saved to My Contacts
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => saveMutation.mutate()}
+                    disabled={saveMutation.isPending}
+                    className="border-green-500/30 text-green-400/80 hover:bg-green-500/10 hover:border-green-500/60 hover:text-green-400 rounded-full gap-2"
+                    data-testid="button-save-contact"
+                  >
+                    <BookmarkPlus className="w-4 h-4" />
+                    Save to My Contacts
+                  </Button>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center gap-6 text-sm text-gray-400 font-medium flex-wrap">
               {consultant.specialties.slice(0, 3).map(s => (

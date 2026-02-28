@@ -9,6 +9,7 @@ import {
   consultants,
   chatHostConfig,
   testimonials,
+  visitorContacts,
   type InsertInquiry, 
   type Inquiry,
   type InsertChatSession,
@@ -29,6 +30,7 @@ import {
   type ChatHostConfig,
   type InsertTestimonial,
   type Testimonial,
+  type VisitorContact,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, gt, lt, and, asc, desc, isNull, isNotNull, or } from "drizzle-orm";
@@ -86,6 +88,11 @@ export interface IStorage {
   deleteTestimonial(id: number): Promise<void>;
   approveTestimonial(id: number): Promise<Testimonial | undefined>;
   getTestimonialByVisitor(slug: string, userId: string): Promise<Testimonial | undefined>;
+  getTestimonialsByVisitor(userId: string): Promise<Testimonial[]>;
+  getVisitorContacts(userId: string): Promise<(VisitorContact & { consultantName: string; consultantTagline: string; consultantAvatarUrl: string | null })[]>;
+  addVisitorContact(userId: string, consultantSlug: string, note?: string): Promise<VisitorContact>;
+  removeVisitorContact(userId: string, consultantSlug: string): Promise<void>;
+  isVisitorContact(userId: string, consultantSlug: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -499,6 +506,60 @@ export class DatabaseStorage implements IStorage {
       .from(testimonials)
       .where(and(eq(testimonials.consultantSlug, slug), eq(testimonials.submittedByUserId, userId)));
     return row;
+  }
+
+  async getTestimonialsByVisitor(userId: string): Promise<Testimonial[]> {
+    return await db
+      .select()
+      .from(testimonials)
+      .where(eq(testimonials.submittedByUserId, userId))
+      .orderBy(desc(testimonials.id));
+  }
+
+  async getVisitorContacts(userId: string): Promise<(VisitorContact & { consultantName: string; consultantTagline: string; consultantAvatarUrl: string | null })[]> {
+    const rows = await db
+      .select({
+        id: visitorContacts.id,
+        userId: visitorContacts.userId,
+        consultantSlug: visitorContacts.consultantSlug,
+        note: visitorContacts.note,
+        createdAt: visitorContacts.createdAt,
+        consultantName: consultants.name,
+        consultantTagline: consultants.tagline,
+        consultantAvatarUrl: consultants.avatarUrl,
+      })
+      .from(visitorContacts)
+      .leftJoin(consultants, eq(visitorContacts.consultantSlug, consultants.slug))
+      .where(eq(visitorContacts.userId, userId))
+      .orderBy(desc(visitorContacts.createdAt));
+    return rows.map(r => ({
+      ...r,
+      consultantName: r.consultantName ?? r.consultantSlug,
+      consultantTagline: r.consultantTagline ?? "",
+      consultantAvatarUrl: r.consultantAvatarUrl ?? null,
+    }));
+  }
+
+  async addVisitorContact(userId: string, consultantSlug: string, note?: string): Promise<VisitorContact> {
+    const [row] = await db
+      .insert(visitorContacts)
+      .values({ userId, consultantSlug, note: note ?? "" })
+      .returning();
+    return row;
+  }
+
+  async removeVisitorContact(userId: string, consultantSlug: string): Promise<void> {
+    await db
+      .delete(visitorContacts)
+      .where(and(eq(visitorContacts.userId, userId), eq(visitorContacts.consultantSlug, consultantSlug)));
+  }
+
+  async isVisitorContact(userId: string, consultantSlug: string): Promise<boolean> {
+    const [row] = await db
+      .select({ id: visitorContacts.id })
+      .from(visitorContacts)
+      .where(and(eq(visitorContacts.userId, userId), eq(visitorContacts.consultantSlug, consultantSlug)));
+    return !!row;
   }
 }
 

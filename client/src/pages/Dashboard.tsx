@@ -18,7 +18,7 @@ import {
   Mail, MapPin, Globe, Clock, Layout, TrendingUp,
   MessageSquare, Heart, Radio, Gamepad2, Star, Zap,
   Shield, Code, Users, Rocket, Award, Target, Link2, AlertCircle, CheckCircle2, Hash,
-  CalendarDays, Quote,
+  CalendarDays, Quote, Wallet, BookmarkPlus, BookmarkCheck, Copy,
   type LucideIcon,
 } from "lucide-react";
 import { SiInstagram, SiTiktok, SiX, SiSnapchat } from "react-icons/si";
@@ -1971,9 +1971,272 @@ function TestimonialsTab({ slug }: { slug: string }) {
   );
 }
 
+// ── Visitor Dashboard ──────────────────────────────────────────────────────────
+function VisitorDashboard() {
+  const { displayName, matrixUserId, logout } = useAuth();
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  type WalletData = { xrplAddress: string | null; xrpBalance?: number; drops?: number; ownerCount?: number; nftCount?: number; sequence?: number; unfunded?: boolean };
+  type ContactRecord = { id: number; consultantSlug: string; consultantName: string; consultantTagline: string; consultantAvatarUrl: string | null; note: string | null };
+  type TestimonialRecord = { id: number; consultantSlug: string; authorName: string; content: string; status: string };
+
+  const { data: wallet, isLoading: walletLoading } = useQuery<WalletData>({
+    queryKey: ["/api/visitor/wallet"],
+    queryFn: () => fetch("/api/visitor/wallet", { credentials: "include" }).then(r => r.json()),
+  });
+
+  const { data: contacts = [], isLoading: contactsLoading } = useQuery<ContactRecord[]>({
+    queryKey: ["/api/visitor/contacts"],
+    queryFn: () => fetch("/api/visitor/contacts", { credentials: "include" }).then(r => r.json()),
+  });
+
+  const { data: myTestimonials = [] } = useQuery<TestimonialRecord[]>({
+    queryKey: ["/api/visitor/my-testimonials"],
+    queryFn: () => fetch("/api/visitor/my-testimonials", { credentials: "include" }).then(r => r.json()),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (slug: string) => apiRequest("DELETE", `/api/visitor/contacts/${slug}`, {}),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/visitor/contacts"] }); toast({ title: "Contact removed" }); },
+    onError: () => toast({ title: "Error", description: "Could not remove contact.", variant: "destructive" }),
+  });
+
+  function copyAddress() {
+    if (!wallet?.xrplAddress) return;
+    navigator.clipboard.writeText(wallet.xrplAddress);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  const statusBadge = (status: string) => {
+    if (status === "approved") return <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-semibold">Approved</span>;
+    if (status === "rejected") return <span className="px-2 py-0.5 rounded-full bg-gray-500/20 text-gray-400 text-xs font-semibold">Rejected</span>;
+    return <span className="px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-semibold">Pending Review</span>;
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white relative">
+      <div className="fixed inset-0 opacity-5 pointer-events-none" style={{
+        backgroundImage: "linear-gradient(rgba(34,197,94,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(34,197,94,0.1) 1px, transparent 1px)",
+        backgroundSize: "40px 40px",
+      }} />
+      <div className="relative z-10 max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+        {/* Header bar */}
+        <div className="flex items-center justify-between gap-4 flex-wrap rounded-xl border border-green-500/20 bg-green-500/5 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Wallet className="w-4 h-4 text-green-400 shrink-0" />
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-semibold text-green-400">Visitor</span>
+                <span className="text-gray-400 text-sm">·</span>
+                <span className="text-gray-300 text-sm font-mono">{displayName}</span>
+              </div>
+              <p className="text-xs text-gray-600 font-mono">{matrixUserId}</p>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => logout.mutate()} className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 text-xs" data-testid="button-logout">
+            <LogOut className="w-3.5 h-3.5 mr-1" />Sign Out
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <Link href="/" className="text-green-400/60 hover:text-green-400 transition-colors" data-testid="link-back-directory">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-display font-bold text-white" data-testid="text-dashboard-title">Your Activity</h1>
+            <p className="text-green-400/60 text-sm font-mono">TextRP Consultant Network</p>
+          </div>
+        </div>
+
+        {/* Wallet Card */}
+        <Card className="bg-black/60 border-green-500/30" data-testid="card-wallet">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-green-400 flex items-center gap-2">
+              <Wallet className="w-5 h-5" />
+              Your XRPL Wallet
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {walletLoading ? (
+              <div className="space-y-3 animate-pulse">
+                <div className="h-6 bg-green-500/10 rounded w-3/4" />
+                <div className="h-12 bg-green-500/10 rounded w-1/2" />
+                <div className="flex gap-3">
+                  {[1,2,3].map(i => <div key={i} className="h-16 bg-green-500/10 rounded flex-1" />)}
+                </div>
+              </div>
+            ) : !wallet?.xrplAddress ? (
+              <p className="text-gray-500 text-sm">No XRPL wallet address found for your account.</p>
+            ) : wallet.unfunded ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <code className="text-green-400 font-mono text-sm break-all">{wallet.xrplAddress}</code>
+                  <button onClick={copyAddress} className="text-gray-500 hover:text-green-400 shrink-0" data-testid="button-copy-address">
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-yellow-400/80 text-sm">This account hasn't been activated on the XRPL yet (requires 10 XRP reserve).</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Address */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <code className="text-green-400 font-mono text-sm break-all" data-testid="text-xrpl-address">{wallet.xrplAddress}</code>
+                  <button onClick={copyAddress} className="text-gray-500 hover:text-green-400 transition-colors shrink-0" data-testid="button-copy-address">
+                    {copied ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                {/* Balance */}
+                <div>
+                  <p className="text-4xl font-display font-bold text-white" data-testid="text-xrp-balance">
+                    {wallet.xrpBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} <span className="text-green-400 text-2xl">XRP</span>
+                  </p>
+                  <p className="text-gray-600 text-xs font-mono mt-1">{wallet.drops?.toLocaleString()} drops</p>
+                </div>
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: "Owner Count", value: wallet.ownerCount ?? 0, testid: "text-owner-count" },
+                    { label: "NFTs", value: wallet.nftCount ?? 0, testid: "text-nft-count" },
+                    { label: "Sequence", value: wallet.sequence ?? 0, testid: "text-sequence" },
+                  ].map(stat => (
+                    <div key={stat.label} className="bg-black/40 rounded-xl p-3 border border-green-500/10 text-center">
+                      <p className="text-white font-bold text-lg" data-testid={stat.testid}>{stat.value.toLocaleString()}</p>
+                      <p className="text-gray-500 text-xs">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+                {/* Explorer links */}
+                <div className="flex gap-3 flex-wrap">
+                  <a href={`https://bithomp.com/explorer/${wallet.xrplAddress}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-green-400/80 hover:text-green-400 border border-green-500/20 hover:border-green-500/40 rounded-full px-3 py-1.5 transition-colors" data-testid="link-bithomp">
+                    <ExternalLink className="w-3.5 h-3.5" />Bithomp
+                  </a>
+                  <a href={`https://xrpscan.com/account/${wallet.xrplAddress}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-green-400/80 hover:text-green-400 border border-green-500/20 hover:border-green-500/40 rounded-full px-3 py-1.5 transition-colors" data-testid="link-xrpscan">
+                    <ExternalLink className="w-3.5 h-3.5" />XRPScan
+                  </a>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* My Contacts */}
+        <Card className="bg-black/60 border-green-500/20" data-testid="card-my-contacts">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-green-400 flex items-center gap-2">
+              <BookmarkCheck className="w-5 h-5" />
+              My Contacts
+              {contacts.length > 0 && (
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-xs font-bold">{contacts.length}</span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {contactsLoading ? (
+              <div className="space-y-3 animate-pulse">
+                {[1,2].map(i => <div key={i} className="h-16 bg-green-500/10 rounded-xl" />)}
+              </div>
+            ) : contacts.length === 0 ? (
+              <div className="text-center py-6">
+                <BookmarkPlus className="w-10 h-10 text-green-500/20 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm mb-4">No saved contacts yet. Browse the directory and save consultants you want to keep track of.</p>
+                <Link href="/">
+                  <Button variant="outline" size="sm" className="border-green-500/30 text-green-400 hover:bg-green-500/10 rounded-full" data-testid="button-browse-directory">
+                    Browse Directory
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {contacts.map(c => (
+                  <div key={c.id} className="flex items-center gap-3 rounded-xl border border-green-500/10 bg-black/30 p-3" data-testid={`card-contact-${c.consultantSlug}`}>
+                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 font-bold shrink-0">
+                      {c.consultantAvatarUrl
+                        ? <img src={c.consultantAvatarUrl} alt={c.consultantName} className="w-10 h-10 rounded-full object-cover" />
+                        : c.consultantName.charAt(0).toUpperCase()
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-semibold text-sm truncate">{c.consultantName}</p>
+                      {c.consultantTagline && <p className="text-gray-500 text-xs truncate">{c.consultantTagline}</p>}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Link href={`/c/${c.consultantSlug}`}>
+                        <Button size="sm" variant="outline" className="border-green-500/20 text-green-400 hover:bg-green-500/10 text-xs rounded-full" data-testid={`button-view-contact-${c.consultantSlug}`}>
+                          View
+                        </Button>
+                      </Link>
+                      <Button size="sm" variant="outline" onClick={() => removeMutation.mutate(c.consultantSlug)} disabled={removeMutation.isPending} className="border-red-500/20 text-red-400/70 hover:bg-red-500/10 text-xs rounded-full" data-testid={`button-remove-contact-${c.consultantSlug}`}>
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                <Link href="/">
+                  <Button variant="ghost" size="sm" className="text-green-400/60 hover:text-green-400 text-xs w-full mt-2" data-testid="button-browse-more">
+                    <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />Browse directory to add more
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* My Testimonials */}
+        <Card className="bg-black/60 border-green-500/20" data-testid="card-my-testimonials">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-green-400 flex items-center gap-2">
+              <Quote className="w-5 h-5" />
+              My Testimonials
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {myTestimonials.length === 0 ? (
+              <div className="text-center py-6">
+                <Quote className="w-10 h-10 text-green-500/20 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">You haven't submitted any testimonials yet.</p>
+                <p className="text-gray-600 text-xs mt-1">Visit a consultant's page to share your experience.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myTestimonials.map(t => (
+                  <div key={t.id} className="rounded-xl border border-green-500/10 bg-black/30 p-4" data-testid={`card-my-testimonial-${t.id}`}>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <Link href={`/c/${t.consultantSlug}`} className="text-green-400 text-sm font-semibold hover:text-green-300">
+                        {t.consultantSlug}
+                      </Link>
+                      {statusBadge(t.status)}
+                    </div>
+                    <p className="text-gray-400 text-sm italic">"{t.content}"</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Browse CTA */}
+        <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-6 text-center">
+          <p className="text-gray-400 text-sm mb-4">Discover consultants in the TextRP ecosystem and build your personal network.</p>
+          <Link href="/">
+            <Button className="bg-green-500 hover:bg-green-600 text-black font-bold rounded-full px-6" data-testid="button-explore-directory">
+              Explore the Directory
+              <ExternalLink className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
 // ── Main Dashboard Page ────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const { user, logout, consultantSlug, isAdmin, matrixUserId, displayName } = useAuth();
+  const { user, logout, consultantSlug, isAdmin, matrixUserId, displayName, isAuthenticated, isConsultant } = useAuth();
   const [showMatrixId, setShowMatrixId] = useState(false);
   const search = useSearch();
   const [, setLocation] = useLocation();
@@ -1990,6 +2253,9 @@ export default function Dashboard() {
   });
 
   const handleLogout = () => logout.mutate();
+  const isVisitor = isAuthenticated && !isConsultant && !isAdmin;
+
+  if (isVisitor) return <VisitorDashboard />;
 
   return (
     <AdminSlugContext.Provider value={overrideSlug}>

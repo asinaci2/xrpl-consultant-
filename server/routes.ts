@@ -170,7 +170,7 @@ export async function registerRoutes(
         if (result.isAdmin || finalConsultantSlug) {
           res.redirect("/welcome");
         } else {
-          res.redirect("/?visitor=1");
+          res.redirect("/dashboard");
         }
       });
     } catch (err: any) {
@@ -1398,6 +1398,104 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Admin add consultant error:", err);
       res.status(500).json({ message: "Failed to add consultant" });
+    }
+  });
+
+  // ── Visitor routes (any logged-in user) ───────────────────────────────────────
+
+  // XRPL wallet info (derive address from Matrix user ID localpart)
+  app.get("/api/visitor/wallet", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const localpart = userId.split(":")[0].replace("@", "");
+      if (!localpart.startsWith("r") || localpart.length < 25) {
+        res.json({ xrplAddress: null });
+        return;
+      }
+      const xrplAddress = localpart;
+      const [infoRes, nftRes] = await Promise.allSettled([
+        fetch("https://xrplcluster.com/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ method: "account_info", params: [{ account: xrplAddress, ledger_index: "validated" }] }),
+        }).then(r => r.json()),
+        fetch("https://xrplcluster.com/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ method: "account_nfts", params: [{ account: xrplAddress, ledger_index: "validated" }] }),
+        }).then(r => r.json()),
+      ]);
+
+      const info = infoRes.status === "fulfilled" ? infoRes.value : null;
+      const nftData = nftRes.status === "fulfilled" ? nftRes.value : null;
+
+      if (info?.result?.error === "actNotFound" || info?.result?.account_data === undefined) {
+        res.json({ xrplAddress, unfunded: true });
+        return;
+      }
+
+      const acct = info?.result?.account_data;
+      const drops = parseInt(acct?.Balance ?? "0", 10);
+      const xrpBalance = drops / 1_000_000;
+      const ownerCount = acct?.OwnerCount ?? 0;
+      const sequence = acct?.Sequence ?? 0;
+      const nftCount = nftData?.result?.account_nfts?.length ?? 0;
+
+      res.json({ xrplAddress, xrpBalance, drops, ownerCount, nftCount, sequence, unfunded: false });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch wallet data" });
+    }
+  });
+
+  // Visitor's submitted testimonials (across all consultants)
+  app.get("/api/visitor/my-testimonials", requireAuth, async (req, res) => {
+    try {
+      const data = await storage.getTestimonialsByVisitor(req.session.userId!);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch testimonials" });
+    }
+  });
+
+  // Visitor contacts CRUD
+  app.get("/api/visitor/contacts", requireAuth, async (req, res) => {
+    try {
+      const data = await storage.getVisitorContacts(req.session.userId!);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch contacts" });
+    }
+  });
+
+  app.get("/api/visitor/contacts/:slug", requireAuth, async (req, res) => {
+    try {
+      const saved = await storage.isVisitorContact(req.session.userId!, req.params.slug);
+      res.json({ saved });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to check contact" });
+    }
+  });
+
+  app.post("/api/visitor/contacts", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const { consultantSlug, note } = req.body;
+      if (!consultantSlug) { res.status(400).json({ message: "consultantSlug required" }); return; }
+      const already = await storage.isVisitorContact(userId, consultantSlug);
+      if (already) { res.status(409).json({ message: "Already saved" }); return; }
+      const contact = await storage.addVisitorContact(userId, consultantSlug, note);
+      res.status(201).json(contact);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to save contact" });
+    }
+  });
+
+  app.delete("/api/visitor/contacts/:slug", requireAuth, async (req, res) => {
+    try {
+      await storage.removeVisitorContact(req.session.userId!, req.params.slug);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to remove contact" });
     }
   });
 

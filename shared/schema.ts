@@ -216,6 +216,19 @@ export const insertChatHostConfigSchema = createInsertSchema(chatHostConfig).omi
 export type InsertChatHostConfig = z.infer<typeof insertChatHostConfigSchema>;
 export type ChatHostConfig = typeof chatHostConfig.$inferSelect;
 
+export const visitorContacts = pgTable("visitor_contacts", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  consultantSlug: text("consultant_slug").notNull(),
+  note: text("note").default(""),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertVisitorContactSchema = createInsertSchema(visitorContacts).omit({ id: true, createdAt: true });
+
+export type InsertVisitorContact = z.infer<typeof insertVisitorContactSchema>;
+export type VisitorContact = typeof visitorContacts.$inferSelect;
+
 export const testimonials = pgTable("testimonials", {
   id: serial("id").primaryKey(),
   consultantSlug: text("consultant_slug").notNull(),
