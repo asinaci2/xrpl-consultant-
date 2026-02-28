@@ -24,9 +24,9 @@ export function VisitorTestimonialsTab() {
   };
 
   return (
-    <Card className="bg-black/60 border-green-500/20" data-testid="card-my-testimonials">
+    <Card className="bg-gray-900 border-purple-500/40" data-testid="card-my-testimonials">
       <CardHeader className="pb-3">
-        <CardTitle className="text-green-400 flex items-center gap-2">
+        <CardTitle className="text-purple-400 flex items-center gap-2">
           <Quote className="w-5 h-5" />
           My Testimonials
         </CardTitle>
@@ -34,16 +34,16 @@ export function VisitorTestimonialsTab() {
       <CardContent>
         {myTestimonials.length === 0 ? (
           <div className="text-center py-6">
-            <Quote className="w-10 h-10 text-green-500/20 mx-auto mb-3" />
+            <Quote className="w-10 h-10 text-white/20 mx-auto mb-3" />
             <p className="text-white/70 text-sm">You haven't submitted any testimonials yet.</p>
             <p className="text-white/60 text-xs mt-1">Visit a consultant's page to share your experience.</p>
           </div>
         ) : (
           <div className="space-y-3">
             {myTestimonials.map(t => (
-              <div key={t.id} className="rounded-xl border border-green-500/10 bg-black/30 p-4" data-testid={`card-my-testimonial-${t.id}`}>
+              <div key={t.id} className="rounded-xl border border-purple-500/20 bg-white/5 p-4" data-testid={`card-my-testimonial-${t.id}`}>
                 <div className="flex items-start justify-between gap-3 mb-2">
-                  <Link href={`/c/${t.consultantSlug}`} className="text-green-400 text-sm font-semibold hover:text-green-300">
+                  <Link href={`/c/${t.consultantSlug}`} className="text-purple-300 text-sm font-semibold hover:text-purple-200">
                     {t.consultantSlug}
                   </Link>
                   {statusBadge(t.status)}

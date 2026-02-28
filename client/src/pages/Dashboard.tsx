@@ -26,9 +26,9 @@ function VisitorDashboard() {
   const { displayName, matrixUserId, logout } = useAuth();
 
   return (
-    <div className="min-h-screen bg-black text-white relative">
-      <div className="fixed inset-0 opacity-5 pointer-events-none" style={{
-        backgroundImage: "linear-gradient(rgba(34,197,94,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(34,197,94,0.1) 1px, transparent 1px)",
+    <div className="min-h-screen bg-gray-950 text-white relative">
+      <div className="fixed inset-0 opacity-10 pointer-events-none" style={{
+        backgroundImage: "linear-gradient(rgba(168,85,247,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.15) 1px, transparent 1px)",
         backgroundSize: "40px 40px",
       }} />
       <div className="relative z-10 max-w-3xl mx-auto px-4 py-8 space-y-6">
