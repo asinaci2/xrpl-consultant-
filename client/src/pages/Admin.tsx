@@ -1086,8 +1086,21 @@ type ChatHostConfigData = {
 function ChatProfileTab() {
   const { toast } = useToast();
 
+  const { data: consultants = [] } = useQuery<ConsultantEntry[]>({
+    queryKey: ["/api/consultants"],
+  });
+  const [selectedSlug, setSelectedSlug] = useState<string>("");
+
+  useEffect(() => {
+    if (consultants.length > 0 && !selectedSlug) {
+      setSelectedSlug(consultants[0].slug);
+    }
+  }, [consultants, selectedSlug]);
+
   const { data: config, isLoading } = useQuery<ChatHostConfigData>({
-    queryKey: ["/api/chat/host-config"],
+    queryKey: ["/api/chat/host-config", selectedSlug],
+    queryFn: () => fetch(`/api/chat/host-config/${selectedSlug}`).then(r => r.json()),
+    enabled: !!selectedSlug,
   });
 
   const [displayName, setDisplayName] = useState("");
@@ -1108,7 +1121,7 @@ function ChatProfileTab() {
 
   const saveMutation = useMutation({
     mutationFn: () =>
-      apiRequest("PATCH", "/api/chat/host-config", {
+      apiRequest("PATCH", `/api/dashboard/chat-profile?slug=${selectedSlug}`, {
         displayName,
         title,
         avatarUrl: avatarUrl || null,
@@ -1116,7 +1129,7 @@ function ChatProfileTab() {
         isAvailable,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/chat/host-config"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/host-config", selectedSlug] });
       toast({ title: "Saved", description: "Chat profile updated successfully." });
     },
     onError: () => {
@@ -1134,6 +1147,21 @@ function ChatProfileTab() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-4">
+            <label className="text-gray-300 text-sm font-medium block mb-1">Consultant</label>
+            <Select value={selectedSlug} onValueChange={setSelectedSlug}>
+              <SelectTrigger className="bg-black/40 border-green-500/20 text-white" data-testid="select-chat-profile-consultant">
+                <SelectValue placeholder="Select consultant..." />
+              </SelectTrigger>
+              <SelectContent>
+                {consultants.map(c => (
+                  <SelectItem key={c.slug} value={c.slug} data-testid={`option-consultant-${c.slug}`}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           {isLoading ? (
             <p className="text-gray-400">Loading...</p>
           ) : (
