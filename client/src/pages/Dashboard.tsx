@@ -19,6 +19,7 @@ import {
   MessageSquare, Heart, Radio, Gamepad2, Star, Zap,
   Shield, Code, Users, Rocket, Award, Target, Link2, AlertCircle, CheckCircle2, Hash,
   CalendarDays, Quote, Wallet, BookmarkPlus, BookmarkCheck, Copy,
+  ChevronDown, ChevronUp, LayoutDashboard,
   type LucideIcon,
 } from "lucide-react";
 import { SiInstagram, SiTiktok, SiX, SiSnapchat } from "react-icons/si";
@@ -1971,20 +1972,99 @@ function TestimonialsTab({ slug }: { slug: string }) {
   );
 }
 
-// ── Visitor Dashboard ──────────────────────────────────────────────────────────
-function VisitorDashboard() {
-  const { displayName, matrixUserId, logout } = useAuth();
-  const { toast } = useToast();
+// ── Wallet Card (shared between visitor and consultant/admin dashboards) ────────
+function WalletCard() {
   const [copied, setCopied] = useState(false);
-
   type WalletData = { xrplAddress: string | null; xrpBalance?: number; drops?: number; ownerCount?: number; nftCount?: number; sequence?: number; unfunded?: boolean };
-  type ContactRecord = { id: number; consultantSlug: string; consultantName: string; consultantTagline: string; consultantAvatarUrl: string | null; note: string | null };
-  type TestimonialRecord = { id: number; consultantSlug: string; authorName: string; content: string; status: string };
 
   const { data: wallet, isLoading: walletLoading } = useQuery<WalletData>({
     queryKey: ["/api/visitor/wallet"],
     queryFn: () => fetch("/api/visitor/wallet", { credentials: "include" }).then(r => r.json()),
   });
+
+  function copyAddress() {
+    if (!wallet?.xrplAddress) return;
+    navigator.clipboard.writeText(wallet.xrplAddress);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <Card className="bg-black/60 border-green-500/30" data-testid="card-wallet">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-green-400 flex items-center gap-2">
+          <Wallet className="w-5 h-5" />
+          Your XRPL Wallet
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {walletLoading ? (
+          <div className="space-y-3 animate-pulse">
+            <div className="h-6 bg-green-500/10 rounded w-3/4" />
+            <div className="h-12 bg-green-500/10 rounded w-1/2" />
+            <div className="flex gap-3">
+              {[1,2,3].map(i => <div key={i} className="h-16 bg-green-500/10 rounded flex-1" />)}
+            </div>
+          </div>
+        ) : !wallet?.xrplAddress ? (
+          <p className="text-gray-500 text-sm">No XRPL wallet address found for your account.</p>
+        ) : wallet.unfunded ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <code className="text-green-400 font-mono text-sm break-all">{wallet.xrplAddress}</code>
+              <button onClick={copyAddress} className="text-gray-500 hover:text-green-400 shrink-0" data-testid="button-copy-address">
+                <Copy className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-yellow-400/80 text-sm">This account hasn't been activated on the XRPL yet (requires 10 XRP reserve).</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <code className="text-green-400 font-mono text-sm break-all" data-testid="text-xrpl-address">{wallet.xrplAddress}</code>
+              <button onClick={copyAddress} className="text-gray-500 hover:text-green-400 transition-colors shrink-0" data-testid="button-copy-address">
+                {copied ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+            <div>
+              <p className="text-4xl font-display font-bold text-white" data-testid="text-xrp-balance">
+                {wallet.xrpBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} <span className="text-green-400 text-2xl">XRP</span>
+              </p>
+              <p className="text-gray-600 text-xs font-mono mt-1">{wallet.drops?.toLocaleString()} drops</p>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "Owner Count", value: wallet.ownerCount ?? 0, testid: "text-owner-count" },
+                { label: "NFTs", value: wallet.nftCount ?? 0, testid: "text-nft-count" },
+                { label: "Sequence", value: wallet.sequence ?? 0, testid: "text-sequence" },
+              ].map(stat => (
+                <div key={stat.label} className="bg-black/40 rounded-xl p-3 border border-green-500/10 text-center">
+                  <p className="text-white font-bold text-lg" data-testid={stat.testid}>{stat.value.toLocaleString()}</p>
+                  <p className="text-gray-500 text-xs">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3 flex-wrap">
+              <a href={`https://bithomp.com/explorer/${wallet.xrplAddress}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-green-400/80 hover:text-green-400 border border-green-500/20 hover:border-green-500/40 rounded-full px-3 py-1.5 transition-colors" data-testid="link-bithomp">
+                <ExternalLink className="w-3.5 h-3.5" />Bithomp
+              </a>
+              <a href={`https://xrpscan.com/account/${wallet.xrplAddress}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-green-400/80 hover:text-green-400 border border-green-500/20 hover:border-green-500/40 rounded-full px-3 py-1.5 transition-colors" data-testid="link-xrpscan">
+                <ExternalLink className="w-3.5 h-3.5" />XRPScan
+              </a>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── Visitor Dashboard ──────────────────────────────────────────────────────────
+function VisitorDashboard() {
+  const { displayName, matrixUserId, logout } = useAuth();
+  const { toast } = useToast();
+  type ContactRecord = { id: number; consultantSlug: string; consultantName: string; consultantTagline: string; consultantAvatarUrl: string | null; note: string | null };
+  type TestimonialRecord = { id: number; consultantSlug: string; authorName: string; content: string; status: string };
 
   const { data: contacts = [], isLoading: contactsLoading } = useQuery<ContactRecord[]>({
     queryKey: ["/api/visitor/contacts"],
@@ -2001,13 +2081,6 @@ function VisitorDashboard() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/visitor/contacts"] }); toast({ title: "Contact removed" }); },
     onError: () => toast({ title: "Error", description: "Could not remove contact.", variant: "destructive" }),
   });
-
-  function copyAddress() {
-    if (!wallet?.xrplAddress) return;
-    navigator.clipboard.writeText(wallet.xrplAddress);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
 
   const statusBadge = (status: string) => {
     if (status === "approved") return <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-semibold">Approved</span>;
@@ -2051,77 +2124,7 @@ function VisitorDashboard() {
           </div>
         </div>
 
-        {/* Wallet Card */}
-        <Card className="bg-black/60 border-green-500/30" data-testid="card-wallet">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-green-400 flex items-center gap-2">
-              <Wallet className="w-5 h-5" />
-              Your XRPL Wallet
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {walletLoading ? (
-              <div className="space-y-3 animate-pulse">
-                <div className="h-6 bg-green-500/10 rounded w-3/4" />
-                <div className="h-12 bg-green-500/10 rounded w-1/2" />
-                <div className="flex gap-3">
-                  {[1,2,3].map(i => <div key={i} className="h-16 bg-green-500/10 rounded flex-1" />)}
-                </div>
-              </div>
-            ) : !wallet?.xrplAddress ? (
-              <p className="text-gray-500 text-sm">No XRPL wallet address found for your account.</p>
-            ) : wallet.unfunded ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <code className="text-green-400 font-mono text-sm break-all">{wallet.xrplAddress}</code>
-                  <button onClick={copyAddress} className="text-gray-500 hover:text-green-400 shrink-0" data-testid="button-copy-address">
-                    <Copy className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className="text-yellow-400/80 text-sm">This account hasn't been activated on the XRPL yet (requires 10 XRP reserve).</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Address */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <code className="text-green-400 font-mono text-sm break-all" data-testid="text-xrpl-address">{wallet.xrplAddress}</code>
-                  <button onClick={copyAddress} className="text-gray-500 hover:text-green-400 transition-colors shrink-0" data-testid="button-copy-address">
-                    {copied ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-                {/* Balance */}
-                <div>
-                  <p className="text-4xl font-display font-bold text-white" data-testid="text-xrp-balance">
-                    {wallet.xrpBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} <span className="text-green-400 text-2xl">XRP</span>
-                  </p>
-                  <p className="text-gray-600 text-xs font-mono mt-1">{wallet.drops?.toLocaleString()} drops</p>
-                </div>
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { label: "Owner Count", value: wallet.ownerCount ?? 0, testid: "text-owner-count" },
-                    { label: "NFTs", value: wallet.nftCount ?? 0, testid: "text-nft-count" },
-                    { label: "Sequence", value: wallet.sequence ?? 0, testid: "text-sequence" },
-                  ].map(stat => (
-                    <div key={stat.label} className="bg-black/40 rounded-xl p-3 border border-green-500/10 text-center">
-                      <p className="text-white font-bold text-lg" data-testid={stat.testid}>{stat.value.toLocaleString()}</p>
-                      <p className="text-gray-500 text-xs">{stat.label}</p>
-                    </div>
-                  ))}
-                </div>
-                {/* Explorer links */}
-                <div className="flex gap-3 flex-wrap">
-                  <a href={`https://bithomp.com/explorer/${wallet.xrplAddress}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-green-400/80 hover:text-green-400 border border-green-500/20 hover:border-green-500/40 rounded-full px-3 py-1.5 transition-colors" data-testid="link-bithomp">
-                    <ExternalLink className="w-3.5 h-3.5" />Bithomp
-                  </a>
-                  <a href={`https://xrpscan.com/account/${wallet.xrplAddress}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-green-400/80 hover:text-green-400 border border-green-500/20 hover:border-green-500/40 rounded-full px-3 py-1.5 transition-colors" data-testid="link-xrpscan">
-                    <ExternalLink className="w-3.5 h-3.5" />XRPScan
-                  </a>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <WalletCard />
 
         {/* My Contacts */}
         <Card className="bg-black/60 border-green-500/20" data-testid="card-my-contacts">
@@ -2238,6 +2241,7 @@ function VisitorDashboard() {
 export default function Dashboard() {
   const { user, logout, consultantSlug, isAdmin, matrixUserId, displayName, isAuthenticated, isConsultant } = useAuth();
   const [showMatrixId, setShowMatrixId] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
   const search = useSearch();
   const [, setLocation] = useLocation();
 
@@ -2353,16 +2357,48 @@ export default function Dashboard() {
         </div>
 
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-6">
           <Link href={overrideSlug ? "/admin" : "/"} className="text-green-400/60 hover:text-green-400 transition-colors" data-testid="link-back-directory">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <h1 className="text-2xl font-display font-bold text-white" data-testid="text-dashboard-title">
-              {overrideSlug ? `Editing: ${profile?.name || overrideSlug}` : isAdmin ? "My Dashboard" : "My Dashboard"}
+              {overrideSlug ? `Editing: ${profile?.name || overrideSlug}` : "My Dashboard"}
             </h1>
             <p className="text-green-400/60 text-sm font-mono">{profile?.name || displayName || slug}</p>
           </div>
+        </div>
+
+        {/* Collapsible Wallet Panel */}
+        <div className="mb-6" data-testid="section-wallet-panel">
+          <button
+            onClick={() => setWalletOpen(o => !o)}
+            className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-green-500/20 bg-black/40 hover:bg-black/60 hover:border-green-500/30 transition-all text-sm group"
+            data-testid="button-toggle-wallet"
+          >
+            <div className="flex items-center gap-2 text-green-400/80 group-hover:text-green-400 transition-colors">
+              <Wallet className="w-4 h-4" />
+              <span className="font-mono">XRPL Wallet</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {!walletOpen && matrixUserId && (() => {
+                const addr = matrixUserId.replace(/^@/, "").split(":")[0];
+                if (addr.startsWith("r") && addr.length > 12) {
+                  return <span className="text-green-400/50 font-mono text-xs">{addr.slice(0, 8)}…{addr.slice(-4)}</span>;
+                }
+                return null;
+              })()}
+              {walletOpen
+                ? <ChevronUp className="w-4 h-4 text-gray-500" />
+                : <ChevronDown className="w-4 h-4 text-gray-500" />
+              }
+            </div>
+          </button>
+          {walletOpen && (
+            <div className="mt-2">
+              <WalletCard />
+            </div>
+          )}
         </div>
 
         {/* Tabs */}

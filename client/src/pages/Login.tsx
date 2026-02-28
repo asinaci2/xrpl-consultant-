@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Hexagon, LogIn, AlertCircle, Loader2 } from "lucide-react";
+import { Hexagon, LogIn, AlertCircle, Loader2, LayoutDashboard } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Login() {
@@ -28,13 +28,11 @@ export default function Login() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      // If there's an error param being shown, stay on this page — don't redirect away
       const hasErrorParam = !!new URLSearchParams(window.location.search).get("error");
       if (hasErrorParam) return;
-      // Send everyone with a valid session to the welcome screen
-      setLocation("/welcome");
+      setLocation("/dashboard");
     }
-  }, [isLoading, isAuthenticated, isAdmin, isConsultant, setLocation]);
+  }, [isLoading, isAuthenticated, setLocation]);
 
   const handleLogin = async () => {
     setError("");
@@ -89,9 +87,19 @@ export default function Login() {
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm" data-testid="text-login-error">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm" data-testid="text-login-error">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+              {isAuthenticated && (
+                <Link href="/dashboard">
+                  <Button variant="outline" className="w-full border-green-500/30 text-green-400 hover:bg-green-500/10 font-mono py-5" data-testid="button-go-to-dashboard">
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Go to My Dashboard
+                  </Button>
+                </Link>
+              )}
             </div>
           )}
 

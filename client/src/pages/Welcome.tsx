@@ -228,27 +228,25 @@ export default function Welcome() {
         )}
 
         {!isAdmin && !isConsultant && (
-          <div
-            className="bg-black/80 border border-red-500/20 rounded-xl p-5 backdrop-blur-xl space-y-4"
-            data-testid="card-no-role"
-          >
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-red-300 font-semibold font-display text-sm">No role assigned</p>
-                <p className="text-gray-500 text-sm font-mono mt-1">
-                  Your XRPL wallet is not registered as a consultant or admin on this network. Contact your network administrator to be added.
-                </p>
-              </div>
-            </div>
-            <Link href="/">
-              <Button
-                variant="outline"
-                className="w-full border-white/10 text-gray-400 hover:text-white hover:border-white/20 font-mono text-sm"
-                data-testid="button-back-directory"
+          <div className="space-y-3" data-testid="section-visitor-nav">
+            <p className="text-gray-600 text-xs font-mono uppercase tracking-widest px-1">Where would you like to go?</p>
+
+            <Link href="/dashboard">
+              <div
+                className="group bg-black/80 border border-green-500/20 hover:border-green-500/50 rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-green-500/5 backdrop-blur-xl"
+                data-testid="card-nav-dashboard"
               >
-                Back to Directory
-              </Button>
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center group-hover:bg-green-500/20 transition-colors shrink-0">
+                    <LayoutDashboard className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-semibold font-display">My Dashboard</p>
+                    <p className="text-gray-500 text-sm font-mono mt-0.5">View your wallet, contacts &amp; activity</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-gray-700 group-hover:text-green-400 transition-colors shrink-0" />
+                </div>
+              </div>
             </Link>
           </div>
         )}
