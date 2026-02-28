@@ -66,9 +66,10 @@ function StoriesInNav() {
               onClick={() => handleStoryClick(stories, stories.findIndex(s => s.id === authorStories[0].id))}
               className="flex items-center gap-2 shrink-0 group"
               data-testid={`story-bubble-${authorName.replace(/\s+/g, "-").toLowerCase()}`}
+              aria-label={`View ${authorName}'s stories`}
             >
               <div 
-                className={`relative w-10 h-10 rounded-full p-[2px] transition-all duration-300 group-hover:scale-110 ${
+                className={`relative w-10 h-10 rounded-full p-[2px] transition-[transform,opacity] duration-300 group-hover:scale-110 ${
                   hasMultiple 
                     ? "bg-gradient-to-tr from-green-400 via-green-500 to-emerald-400" 
                     : "bg-gradient-to-tr from-green-500 to-green-400"
@@ -136,7 +137,7 @@ export function Navigation() {
 
   return (
     <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+      className={`fixed top-0 w-full z-50 transition-[background-color,box-shadow] duration-300 ${
         isScrolled || isMobileMenuOpen ? "glass-nav shadow-sm" : "bg-transparent"
       }`}
     >
@@ -189,6 +190,7 @@ export function Navigation() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="text-white hover:text-green-400 transition-colors"
               data-testid="button-mobile-menu"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>

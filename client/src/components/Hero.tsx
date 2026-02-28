@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Link } from "react-scroll";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ interface CachedMedia {
 }
 
 export function Hero() {
+  const shouldReduceMotion = useReducedMotion();
   const { data: allMedia = [], isLoading } = useQuery<CachedMedia[]>({
     queryKey: ["/api/media"],
   });
@@ -23,6 +24,23 @@ export function Hero() {
   const imageSrc = heroImage?.imageUrl || FALLBACK_IMAGE;
   const imageAlt = heroImage?.altText || "Blockchain Technology Visualization";
 
+  const motionProps = shouldReduceMotion ? {} : {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 }
+  };
+
+  const imageMotionProps = shouldReduceMotion ? {} : {
+    initial: { opacity: 0, scale: 0.95 },
+    animate: { opacity: 1, scale: 1 },
+    transition: { duration: 0.6, delay: 0.2 }
+  };
+
+  const floatMotionProps = shouldReduceMotion ? {} : {
+    animate: { y: [0, -10, 0] },
+    transition: { repeat: Infinity, duration: 4, ease: "easeInOut" }
+  };
+
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/70 z-[1]" />
@@ -31,9 +49,7 @@ export function Hero() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
           
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            {...motionProps}
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm font-semibold mb-6">
               <span className="relative flex h-2 w-2">
@@ -82,9 +98,7 @@ export function Hero() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            {...imageMotionProps}
             className="relative hidden lg:block"
           >
             <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-green-500/10 border border-green-500/20 aspect-square">
@@ -92,13 +106,16 @@ export function Hero() {
                <img 
                  src={imageSrc}
                  alt={imageAlt}
+                 width={1200}
+                 height={800}
+                 loading="eager"
+                 fetchPriority="high"
                  className="w-full h-full object-cover"
                  data-testid="img-hero"
                />
                
                <motion.div 
-                 animate={{ y: [0, -10, 0] }}
-                 transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                 {...floatMotionProps}
                  className="absolute bottom-12 left-12 z-20 bg-black/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-green-500/30 max-w-xs"
                >
                  <div className="flex items-center gap-4 mb-3">

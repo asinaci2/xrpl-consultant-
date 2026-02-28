@@ -32,7 +32,7 @@ export default function Welcome() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-green-400 font-mono animate-pulse">Loading...</div>
+        <div className="text-green-400 font-mono animate-pulse">Loading…</div>
       </div>
     );
   }
@@ -134,8 +134,8 @@ export default function Welcome() {
             <p className="text-gray-600 text-xs font-mono uppercase tracking-widest px-1">Where would you like to go?</p>
 
             <Link href="/admin">
-              <div
-                className="group bg-black/80 border border-amber-500/20 hover:border-amber-500/50 rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-amber-500/5 backdrop-blur-xl"
+              <button
+                className="w-full text-left group bg-black/80 border border-amber-500/20 hover:border-amber-500/50 rounded-xl p-5 cursor-pointer transition-[border-color,box-shadow,background-color] duration-200 hover:shadow-lg hover:shadow-amber-500/5 backdrop-blur-xl"
                 data-testid="card-nav-admin"
               >
                 <div className="flex items-center gap-4">
@@ -148,13 +148,13 @@ export default function Welcome() {
                   </div>
                   <ExternalLink className="w-4 h-4 text-gray-700 group-hover:text-amber-400 transition-colors shrink-0" />
                 </div>
-              </div>
+              </button>
             </Link>
 
             {consultantSlug ? (
               <Link href="/dashboard">
-                <div
-                  className="group bg-black/80 border border-green-500/20 hover:border-green-500/50 rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-green-500/5 backdrop-blur-xl"
+                <button
+                  className="w-full text-left group bg-black/80 border border-green-500/20 hover:border-green-500/50 rounded-xl p-5 cursor-pointer transition-[border-color,box-shadow,background-color] duration-200 hover:shadow-lg hover:shadow-green-500/5 backdrop-blur-xl"
                   data-testid="card-nav-dashboard"
                 >
                   <div className="flex items-center gap-4">
@@ -167,7 +167,7 @@ export default function Welcome() {
                     </div>
                     <ExternalLink className="w-4 h-4 text-gray-700 group-hover:text-green-400 transition-colors shrink-0" />
                   </div>
-                </div>
+                </button>
               </Link>
             ) : (
               <div
@@ -193,8 +193,8 @@ export default function Welcome() {
             <p className="text-gray-600 text-xs font-mono uppercase tracking-widest px-1">Where would you like to go?</p>
 
             <Link href="/dashboard">
-              <div
-                className="group bg-black/80 border border-green-500/20 hover:border-green-500/50 rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-green-500/5 backdrop-blur-xl"
+              <button
+                className="w-full text-left group bg-black/80 border border-green-500/20 hover:border-green-500/50 rounded-xl p-5 cursor-pointer transition-[border-color,box-shadow,background-color] duration-200 hover:shadow-lg hover:shadow-green-500/5 backdrop-blur-xl"
                 data-testid="card-nav-dashboard"
               >
                 <div className="flex items-center gap-4">
@@ -207,13 +207,13 @@ export default function Welcome() {
                   </div>
                   <ExternalLink className="w-4 h-4 text-gray-700 group-hover:text-green-400 transition-colors shrink-0" />
                 </div>
-              </div>
+              </button>
             </Link>
 
             {consultantSlug && (
               <Link href={`/c/${consultantSlug}`}>
-                <div
-                  className="group bg-black/80 border border-white/10 hover:border-white/20 rounded-xl p-4 cursor-pointer transition-all duration-200 backdrop-blur-xl"
+                <button
+                  className="w-full text-left group bg-black/80 border border-white/10 hover:border-white/20 rounded-xl p-4 cursor-pointer transition-[border-color,box-shadow,background-color] duration-200 backdrop-blur-xl"
                   data-testid="card-nav-profile"
                 >
                   <div className="flex items-center gap-3">
@@ -222,7 +222,7 @@ export default function Welcome() {
                       View your public profile page
                     </p>
                   </div>
-                </div>
+                </button>
               </Link>
             )}
           </div>
@@ -233,8 +233,8 @@ export default function Welcome() {
             <p className="text-gray-600 text-xs font-mono uppercase tracking-widest px-1">Where would you like to go?</p>
 
             <Link href="/dashboard">
-              <div
-                className="group bg-black/80 border border-green-500/20 hover:border-green-500/50 rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-green-500/5 backdrop-blur-xl"
+              <button
+                className="w-full text-left group bg-black/80 border border-green-500/20 hover:border-green-500/50 rounded-xl p-5 cursor-pointer transition-[border-color,box-shadow,background-color] duration-200 hover:shadow-lg hover:shadow-green-500/5 backdrop-blur-xl"
                 data-testid="card-nav-dashboard"
               >
                 <div className="flex items-center gap-4">
@@ -247,7 +247,7 @@ export default function Welcome() {
                   </div>
                   <ExternalLink className="w-4 h-4 text-gray-700 group-hover:text-green-400 transition-colors shrink-0" />
                 </div>
-              </div>
+              </button>
             </Link>
           </div>
         )}
@@ -259,7 +259,7 @@ export default function Welcome() {
           rel="noopener noreferrer"
           data-testid="card-nav-textrp"
         >
-          <div className="group bg-black/80 border border-blue-500/20 hover:border-blue-500/50 rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/5 backdrop-blur-xl">
+          <div className="group bg-black/80 border border-blue-500/20 hover:border-blue-500/50 rounded-xl p-5 transition-[border-color,box-shadow,background-color] duration-200 hover:shadow-lg hover:shadow-blue-500/5 backdrop-blur-xl">
             <div className="flex items-center gap-4">
               <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors shrink-0">
                 <MessageSquare className="w-5 h-5 text-blue-400" />

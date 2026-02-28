@@ -169,7 +169,7 @@ export default function Dashboard() {
           </div>
 
           <div className="mb-6" data-testid="section-wallet-panel">
-            <button onClick={() => setWalletOpen(o => !o)} className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-green-500/20 bg-black/40 hover:bg-black/60 hover:border-green-500/30 transition-all text-sm group" data-testid="button-toggle-wallet">
+            <button onClick={() => setWalletOpen(o => !o)} className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-green-500/20 bg-black/40 hover:bg-black/60 hover:border-green-500/30 transition-[border-color,background-color] text-sm group" data-testid="button-toggle-wallet">
               <div className="flex items-center gap-2 text-green-400/80 group-hover:text-green-400 transition-colors">
                 <Wallet className="w-4 h-4" />
                 <span className="font-mono">XRPL Wallet</span>

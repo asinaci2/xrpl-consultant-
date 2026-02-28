@@ -134,7 +134,12 @@ export function Contact() {
                     <FormItem>
                       <FormLabel className="text-gray-300 font-medium">Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="John Doe" className="bg-black/40 border-green-500/20 focus:border-green-400 h-12 rounded-lg text-white placeholder:text-gray-500" {...field} />
+                        <Input 
+                          placeholder="John Doe" 
+                          autoComplete="name"
+                          className="bg-black/40 border-green-500/20 focus:border-green-400 h-12 rounded-lg text-white placeholder:text-gray-500" 
+                          {...field} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -148,7 +153,14 @@ export function Contact() {
                     <FormItem>
                       <FormLabel className="text-gray-300 font-medium">Email Address</FormLabel>
                       <FormControl>
-                        <Input placeholder="john@company.com" className="bg-black/40 border-green-500/20 focus:border-green-400 h-12 rounded-lg text-white placeholder:text-gray-500" {...field} />
+                        <Input 
+                          type="email"
+                          autoComplete="email"
+                          spellCheck={false}
+                          placeholder="john@company.com" 
+                          className="bg-black/40 border-green-500/20 focus:border-green-400 h-12 rounded-lg text-white placeholder:text-gray-500" 
+                          {...field} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -164,6 +176,7 @@ export function Contact() {
                       <FormControl>
                         <Textarea 
                           placeholder="Tell me about your project needs..." 
+                          autoComplete="off"
                           className="bg-black/40 border-green-500/20 focus:border-green-400 min-h-[150px] rounded-lg resize-none text-white placeholder:text-gray-500" 
                           {...field} 
                         />
@@ -176,7 +189,7 @@ export function Contact() {
                 <Button 
                   type="submit" 
                   disabled={mutation.isPending}
-                  className="w-full h-12 bg-green-500 hover:bg-green-600 text-black font-semibold rounded-lg text-lg shadow-lg shadow-green-500/20 transition-all hover:scale-[1.02]"
+                  className="w-full h-12 bg-green-500 hover:bg-green-600 text-black font-semibold rounded-lg text-lg shadow-lg shadow-green-500/20 transition-[transform,box-shadow] hover:scale-[1.02]"
                   data-testid="button-submit-inquiry"
                 >
                   {mutation.isPending ? (

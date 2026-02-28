@@ -185,7 +185,7 @@ export default function Directory() {
                   data-testid={`card-consultant-${consultant.slug}`}
                 >
                   <Link href={`/c/${consultant.slug}`}>
-                    <div className="group rounded-2xl border border-green-500/20 bg-black/60 backdrop-blur-sm p-6 hover:border-green-500/50 hover:bg-black/80 transition-all duration-300 cursor-pointer h-full flex flex-col"
+                    <button className="w-full text-left group rounded-2xl border border-green-500/20 bg-black/60 backdrop-blur-sm p-6 hover:border-green-500/50 hover:bg-black/80 transition-[border-color,background-color] duration-300 h-full flex flex-col"
                       style={{ boxShadow: "0 0 0 0 rgba(74,222,128,0)" }}
                       onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 0 30px rgba(74,222,128,0.15)")}
                       onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 0 0 0 rgba(74,222,128,0)")}
@@ -232,10 +232,10 @@ export default function Directory() {
                       </div>
 
                       {/* CTA */}
-                      <div className="flex items-center gap-2 text-green-400 text-sm font-semibold group-hover:gap-3 transition-all">
+                      <div className="flex items-center gap-2 text-green-400 text-sm font-semibold group-hover:gap-3 transition-[gap] duration-200">
                         View Profile <ArrowRight className="w-4 h-4" />
                       </div>
-                    </div>
+                    </button>
                   </Link>
                 </motion.div>
               ))}

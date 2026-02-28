@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { 
   Rocket, 
   Users, 
@@ -65,6 +65,7 @@ const skills = [
 ];
 
 export function Services() {
+  const shouldReduceMotion = useReducedMotion();
   return (
     <section id="services" className="section-padding bg-black/80 backdrop-blur-sm" data-testid="section-services">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -82,9 +83,9 @@ export function Services() {
           {services.map((service, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+              whileInView={shouldReduceMotion ? false : { opacity: 1, y: 0 }}
+              transition={shouldReduceMotion ? {} : { duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
             >
               <Card 
@@ -111,9 +112,9 @@ export function Services() {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+          whileInView={shouldReduceMotion ? false : { opacity: 1, y: 0 }}
+          transition={shouldReduceMotion ? {} : { duration: 0.5 }}
           viewport={{ once: true }}
           className="text-center"
         >

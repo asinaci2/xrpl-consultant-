@@ -50,7 +50,7 @@ export default function Login() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-green-400 font-mono animate-pulse">Loading...</div>
+        <div className="text-green-400 font-mono animate-pulse">Loading…</div>
       </div>
     );
   }

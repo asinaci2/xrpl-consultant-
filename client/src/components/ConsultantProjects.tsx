@@ -60,7 +60,7 @@ export function ConsultantProjects({ slug }: { slug: string }) {
                 viewport={{ once: true }}
                 data-testid={`card-project-${project.id}`}
               >
-                <Card className="h-full bg-black/60 border-green-500/20 hover:border-green-500/50 transition-all duration-300 group">
+                <Card className="h-full bg-black/60 border-green-500/20 hover:border-green-500/50 transition-[border-color,box-shadow] duration-300 group">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4 mb-4">
                       <div className={`w-12 h-12 rounded-xl ${project.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>

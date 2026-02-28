@@ -52,7 +52,7 @@ export default function ConsultantPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-green-400 font-mono animate-pulse text-xl">Loading...</div>
+        <div className="text-green-400 font-mono animate-pulse text-xl">Loading…</div>
       </div>
     );
   }

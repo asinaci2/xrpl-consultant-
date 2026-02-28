@@ -65,9 +65,10 @@ function StoriesInConsultantNav({ slug }: { slug: string }) {
               key={authorName}
               onClick={() => setViewerState({ isOpen: true, stories, startIndex: stories.findIndex(s => s.id === authorStories[0].id) })}
               className="flex items-center gap-2 shrink-0 group"
+              aria-label={`View ${authorName}'s stories`}
             >
               <div
-                className={`relative w-10 h-10 rounded-full p-[2px] transition-all duration-300 group-hover:scale-110 ${
+                className={`relative w-10 h-10 rounded-full p-[2px] transition-[transform,opacity] duration-300 group-hover:scale-110 ${
                   hasMultiple ? "bg-gradient-to-tr from-green-400 via-green-500 to-emerald-400" : "bg-gradient-to-tr from-green-500 to-green-400"
                 }`}
                 style={{ boxShadow: "0 0 10px rgba(74, 222, 128, 0.5)" }}
@@ -120,7 +121,7 @@ export function ConsultantNavigation({ consultant, slug }: { consultant: Consult
   ];
 
   return (
-    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled || isMobileMenuOpen ? "glass-nav shadow-sm" : "bg-transparent"}`}>
+    <nav className={`fixed top-0 w-full z-50 transition-[background-color,box-shadow] duration-300 ${isScrolled || isMobileMenuOpen ? "glass-nav shadow-sm" : "bg-transparent"}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center gap-4 flex-shrink-0">
@@ -180,6 +181,7 @@ export function ConsultantNavigation({ consultant, slug }: { consultant: Consult
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="text-white hover:text-green-400 transition-colors"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>

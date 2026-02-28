@@ -199,6 +199,8 @@ export function MatrixTweets() {
               <img
                 src={currentTweet.authorImage}
                 alt={currentTweet.authorName}
+                width={48}
+                height={48}
                 className="w-12 h-12 rounded-full border-2 border-green-500/50"
               />
             ) : (

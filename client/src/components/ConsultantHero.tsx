@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Link } from "react-scroll";
 import { ArrowRight, CheckCircle2, ExternalLink, BookmarkPlus, BookmarkCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ interface Consultant {
 }
 
 export function ConsultantHero({ consultant, slug }: { consultant: Consultant; slug: string }) {
+  const shouldReduceMotion = useReducedMotion();
   const { toast } = useToast();
   const { matrixUserId, consultantSlug: mySlug, isAdmin, isAuthenticated } = useAuth();
 
@@ -76,6 +77,23 @@ export function ConsultantHero({ consultant, slug }: { consultant: Consultant; s
   const imageSrc = consultant.avatarUrl || heroImage?.imageUrl || FALLBACK_IMAGE;
   const imageAlt = `${consultant.name} - XRPL Consultant`;
 
+  const motionProps = shouldReduceMotion ? {} : {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 }
+  };
+
+  const imageMotionProps = shouldReduceMotion ? {} : {
+    initial: { opacity: 0, scale: 0.95 },
+    animate: { opacity: 1, scale: 1 },
+    transition: { duration: 0.6, delay: 0.2 }
+  };
+
+  const floatMotionProps = shouldReduceMotion ? {} : {
+    animate: { y: [0, -10, 0] },
+    transition: { repeat: Infinity, duration: 4, ease: "easeInOut" }
+  };
+
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/70 z-[1]" />
@@ -83,9 +101,7 @@ export function ConsultantHero({ consultant, slug }: { consultant: Consultant; s
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            {...motionProps}
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm font-semibold mb-6">
               <span className="relative flex h-2 w-2">
@@ -173,9 +189,7 @@ export function ConsultantHero({ consultant, slug }: { consultant: Consultant; s
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            {...imageMotionProps}
             className="relative hidden lg:block"
           >
             <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-green-500/10 border border-green-500/20 aspect-square">
@@ -187,8 +201,7 @@ export function ConsultantHero({ consultant, slug }: { consultant: Consultant; s
                 data-testid="img-hero"
               />
               <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                {...floatMotionProps}
                 className="absolute bottom-12 left-12 z-20 bg-black/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-green-500/30 max-w-xs"
               >
                 <div className="flex items-center gap-4 mb-3">

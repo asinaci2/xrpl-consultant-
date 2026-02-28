@@ -217,7 +217,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
                     <img src={currentStory.authorImage} alt={currentStory.authorName} className="w-full h-full rounded-full object-cover" />
                   ) : (
                     <div className="w-full h-full rounded-full flex items-center justify-center" style={{ background: BRAND_COLORS.BG_DEEP }}>
-                      <span className="font-mono font-bold text-sm" style={{ color: "#4ade80" }}>
+                      <span className="font-mono font-bold text-sm text-green-400">
                         {currentStory.authorName.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -281,7 +281,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
               {stories.map((_, i) => (
                 <div
                   key={i}
-                  className="rounded-full transition-all duration-200"
+                  className="rounded-full transition-[background-color,width] duration-200"
                   style={{
                     width: i === currentIndex ? "1rem" : "0.375rem",
                     height: "0.375rem",

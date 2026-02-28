@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Award, BookOpen, UserCheck } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -12,6 +12,7 @@ interface CachedMedia {
 }
 
 export function About() {
+  const shouldReduceMotion = useReducedMotion();
   const { data: allMedia = [], isLoading } = useQuery<CachedMedia[]>({
     queryKey: ["/api/media"],
   });
@@ -21,14 +22,24 @@ export function About() {
   const imageSrc = aboutImage?.imageUrl || FALLBACK_IMAGE;
   const imageAlt = aboutImage?.altText || "Edwin Gutierrez Consulting";
 
+  const leftMotionProps = shouldReduceMotion ? {} : {
+    initial: { opacity: 0, x: -50 },
+    whileInView: { opacity: 1, x: 0 },
+    transition: { duration: 0.6 }
+  };
+
+  const rightMotionProps = shouldReduceMotion ? {} : {
+    initial: { opacity: 0, x: 50 },
+    whileInView: { opacity: 1, x: 0 },
+    transition: { duration: 0.6 }
+  };
+
   return (
     <section id="about" className="section-padding bg-black/80 backdrop-blur-sm border-y border-green-500/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
+            {...leftMotionProps}
             viewport={{ once: true }}
             className="relative order-2 lg:order-1"
           >
@@ -36,6 +47,9 @@ export function About() {
               <img 
                 src={imageSrc}
                 alt={imageAlt}
+                width={800}
+                height={600}
+                loading="lazy"
                 className="w-full h-auto object-cover"
                 data-testid="img-about"
               />
@@ -56,9 +70,7 @@ export function About() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
+            {...rightMotionProps}
             viewport={{ once: true }}
             className="order-1 lg:order-2"
           >
