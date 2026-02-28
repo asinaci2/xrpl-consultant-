@@ -44,7 +44,7 @@ function VisitorDashboard() {
               <p className="text-xs text-white/60 font-mono">{matrixUserId}</p>
             </div>
           </div>
-          <button onClick={() => logout.mutate()} className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40 px-3 py-1 rounded-full transition-colors" data-testid="button-logout">
+          <button onClick={() => logout.mutate()} className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-purple-300 bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-500/50 px-3 py-1 rounded-full transition-colors" data-testid="button-logout">
             <LogOut className="w-3 h-3" />Sign Out
           </button>
         </div>
