@@ -11,6 +11,7 @@ import { ConsultantNavigation } from "@/components/ConsultantNavigation";
 import { ConsultantHero } from "@/components/ConsultantHero";
 import { ConsultantProjects } from "@/components/ConsultantProjects";
 import { ConsultantContact } from "@/components/ConsultantContact";
+import { MatrixTweets } from "@/components/MatrixTweets";
 import { useTheme } from "@/hooks/useTheme";
 
 interface Consultant {
@@ -96,6 +97,7 @@ export default function ConsultantPage() {
         <ConsultantHero consultant={consultant} slug={slug} />
         <Services />
         <ConsultantProjects slug={slug} />
+        {consultant.twitterUsername && <MatrixTweets />}
         <About />
         <Testimonials slug={slug} />
         <ConsultantContact consultant={consultant} slug={slug} />
