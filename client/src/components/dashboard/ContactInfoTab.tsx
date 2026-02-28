@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Mail, Megaphone, Phone, MapPin, Globe, Eye
+  Mail, Megaphone, Phone, MapPin, Globe, Eye, FileText
 } from "lucide-react";
 import { SectionBanner } from "./SectionBanner";
 import { FieldLabel } from "./FieldLabel";
