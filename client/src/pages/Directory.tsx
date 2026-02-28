@@ -1,11 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearch } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Hexagon, LayoutDashboard, LogIn, Shield, Users, X, ExternalLink } from "lucide-react";
+import { ArrowRight, Hexagon, LayoutDashboard, LogIn, Shield, Users, X, ExternalLink, Code, Lightbulb, Share2, TrendingUp, Layers } from "lucide-react";
 import { MatrixRain } from "@/components/MatrixRain";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
-import { TEXTRP_APP_URL } from "@/lib/constants";
+import { useState, useMemo } from "react";
+import { TEXTRP_APP_URL, SPECIALTY_CATEGORIES, CATEGORY_ORDER, CATEGORY_COLORS } from "@/lib/constants";
+
+const CATEGORY_ICONS: Record<string, any> = {
+  Technical: Code,
+  Innovative: Lightbulb,
+  Community: Share2,
+  Growth: TrendingUp,
+};
 
 interface Consultant {
   id: number;
@@ -28,6 +35,41 @@ export default function Directory() {
   const search = useSearch();
   const isVisitor = new URLSearchParams(search).get("visitor") === "1";
   const [dismissedVisitor, setDismissedVisitor] = useState(false);
+
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeSpecialty, setActiveSpecialty] = useState<string | null>(null);
+
+  const filteredConsultants = useMemo(() => {
+    if (activeSpecialty) {
+      return consultants.filter(c => c.specialties.includes(activeSpecialty));
+    }
+    if (activeCategory) {
+      const categorySpecialties = SPECIALTY_CATEGORIES[activeCategory] || [];
+      return consultants.filter(c => 
+        c.specialties.some(s => categorySpecialties.includes(s))
+      );
+    }
+    return consultants;
+  }, [consultants, activeCategory, activeSpecialty]);
+
+  const handleCategoryClick = (category: string) => {
+    if (activeCategory === category) {
+      setActiveCategory(null);
+      setActiveSpecialty(null);
+    } else {
+      setActiveCategory(category);
+      setActiveSpecialty(null);
+    }
+  };
+
+  const handleSpecialtyClick = (specialty: string) => {
+    setActiveSpecialty(activeSpecialty === specialty ? null : specialty);
+  };
+
+  const clearFilters = () => {
+    setActiveCategory(null);
+    setActiveSpecialty(null);
+  };
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
@@ -150,6 +192,90 @@ export default function Directory() {
 
         {/* Consultant Grid */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2 text-sm font-mono text-green-400/60">
+                <Layers className="w-4 h-4" />
+                {filteredConsultants.length !== consultants.length ? (
+                  <span data-testid="text-filter-status">
+                    Showing <span className="text-green-400 font-bold">{filteredConsultants.length}</span> of {consultants.length} consultants
+                  </span>
+                ) : (
+                  <span>{consultants.length} Ecosystem Experts</span>
+                )}
+              </div>
+            </div>
+
+            {/* Category Filter Bar */}
+            <div className="flex flex-wrap gap-3 mb-6">
+              <button
+                onClick={clearFilters}
+                className={`px-4 py-2 rounded-xl font-mono text-sm border transition-all duration-200 ${
+                  !activeCategory 
+                    ? "bg-green-500/20 border-green-500/50 text-green-400" 
+                    : "bg-black/40 border-green-500/10 text-gray-500 hover:border-green-500/30 hover:text-green-400/70"
+                }`}
+                data-testid="button-filter-all"
+              >
+                All
+              </button>
+              {CATEGORY_ORDER.map(category => {
+                const Icon = CATEGORY_ICONS[category];
+                const isActive = activeCategory === category;
+                const colors = CATEGORY_COLORS[category];
+                
+                return (
+                  <button
+                    key={category}
+                    onClick={() => handleCategoryClick(category)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-sm border transition-all duration-200 ${
+                      isActive 
+                        ? `${colors.bg} ${colors.border} ${colors.text}` 
+                        : "bg-black/40 border-green-500/10 text-gray-500 hover:border-green-500/30 hover:text-green-400/70"
+                    }`}
+                    data-testid={`button-filter-category-${category.toLowerCase()}`}
+                  >
+                    {Icon && <Icon className="w-4 h-4" />}
+                    {category}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Specialty Chips */}
+            <AnimatePresence>
+              {activeCategory && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex flex-wrap gap-2 pt-2 pb-6 border-t border-green-500/10">
+                    {SPECIALTY_CATEGORIES[activeCategory].map(specialty => {
+                      const isActive = activeSpecialty === specialty;
+                      const colors = CATEGORY_COLORS[activeCategory];
+                      return (
+                        <button
+                          key={specialty}
+                          onClick={() => handleSpecialtyClick(specialty)}
+                          className={`px-3 py-1 rounded-full text-xs font-mono border transition-all duration-200 ${
+                            isActive
+                              ? `${colors.bg} ${colors.border} ${colors.text} shadow-[0_0_12px_rgba(74,222,128,0.2)]`
+                              : "bg-green-500/5 border-green-500/10 text-green-400/50 hover:border-green-500/30 hover:text-green-400/80"
+                          }`}
+                          data-testid={`button-filter-specialty-${specialty.toLowerCase().replace(/\s+/g, '-')}`}
+                        >
+                          {specialty}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           {isLoading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3].map(i => (
@@ -168,76 +294,83 @@ export default function Directory() {
                 </div>
               ))}
             </div>
-          ) : consultants.length === 0 ? (
+          ) : filteredConsultants.length === 0 ? (
             <div className="text-center py-24 text-gray-400 font-mono">
-              No consultants found yet.
+              No consultants found matching the selected filters.
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {consultants.map((consultant, i) => (
-                <motion.div
-                  key={consultant.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1, duration: 0.5 }}
-                  data-testid={`card-consultant-${consultant.slug}`}
-                >
-                  <Link href={`/c/${consultant.slug}`}>
-                    <button className="w-full text-left group rounded-2xl border border-green-500/20 bg-black/60 backdrop-blur-sm p-6 hover:border-green-500/50 hover:bg-black/80 transition-[border-color,background-color] duration-300 h-full flex flex-col"
-                      style={{ boxShadow: "0 0 0 0 rgba(74,222,128,0)" }}
-                      onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 0 30px rgba(74,222,128,0.15)")}
-                      onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 0 0 0 rgba(74,222,128,0)")}
-                    >
-                      {/* Avatar + name */}
-                      <div className="flex items-center gap-4 mb-4">
-                        <div
-                          className="w-16 h-16 rounded-full p-[2px] flex-shrink-0"
-                          style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)", boxShadow: "0 0 16px rgba(74,222,128,0.4)" }}
-                        >
-                          {consultant.avatarUrl ? (
-                            <img src={consultant.avatarUrl} alt={consultant.name} className="w-full h-full rounded-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
-                              <span className="text-green-400 font-mono font-bold text-2xl">
-                                {consultant.name.charAt(0)}
-                              </span>
-                            </div>
+            <motion.div 
+              layout
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredConsultants.map((consultant) => (
+                  <motion.div
+                    key={consultant.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.3 }}
+                    data-testid={`card-consultant-${consultant.slug}`}
+                  >
+                    <Link href={`/c/${consultant.slug}`}>
+                      <button className="w-full text-left group rounded-2xl border border-green-500/20 bg-black/60 backdrop-blur-sm p-6 hover:border-green-500/50 hover:bg-black/80 transition-[border-color,background-color] duration-300 h-full flex flex-col"
+                        style={{ boxShadow: "0 0 0 0 rgba(74,222,128,0)" }}
+                        onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 0 30px rgba(74,222,128,0.15)")}
+                        onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 0 0 0 rgba(74,222,128,0)")}
+                      >
+                        {/* Avatar + name */}
+                        <div className="flex items-center gap-4 mb-4">
+                          <div
+                            className="w-16 h-16 rounded-full p-[2px] flex-shrink-0"
+                            style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)", boxShadow: "0 0 16px rgba(74,222,128,0.4)" }}
+                          >
+                            {consultant.avatarUrl ? (
+                              <img src={consultant.avatarUrl} alt={consultant.name} className="w-full h-full rounded-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                                <span className="text-green-400 font-mono font-bold text-2xl">
+                                  {consultant.name.charAt(0)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="font-display font-bold text-white text-lg leading-tight group-hover:text-green-400 transition-colors">
+                              {consultant.name}
+                            </h3>
+                            <p className="text-green-400/70 text-sm font-mono mt-0.5">{consultant.location || "Web3 Consultant"}</p>
+                          </div>
+                        </div>
+
+                        {/* Tagline */}
+                        <p className="text-gray-300 text-sm mb-4 leading-relaxed flex-1">{consultant.tagline}</p>
+
+                        {/* Specialties */}
+                        <div className="flex flex-wrap gap-2 mb-5">
+                          {consultant.specialties.slice(0, 4).map(s => (
+                            <span key={s} className="px-2 py-0.5 rounded-full text-xs font-mono font-medium border border-green-500/30 text-green-400 bg-green-500/10">
+                              {s}
+                            </span>
+                          ))}
+                          {consultant.specialties.length > 4 && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-mono text-gray-400 border border-gray-700">
+                              +{consultant.specialties.length - 4}
+                            </span>
                           )}
                         </div>
-                        <div>
-                          <h3 className="font-display font-bold text-white text-lg leading-tight group-hover:text-green-400 transition-colors">
-                            {consultant.name}
-                          </h3>
-                          <p className="text-green-400/70 text-sm font-mono mt-0.5">{consultant.location || "Web3 Consultant"}</p>
+
+                        {/* CTA */}
+                        <div className="flex items-center gap-2 text-green-400 text-sm font-semibold group-hover:gap-3 transition-[gap] duration-200">
+                          View Profile <ArrowRight className="w-4 h-4" />
                         </div>
-                      </div>
-
-                      {/* Tagline */}
-                      <p className="text-gray-300 text-sm mb-4 leading-relaxed flex-1">{consultant.tagline}</p>
-
-                      {/* Specialties */}
-                      <div className="flex flex-wrap gap-2 mb-5">
-                        {consultant.specialties.slice(0, 4).map(s => (
-                          <span key={s} className="px-2 py-0.5 rounded-full text-xs font-mono font-medium border border-green-500/30 text-green-400 bg-green-500/10">
-                            {s}
-                          </span>
-                        ))}
-                        {consultant.specialties.length > 4 && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-mono text-gray-400 border border-gray-700">
-                            +{consultant.specialties.length - 4}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* CTA */}
-                      <div className="flex items-center gap-2 text-green-400 text-sm font-semibold group-hover:gap-3 transition-[gap] duration-200">
-                        View Profile <ArrowRight className="w-4 h-4" />
-                      </div>
-                    </button>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+                      </button>
+                    </Link>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           )}
         </section>
 

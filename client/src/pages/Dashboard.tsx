@@ -17,11 +17,14 @@ import { ContactInfoTab } from "@/components/dashboard/ContactInfoTab";
 import { MediaTab } from "@/components/dashboard/MediaTab";
 import { ChatWidgetTab } from "@/components/dashboard/ChatWidgetTab";
 import { TestimonialsTab } from "@/components/dashboard/TestimonialsTab";
+import { SynergiesTab } from "@/components/dashboard/SynergiesTab";
 import { WalletTab } from "@/components/dashboard/WalletTab";
 import { VisitorContactsTab } from "@/components/dashboard/VisitorContactsTab";
+import { RecommendationsTab } from "@/components/dashboard/RecommendationsTab";
 import { VisitorTestimonialsTab } from "@/components/dashboard/VisitorTestimonialsTab";
 import { ConsultantProfile } from "@/components/dashboard/types";
 import { MatrixRain } from "@/components/MatrixRain";
+import { Network } from "lucide-react";
 
 function VisitorDashboard() {
   const { displayName, matrixUserId, logout } = useAuth();
@@ -59,6 +62,7 @@ function VisitorDashboard() {
 
         <WalletTab />
         <VisitorContactsTab />
+        <RecommendationsTab />
         <VisitorTestimonialsTab />
 
         <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-6 text-center">
@@ -183,6 +187,7 @@ export default function Dashboard() {
               <TabsTrigger value="media" className="data-[state=active]:bg-orange-600 data-[state=active]:text-white text-gray-400" data-testid="tab-media"><Layout className="w-4 h-4 mr-2" />Media</TabsTrigger>
               <TabsTrigger value="chat-profile" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white text-gray-400" data-testid="tab-chat-profile"><MessageCircle className="w-4 h-4 mr-2" />Chat Widget</TabsTrigger>
               <TabsTrigger value="testimonials" className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white text-gray-400" data-testid="tab-testimonials"><Quote className="w-4 h-4 mr-2" />Testimonials</TabsTrigger>
+              <TabsTrigger value="synergies" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-gray-400" data-testid="tab-synergies"><Network className="w-4 h-4 mr-2" />Synergies</TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile"><ProfileTab slug={slug} /></TabsContent>
@@ -192,6 +197,7 @@ export default function Dashboard() {
             <TabsContent value="media"><MediaTab slug={slug} /></TabsContent>
             <TabsContent value="chat-profile"><ChatWidgetTab slug={slug} /></TabsContent>
             <TabsContent value="testimonials"><TestimonialsTab slug={slug} /></TabsContent>
+            <TabsContent value="synergies"><SynergiesTab slug={slug} /></TabsContent>
           </Tabs>
         </div>
       </div>

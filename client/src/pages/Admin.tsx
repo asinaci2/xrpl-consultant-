@@ -29,6 +29,7 @@ import { ContactTab } from "@/components/admin/ContactTab";
 import { ChatProfileTab } from "@/components/admin/ChatProfileTab";
 import { ConsultantsTab } from "@/components/admin/ConsultantsTab";
 import { SyncTab } from "@/components/admin/SyncTab";
+import { AnalyticsTab } from "@/components/admin/AnalyticsTab";
 import { MatrixRain } from "@/components/MatrixRain";
 
 export default function Admin() {
@@ -189,6 +190,14 @@ export default function Admin() {
               <Activity className="w-4 h-4 mr-2" />
               Sync
             </TabsTrigger>
+            <TabsTrigger
+              value="analytics"
+              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
+              data-testid="tab-analytics"
+            >
+              <BarChart2 className="w-4 h-4 mr-2" />
+              Analytics
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="media">
@@ -217,6 +226,9 @@ export default function Admin() {
           </TabsContent>
           <TabsContent value="sync">
             <SyncTab />
+          </TabsContent>
+          <TabsContent value="analytics">
+            <AnalyticsTab />
           </TabsContent>
         </Tabs>
       </div>

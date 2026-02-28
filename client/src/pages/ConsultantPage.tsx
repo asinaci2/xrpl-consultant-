@@ -11,6 +11,7 @@ import { ConsultantNavigation } from "@/components/ConsultantNavigation";
 import { ConsultantHero } from "@/components/ConsultantHero";
 import { ConsultantProjects } from "@/components/ConsultantProjects";
 import { ConsultantContact } from "@/components/ConsultantContact";
+import { ConsultantComplements } from "@/components/ConsultantComplements";
 import { MatrixTweets } from "@/components/MatrixTweets";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -45,6 +46,15 @@ export default function ConsultantPage() {
     queryFn: async () => {
       const res = await fetch(`/api/consultants/${slug}`);
       if (!res.ok) throw new Error("Not found");
+      return res.json();
+    },
+  });
+
+  const { data: allConsultants = [] } = useQuery<Consultant[]>({
+    queryKey: ["/api/consultants"],
+    queryFn: async () => {
+      const res = await fetch("/api/consultants");
+      if (!res.ok) throw new Error("Failed to fetch consultants");
       return res.json();
     },
   });
@@ -87,6 +97,7 @@ export default function ConsultantPage() {
         <ConsultantHero consultant={consultant} slug={slug} />
         <Services />
         <ConsultantProjects slug={slug} />
+        <ConsultantComplements consultant={consultant} allConsultants={allConsultants} />
         {consultant.twitterUsername && <MatrixTweets />}
         <About />
         <Testimonials slug={slug} />
