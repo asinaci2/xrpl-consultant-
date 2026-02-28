@@ -266,9 +266,11 @@
   background-color: #9333EA !important;
 }
 
-/* Impact label and body text — white in day mode */
+/* Impact label and body text — white in both themes */
 [data-theme="day"] .impact-label,
-[data-theme="day"] .impact-text {
+[data-theme="day"] .impact-text,
+:root:not([data-theme="day"]) .impact-label,
+:root:not([data-theme="day"]) .impact-text {
   color: #ffffff !important;
 }
 
