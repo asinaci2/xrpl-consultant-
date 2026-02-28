@@ -207,8 +207,7 @@
 /* ── MatrixRain canvas — visible in day mode with theme-aware colors ── */
 [data-theme="day"] canvas[data-testid="canvas-matrix-rain"] {
   opacity: 1 !important;
-  mix-blend-mode: multiply !important;
-  z-index: 5 !important;
+  z-index: 50 !important;
 }
 
 /* ── Footer ── */

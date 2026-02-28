@@ -8,6 +8,13 @@ function isDayMode() {
   return document.documentElement.getAttribute("data-theme") === "day";
 }
 
+interface Trail {
+  x: number;
+  y: number;
+  char: string;
+  alpha: number;
+}
+
 export function MatrixRain({ className = "" }: MatrixRainProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -24,6 +31,7 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
 
     let columns: number;
     let drops: number[];
+    let trails: Trail[] = [];
     let animationId: number;
 
     const resize = () => {
@@ -31,44 +39,77 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
       canvas.height = canvas.offsetHeight;
       columns = Math.floor(canvas.width / fontSize);
       drops = Array(columns).fill(1);
+      trails = [];
     };
 
     const draw = () => {
       const day = isDayMode();
 
-      ctx.fillStyle = day
-        ? "rgba(255, 255, 255, 0.15)" // Day: faster fade = shorter, sparser trails
-        : "rgba(0, 0, 0, 0.05)";      // Dark: slow fade = classic long trail
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (day) {
+        // Transparent canvas — clear each frame, draw fading trails manually
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      ctx.font = `${fontSize}px monospace`;
+        // Decay and draw existing trails
+        trails = trails.filter(t => t.alpha > 0.03);
+        for (const t of trails) {
+          ctx.font = `${fontSize}px monospace`;
+          ctx.fillStyle = `rgba(234, 88, 12, ${t.alpha})`;
+          ctx.fillText(t.char, t.x, t.y);
+          t.alpha *= 0.75;
+        }
 
-      for (let i = 0; i < drops.length; i++) {
-        // Skip ~half the columns each frame — thins out the effect
-        if (Math.random() > 0.55) {
+        // Draw new characters on active columns
+        ctx.font = `${fontSize}px monospace`;
+        for (let i = 0; i < drops.length; i++) {
+          if (Math.random() > 0.55) {
+            drops[i]++;
+            continue;
+          }
+
+          const char = letters[Math.floor(Math.random() * letters.length)];
+          const x = i * fontSize;
+          const y = drops[i] * fontSize;
+
+          // Push to trail so it fades out over subsequent frames
+          trails.push({ x, y, char, alpha: 0.45 });
+
+          // Draw the fresh character at full alpha
+          ctx.fillStyle = `rgba(234, 88, 12, 0.45)`;
+          ctx.fillText(char, x, y);
+
+          if (y > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
           drops[i]++;
-          continue;
         }
+      } else {
+        // Dark mode — classic black fill trail
+        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const text = letters[Math.floor(Math.random() * letters.length)];
-        const x = i * fontSize;
-        const y = drops[i] * fontSize;
+        ctx.font = `${fontSize}px monospace`;
 
-        const progress = y / canvas.height;
-        const alpha = day
-          ? Math.max(0.15, 0.4 - progress * 0.25) // day: 0.15–0.4, light ghost
-          : Math.max(0.1, 0.7 - progress * 0.5);  // dark: 0.1–0.7, subtle fade
+        for (let i = 0; i < drops.length; i++) {
+          if (Math.random() > 0.55) {
+            drops[i]++;
+            continue;
+          }
 
-        ctx.fillStyle = day
-          ? `rgba(234, 88, 12, ${alpha})`   // orange-600, semi-transparent
-          : `rgba(147, 51, 234, ${alpha})`; // purple-600, classic
+          const char = letters[Math.floor(Math.random() * letters.length)];
+          const x = i * fontSize;
+          const y = drops[i] * fontSize;
 
-        ctx.fillText(text, x, y);
+          const progress = y / canvas.height;
+          const alpha = Math.max(0.1, 0.7 - progress * 0.5);
 
-        if (y > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
+          ctx.fillStyle = `rgba(147, 51, 234, ${alpha})`;
+          ctx.fillText(char, x, y);
+
+          if (y > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i]++;
         }
-        drops[i]++;
       }
 
       animationId = requestAnimationFrame(draw);
