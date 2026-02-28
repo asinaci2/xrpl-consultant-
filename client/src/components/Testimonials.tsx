@@ -146,7 +146,7 @@ export function Testimonials({ slug }: { slug: string }) {
               <Star className="w-6 h-6 text-green-400" />
               <h3 className="text-xl font-display font-bold text-white">Share Your Experience</h3>
             </div>
-            <p className="text-gray-400 text-sm mb-6">
+            <p className="text-white text-sm mb-6">
               Had an experience working with this consultant? Your feedback helps others in the community find the right guidance.
             </p>
 
@@ -202,7 +202,7 @@ export function Testimonials({ slug }: { slug: string }) {
               </div>
             ) : (
               <div data-testid="login-prompt-testimonial">
-                <p className="text-gray-500 text-sm mb-4">Log in to share your experience with the community.</p>
+                <p className="text-white text-sm mb-4">Log in to share your experience with the community.</p>
                 <Link href="/login">
                   <Button variant="outline" className="border-green-500/40 text-green-400 hover:bg-green-500/10 rounded-full" data-testid="button-login-to-testimonial">
                     <LogIn className="w-4 h-4 mr-2" />
