@@ -54,11 +54,11 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
 
         const progress = y / canvas.height;
         const alpha = day
-          ? Math.max(0.5, 1 - progress * 0.4)   // day: 0.6–1.0, always bold
+          ? Math.max(0.6, 1 - progress * 0.3)   // day: 0.7–1.0, always bold
           : Math.max(0.2, 1 - progress * 0.5);   // dark: 0.2–1.0, classic fade
 
         ctx.fillStyle = day
-          ? `rgba(88, 28, 135, ${alpha})`          // purple-900 — dark, high contrast on white
+          ? `rgba(234, 88, 12, ${alpha})`          // orange-600 — high contrast on white
           : `rgba(147, 51, 234, ${alpha})`;         // purple-600 — bright on black
 
         ctx.fillText(text, x, y);
