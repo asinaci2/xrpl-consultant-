@@ -10,8 +10,8 @@ export function WalletTab() {
   const [copied, setCopied] = useState(false);
 
   const { data: wallet, isLoading: walletLoading } = useQuery<WalletData & { unfunded?: boolean; xrpBalance?: number; drops?: number; ownerCount?: number; nftCount?: number; sequence?: number; xrplAddress: string }>({
-    queryKey: ["/api/dashboard/wallet"],
-    queryFn: () => fetch("/api/dashboard/wallet", { credentials: "include" }).then(r => r.json()),
+    queryKey: ["/api/visitor/wallet"],
+    queryFn: () => fetch("/api/visitor/wallet", { credentials: "include" }).then(r => r.json()),
   });
 
   const copyAddress = () => {
@@ -40,12 +40,12 @@ export function WalletTab() {
             </div>
           </div>
         ) : !wallet?.xrplAddress ? (
-          <p className="text-gray-500 text-sm">No XRPL wallet address found for your account.</p>
+          <p className="text-black/60 dark:text-white/60 text-sm">No XRPL wallet address found for your account.</p>
         ) : wallet.unfunded ? (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <code className="text-green-400 font-mono text-sm break-all">{wallet.xrplAddress}</code>
-              <button onClick={copyAddress} className="text-gray-500 hover:text-green-400 shrink-0" data-testid="button-copy-address">
+              <button onClick={copyAddress} className="text-black/40 dark:text-white/40 hover:text-green-400 shrink-0" data-testid="button-copy-address">
                 <Copy className="w-4 h-4" />
               </button>
             </div>
@@ -55,15 +55,15 @@ export function WalletTab() {
           <div className="space-y-4">
             <div className="flex items-center gap-2 flex-wrap">
               <code className="text-green-400 font-mono text-sm break-all" data-testid="text-xrpl-address">{wallet.xrplAddress}</code>
-              <button onClick={copyAddress} className="text-gray-500 hover:text-green-400 transition-colors shrink-0" data-testid="button-copy-address">
+              <button onClick={copyAddress} className="text-black/40 dark:text-white/40 hover:text-green-400 transition-colors shrink-0" data-testid="button-copy-address">
                 {copied ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
             <div>
-              <p className="text-4xl font-display font-bold text-white" data-testid="text-xrp-balance">
+              <p className="text-4xl font-display font-bold text-black dark:text-white" data-testid="text-xrp-balance">
                 {wallet.xrpBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} <span className="text-green-400 text-2xl">XRP</span>
               </p>
-              <p className="text-gray-600 text-xs font-mono mt-1">{wallet.drops?.toLocaleString()} drops</p>
+              <p className="text-black/50 dark:text-white/50 text-xs font-mono mt-1">{wallet.drops?.toLocaleString()} drops</p>
             </div>
             <div className="grid grid-cols-3 gap-3">
               {[
@@ -71,9 +71,9 @@ export function WalletTab() {
                 { label: "NFTs", value: wallet.nftCount ?? 0, testid: "text-nft-count" },
                 { label: "Sequence", value: wallet.sequence ?? 0, testid: "text-sequence" },
               ].map(stat => (
-                <div key={stat.label} className="bg-black/40 rounded-xl p-3 border border-green-500/10 text-center">
-                  <p className="text-white font-bold text-lg" data-testid={stat.testid}>{stat.value.toLocaleString()}</p>
-                  <p className="text-gray-500 text-xs">{stat.label}</p>
+                <div key={stat.label} className="bg-white/10 dark:bg-black/40 rounded-xl p-3 border border-green-500/10 text-center">
+                  <p className="text-black dark:text-white font-bold text-lg" data-testid={stat.testid}>{stat.value.toLocaleString()}</p>
+                  <p className="text-black/60 dark:text-white/60 text-xs">{stat.label}</p>
                 </div>
               ))}
             </div>
