@@ -1921,7 +1921,7 @@ export default function Dashboard() {
             <MediaTab slug={slug} />
           </TabsContent>
           <TabsContent value="chat-profile">
-            <ChatProfileTab slug={slug} matrixUserId={matrixUserId} profileRoomId={profile?.profileRoomId} />
+            <ChatProfileTab slug={slug} matrixUserId={profile?.matrixUserId ?? matrixUserId} profileRoomId={profile?.profileRoomId} />
           </TabsContent>
         </Tabs>
       </div>
