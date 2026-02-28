@@ -120,7 +120,7 @@ export function AppSidebar() {
         {/* Logo / Brand */}
         <div className="flex items-center border-b border-border px-5 py-6">
           <img
-            src="/logo.png"
+            src="/logo-icon.png"
             alt="Fortuna DAO"
             className={isCollapsed ? "h-8 w-auto" : "h-9 w-auto"}
           />

@@ -1,7 +1,6 @@
 import { Link } from "react-scroll";
 import { useState, useEffect } from "react";
 import { Menu, X, LogIn } from "lucide-react";
-import logo from "@assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import StoryViewer from "./StoryViewer";
@@ -147,7 +146,7 @@ export function Navigation() {
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             data-testid="button-logo-home"
           >
-            <img src={logo} alt="Fortuna DAO" className="h-10 w-auto" />
+            <img src="/logo-icon.png" alt="Fortuna DAO" className="h-10 w-auto" />
           </div>
 
           {/* Stories in Nav */}
