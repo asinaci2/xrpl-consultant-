@@ -31,9 +31,7 @@ export default function Directory() {
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
-      <div className="fixed inset-0 z-0">
-        <MatrixRain className="opacity-30" />
-      </div>
+      <MatrixRain className="fixed inset-0 w-full h-full opacity-30 pointer-events-none" />
 
       <div className="relative z-10">
         {/* Visitor Welcome Banner */}

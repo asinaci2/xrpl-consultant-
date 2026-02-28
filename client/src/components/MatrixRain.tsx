@@ -36,9 +36,9 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
     const draw = () => {
       const day = isDayMode();
 
-      // Trail fill: fades old characters so rain columns persist visibly
+      // Trail fill: slow fade keeps column trails visible for longer
       ctx.fillStyle = day
-        ? "rgba(255, 255, 255, 0.25)" // Day: white fade — canvas stays white, chars stay bold
+        ? "rgba(255, 255, 255, 0.08)" // Day: slow white fade — ~40 frames trail = dense columns
         : "rgba(0, 0, 0, 0.05)";      // Dark: black fade — classic rain trail
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -86,7 +86,7 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
   return (
     <canvas
       ref={canvasRef}
-      className={`absolute inset-0 w-full h-full ${className}`}
+      className={className}
       data-testid="canvas-matrix-rain"
     />
   );

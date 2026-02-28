@@ -28,7 +28,7 @@ function VisitorDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white relative">
-      <MatrixRain className="fixed opacity-15 pointer-events-none" />
+      <MatrixRain className="fixed inset-0 w-full h-full opacity-15 pointer-events-none" />
       <div className="relative z-10 max-w-3xl mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap rounded-xl border border-green-500/20 bg-green-500/5 px-4 py-3">
           <div className="flex items-center gap-3">
@@ -98,7 +98,7 @@ export default function Dashboard() {
   return (
     <AdminSlugContext.Provider value={overrideSlug}>
       <div className="min-h-screen bg-black text-white relative">
-        <MatrixRain className="fixed opacity-15 pointer-events-none" />
+        <MatrixRain className="fixed inset-0 w-full h-full opacity-15 pointer-events-none" />
 
         <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
           <div className={`mb-6 rounded-xl border px-4 py-3 flex items-center justify-between gap-4 flex-wrap ${overrideSlug ? "border-blue-500/30 bg-blue-500/5" : isAdmin ? "border-amber-500/30 bg-amber-500/5" : "border-green-500/20 bg-green-500/5"}`} data-testid="banner-identity">

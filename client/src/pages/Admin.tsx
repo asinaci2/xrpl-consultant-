@@ -44,7 +44,7 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-black text-white relative">
-      <MatrixRain className="fixed opacity-15 pointer-events-none" />
+      <MatrixRain className="fixed inset-0 w-full h-full opacity-15 pointer-events-none" />
       <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
         {/* Identity Banner */}
         <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 flex items-center justify-between gap-4 flex-wrap" data-testid="banner-admin-identity">

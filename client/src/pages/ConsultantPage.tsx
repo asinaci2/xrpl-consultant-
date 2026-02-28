@@ -74,17 +74,7 @@ export default function ConsultantPage() {
 
   return (
     <div className={`min-h-screen flex flex-col font-sans text-foreground relative ${isDay ? "bg-green-50" : "bg-black"}`}>
-      {!isDay && (
-        <div className="fixed inset-0 z-0">
-          <MatrixRain className="opacity-20" />
-        </div>
-      )}
-      {isDay && (
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(74,222,128,0.08)_0%,_transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(74,222,128,0.05)_0%,_transparent_60%)]" />
-        </div>
-      )}
+      <MatrixRain className="fixed inset-0 w-full h-full opacity-20 pointer-events-none" />
 
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-green-500 origin-left z-[100]"
