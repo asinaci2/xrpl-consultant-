@@ -170,7 +170,7 @@ export async function registerRoutes(
         if (result.isAdmin || finalConsultantSlug) {
           res.redirect("/welcome");
         } else {
-          res.redirect("/login?error=no_role");
+          res.redirect("/?visitor=1");
         }
       });
     } catch (err: any) {

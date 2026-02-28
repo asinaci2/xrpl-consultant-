@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
-import { motion } from "framer-motion";
-import { ArrowRight, Hexagon, LayoutDashboard, LogIn, Shield, Users } from "lucide-react";
+import { Link, useSearch } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Hexagon, LayoutDashboard, LogIn, Shield, Users, X, ExternalLink } from "lucide-react";
 import { MatrixRain } from "@/components/MatrixRain";
 import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 
 interface Consultant {
   id: number;
@@ -22,7 +23,10 @@ export default function Directory() {
   const { data: consultants = [], isLoading } = useQuery<Consultant[]>({
     queryKey: ["/api/consultants"],
   });
-  const { isAdmin, isConsultant, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAdmin, isConsultant, isAuthenticated, isLoading: authLoading, displayName } = useAuth();
+  const search = useSearch();
+  const isVisitor = new URLSearchParams(search).get("visitor") === "1";
+  const [dismissedVisitor, setDismissedVisitor] = useState(false);
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
@@ -31,6 +35,53 @@ export default function Directory() {
       </div>
 
       <div className="relative z-10">
+        {/* Visitor Welcome Banner */}
+        <AnimatePresence>
+          {isVisitor && !dismissedVisitor && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+              className="bg-green-500/10 border-b border-green-500/30 px-4 py-3"
+              data-testid="banner-visitor-welcome"
+            >
+              <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
+                  <p className="text-green-300 text-sm font-mono">
+                    {displayName ? (
+                      <>Welcome, <span className="text-green-400 font-semibold">{displayName}</span> — you're logged in as a visitor.</>
+                    ) : (
+                      <>You're logged in. Browse our consultants or join the TextRP ecosystem.</>
+                    )}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <a
+                    href="https://app.textrp.io"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs text-green-400 hover:text-green-300 font-mono transition-colors border border-green-500/30 rounded-lg px-3 py-1.5 hover:bg-green-500/10"
+                    data-testid="link-textrp-visitor"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Open TextRP
+                  </a>
+                  <button
+                    onClick={() => setDismissedVisitor(true)}
+                    className="text-gray-500 hover:text-gray-300 transition-colors"
+                    aria-label="Dismiss"
+                    data-testid="button-dismiss-visitor"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Header */}
         <header className="border-b border-green-500/20 bg-black/80 backdrop-blur-md sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">

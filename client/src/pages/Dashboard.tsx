@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Link } from "wouter";
+import { Link, useSearch, useLocation } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,16 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { SiInstagram, SiTiktok, SiX, SiSnapchat } from "react-icons/si";
+
+// Admin override slug context — lets all tab components know when an admin
+// is managing a different consultant's data via ?slug= URL param
+const AdminSlugContext = createContext<string | null>(null);
+function useAdminSlug() { return useContext(AdminSlugContext); }
+// Returns the URL suffix to append to dashboard API calls when admin overrides slug
+function useSlugParam(): string {
+  const override = useAdminSlug();
+  return override ? `?slug=${override}` : "";
+}
 
 const EXPERTISE_OPTIONS = [
   "XRPL", "TextRP", "Web3", "Blockchain", "NFT Strategy", "Community Growth",
@@ -174,8 +184,11 @@ function FieldLabel({ icon: Icon, children }: { icon: LucideIcon; children: Reac
 // ── Profile Tab ────────────────────────────────────────────────────────────────
 function ProfileTab({ slug }: { slug: string }) {
   const { toast } = useToast();
+  const sp = useSlugParam();
+  const override = useAdminSlug();
   const { data: profile, isLoading } = useQuery<ConsultantProfile>({
-    queryKey: ["/api/dashboard/profile"],
+    queryKey: ["/api/dashboard/profile", override],
+    queryFn: () => fetch(`/api/dashboard/profile${sp}`, { credentials: "include" }).then(r => r.json()),
   });
 
   const [name, setName] = useState("");
@@ -214,7 +227,7 @@ function ProfileTab({ slug }: { slug: string }) {
 
   const saveMutation = useMutation({
     mutationFn: () =>
-      apiRequest("PATCH", "/api/dashboard/profile", {
+      apiRequest("PATCH", `/api/dashboard/profile${sp}`, {
         name, tagline, bio,
         avatarUrl: avatarUrl || null,
         specialties,
@@ -223,7 +236,7 @@ function ProfileTab({ slug }: { slug: string }) {
         twitterUsername: twitterUsername || null,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/profile"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/profile", override] });
       queryClient.invalidateQueries({ queryKey: ["/api/consultants"] });
       queryClient.invalidateQueries({ queryKey: ["/api/consultants", slug] });
       toast({ title: "Profile saved", description: "Your public page has been updated." });
@@ -484,6 +497,8 @@ function ProfileTab({ slug }: { slug: string }) {
 // ── Projects Tab ───────────────────────────────────────────────────────────────
 function ProjectsTab({ slug }: { slug: string }) {
   const { toast } = useToast();
+  const sp = useSlugParam();
+  const override = useAdminSlug();
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [description, setDescription] = useState("");
@@ -496,33 +511,34 @@ function ProjectsTab({ slug }: { slug: string }) {
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const { data: projectsList = [], isLoading } = useQuery<ProjectEntry[]>({
-    queryKey: ["/api/dashboard/projects"],
+    queryKey: ["/api/dashboard/projects", override],
+    queryFn: () => fetch(`/api/dashboard/projects${sp}`, { credentials: "include" }).then(r => r.json()),
   });
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["/api/dashboard/projects"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/dashboard/projects", override] });
   };
 
   const createMutation = useMutation({
-    mutationFn: (data: object) => apiRequest("POST", "/api/dashboard/projects", data),
+    mutationFn: (data: object) => apiRequest("POST", `/api/dashboard/projects${sp}`, data),
     onSuccess: () => { invalidate(); resetForm(); toast({ title: "Project added" }); },
     onError: () => toast({ title: "Error", description: "Failed to add project", variant: "destructive" }),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: object }) => apiRequest("PATCH", `/api/dashboard/projects/${id}`, data),
+    mutationFn: ({ id, data }: { id: number; data: object }) => apiRequest("PATCH", `/api/dashboard/projects/${id}${sp}`, data),
     onSuccess: () => { invalidate(); resetForm(); toast({ title: "Project updated" }); },
     onError: () => toast({ title: "Error", description: "Failed to update project", variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest("DELETE", `/api/dashboard/projects/${id}`),
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/dashboard/projects/${id}${sp}`),
     onSuccess: () => { invalidate(); toast({ title: "Project deleted" }); },
   });
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, isActive }: { id: number; isActive: boolean }) =>
-      apiRequest("PATCH", `/api/dashboard/projects/${id}`, { isActive }),
+      apiRequest("PATCH", `/api/dashboard/projects/${id}${sp}`, { isActive }),
     onSuccess: () => invalidate(),
   });
 
@@ -794,6 +810,8 @@ function detectPlatformClient(url: string): string | null {
 
 function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avatarUrl: string; slug: string }) {
   const { toast } = useToast();
+  const sp = useSlugParam();
+  const override = useAdminSlug();
   const [mode, setMode] = useState<"write" | "import">("write");
 
   const [content, setContent] = useState("");
@@ -812,7 +830,8 @@ function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avata
   const platformInfo = detectedPlatform ? PLATFORM_INFO[detectedPlatform] : null;
 
   const { data: stories = [], isLoading } = useQuery<Story[]>({
-    queryKey: ["/api/dashboard/stories"],
+    queryKey: ["/api/dashboard/stories", override],
+    queryFn: () => fetch(`/api/dashboard/stories${sp}`, { credentials: "include" }).then(r => r.json()),
   });
 
   const createMutation = useMutation({
@@ -823,12 +842,13 @@ function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avata
       if (data.imageUrl) formData.append("imageUrl", data.imageUrl);
       if (data.sourceType) formData.append("sourceType", data.sourceType);
       if (data.sourceUrl) formData.append("sourceUrl", data.sourceUrl);
-      const res = await fetch("/api/dashboard/stories", { method: "POST", body: formData });
+      const url = `/api/dashboard/stories${sp}`;
+      const res = await fetch(url, { method: "POST", body: formData });
       if (!res.ok) throw new Error("Failed to create story");
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stories"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stories", override] });
       setContent(""); setImageUrl("");
       setImportUrl(""); setImportCaption(""); setResolvedPost(null); setResolveError(null);
       toast({ title: "Story posted!" });
@@ -837,9 +857,9 @@ function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avata
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest("DELETE", `/api/dashboard/stories/${id}`),
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/dashboard/stories/${id}${sp}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stories"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stories", override] });
       toast({ title: "Story deleted" });
     },
   });
@@ -1209,7 +1229,12 @@ function StoriesTab({ authorName, avatarUrl, slug }: { authorName: string; avata
 // ── Contact Tab ────────────────────────────────────────────────────────────────
 function ContactTab({ slug }: { slug: string }) {
   const { toast } = useToast();
-  const { data: info, isLoading } = useQuery<ContactInfoData>({ queryKey: ["/api/dashboard/contact-info"] });
+  const sp = useSlugParam();
+  const override = useAdminSlug();
+  const { data: info, isLoading } = useQuery<ContactInfoData>({
+    queryKey: ["/api/dashboard/contact-info", override],
+    queryFn: () => fetch(`/api/dashboard/contact-info${sp}`, { credentials: "include" }).then(r => r.json()),
+  });
 
   const [headline, setHeadline] = useState("");
   const [subheading, setSubheading] = useState("");
@@ -1227,9 +1252,9 @@ function ContactTab({ slug }: { slug: string }) {
   }, [info]);
 
   const saveMutation = useMutation({
-    mutationFn: () => apiRequest("PATCH", "/api/dashboard/contact-info", { headline, subheading, email, phone, location, locationLine2 }),
+    mutationFn: () => apiRequest("PATCH", `/api/dashboard/contact-info${sp}`, { headline, subheading, email, phone, location, locationLine2 }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/contact-info"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/contact-info", override] });
       toast({ title: "Saved", description: "Contact section updated." });
     },
     onError: () => toast({ title: "Error", description: "Failed to save.", variant: "destructive" }),
@@ -1351,29 +1376,34 @@ function ContactTab({ slug }: { slug: string }) {
 // ── Media Tab ──────────────────────────────────────────────────────────────────
 function MediaTab({ slug }: { slug: string }) {
   const { toast } = useToast();
+  const sp = useSlugParam();
+  const override = useAdminSlug();
   const [source, setSource] = useState("manual");
   const [sourceUrl, setSourceUrl] = useState("");
   const [section, setSection] = useState("hero");
   const [altText, setAltText] = useState("");
   const [displayOrder, setDisplayOrder] = useState("0");
 
-  const { data: media = [], isLoading } = useQuery<CachedMedia[]>({ queryKey: ["/api/dashboard/media"] });
+  const { data: media = [], isLoading } = useQuery<CachedMedia[]>({
+    queryKey: ["/api/dashboard/media", override],
+    queryFn: () => fetch(`/api/dashboard/media${sp}`, { credentials: "include" }).then(r => r.json()),
+  });
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["/api/dashboard/media"] });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["/api/dashboard/media", override] });
 
   const createMutation = useMutation({
-    mutationFn: (data: object) => apiRequest("POST", "/api/dashboard/media", data),
+    mutationFn: (data: object) => apiRequest("POST", `/api/dashboard/media${sp}`, data),
     onSuccess: () => { invalidate(); setSourceUrl(""); setAltText(""); setDisplayOrder("0"); toast({ title: "Media added" }); },
     onError: () => toast({ title: "Error", description: "Failed to add media", variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest("DELETE", `/api/dashboard/media/${id}`),
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/dashboard/media/${id}${sp}`),
     onSuccess: () => { invalidate(); toast({ title: "Media deleted" }); },
   });
 
   const toggleMutation = useMutation({
-    mutationFn: ({ id, isActive }: { id: number; isActive: boolean }) => apiRequest("PATCH", `/api/dashboard/media/${id}`, { isActive }),
+    mutationFn: ({ id, isActive }: { id: number; isActive: boolean }) => apiRequest("PATCH", `/api/dashboard/media/${id}${sp}`, { isActive }),
     onSuccess: () => invalidate(),
   });
 
@@ -1509,12 +1539,17 @@ function MediaTab({ slug }: { slug: string }) {
 // ── Chat Profile Tab ───────────────────────────────────────────────────────────
 function ChatProfileTab({ slug, matrixUserId, profileRoomId }: { slug: string; matrixUserId: string | null; profileRoomId?: string | null }) {
   const { toast } = useToast();
-  const { data: config, isLoading } = useQuery<ChatProfileData>({ queryKey: ["/api/dashboard/chat-profile"] });
+  const sp = useSlugParam();
+  const override = useAdminSlug();
+  const { data: config, isLoading } = useQuery<ChatProfileData>({
+    queryKey: ["/api/dashboard/chat-profile", override],
+    queryFn: () => fetch(`/api/dashboard/chat-profile${sp}`, { credentials: "include" }).then(r => r.json()),
+  });
   const [roomInput, setRoomInput] = useState(profileRoomId ?? "");
   const roomMutation = useMutation({
-    mutationFn: () => apiRequest("PATCH", "/api/dashboard/profile-room", { profileRoomId: roomInput || null }),
+    mutationFn: () => apiRequest("PATCH", `/api/dashboard/profile-room${sp}`, { profileRoomId: roomInput || null }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/profile"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/profile", override] });
       toast({ title: "Saved", description: "Profile room updated. Chat profile will sync on next cycle." });
     },
     onError: () => toast({ title: "Error", description: "Failed to save profile room.", variant: "destructive" }),
@@ -1537,11 +1572,11 @@ function ChatProfileTab({ slug, matrixUserId, profileRoomId }: { slug: string; m
   }, [config]);
 
   const saveMutation = useMutation({
-    mutationFn: () => apiRequest("PATCH", "/api/dashboard/chat-profile", {
+    mutationFn: () => apiRequest("PATCH", `/api/dashboard/chat-profile${sp}`, {
       displayName, title, avatarUrl: avatarUrl || null, statusMessage, isAvailable,
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/chat-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/chat-profile", override] });
       queryClient.invalidateQueries({ queryKey: ["/api/chat/host-config"] });
       toast({ title: "Saved", description: "Chat profile updated." });
     },
@@ -1719,16 +1754,24 @@ function ChatProfileTab({ slug, matrixUserId, profileRoomId }: { slug: string; m
 export default function Dashboard() {
   const { user, logout, consultantSlug, isAdmin, matrixUserId, displayName } = useAuth();
   const [showMatrixId, setShowMatrixId] = useState(false);
-  const slug = consultantSlug ?? "";
+  const search = useSearch();
+  const [, setLocation] = useLocation();
+
+  // Admins can pass ?slug=X to manage another consultant's data
+  const urlSlug = new URLSearchParams(search).get("slug");
+  const overrideSlug = isAdmin && urlSlug ? urlSlug : null;
+  const slug = overrideSlug ?? consultantSlug ?? "";
 
   const { data: profile } = useQuery<ConsultantProfile>({
-    queryKey: ["/api/dashboard/profile"],
+    queryKey: ["/api/dashboard/profile", overrideSlug],
+    queryFn: () => fetch(`/api/dashboard/profile${overrideSlug ? `?slug=${overrideSlug}` : ""}`, { credentials: "include" }).then(r => r.json()),
     enabled: !!slug,
   });
 
   const handleLogout = () => logout.mutate();
 
   return (
+    <AdminSlugContext.Provider value={overrideSlug}>
     <div className="min-h-screen bg-black text-white relative">
       <div className="fixed inset-0 opacity-5 pointer-events-none" style={{
         backgroundImage: "linear-gradient(rgba(34,197,94,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(34,197,94,0.1) 1px, transparent 1px)",
@@ -1737,36 +1780,38 @@ export default function Dashboard() {
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
         {/* Identity Banner */}
-        <div className={`mb-6 rounded-xl border px-4 py-3 flex items-center justify-between gap-4 flex-wrap ${isAdmin ? "border-amber-500/30 bg-amber-500/5" : "border-green-500/20 bg-green-500/5"}`} data-testid="banner-identity">
+        <div className={`mb-6 rounded-xl border px-4 py-3 flex items-center justify-between gap-4 flex-wrap ${overrideSlug ? "border-blue-500/30 bg-blue-500/5" : isAdmin ? "border-amber-500/30 bg-amber-500/5" : "border-green-500/20 bg-green-500/5"}`} data-testid="banner-identity">
           <div className="flex items-center gap-3 min-w-0">
-            {isAdmin ? (
+            {overrideSlug ? (
+              <Shield className="w-4 h-4 text-blue-400 shrink-0" />
+            ) : isAdmin ? (
               <Shield className="w-4 h-4 text-amber-400 shrink-0" />
             ) : (
               <User className="w-4 h-4 text-green-400 shrink-0" />
             )}
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className={`text-sm font-semibold ${isAdmin ? "text-amber-400" : "text-green-400"}`} data-testid="text-role-label">
-                  {isAdmin ? "Admin Mode" : "Consultant"}
-                </span>
-                <span className="text-gray-400 text-sm">·</span>
-                <span className="text-gray-300 text-sm font-mono" data-testid="text-display-name">{displayName || profile?.name || slug}</span>
-                {slug && !isAdmin && (
+                {overrideSlug ? (
                   <>
+                    <span className="text-sm font-semibold text-blue-400" data-testid="text-role-label">Editing Consultant</span>
+                    <span className="text-gray-400 text-sm">·</span>
+                    <span className="text-white text-sm font-semibold">{profile?.name || overrideSlug}</span>
                     <span className="text-gray-600 text-sm">·</span>
-                    <span className="text-gray-500 text-xs font-mono">Managing your profile only</span>
+                    <span className="text-blue-400/70 text-xs font-mono">/{overrideSlug}</span>
                   </>
-                )}
-                {isAdmin && slug && (
+                ) : (
                   <>
-                    <span className="text-gray-600 text-sm">·</span>
-                    <span className="text-amber-400/70 text-xs font-mono">Managing: {slug}</span>
-                  </>
-                )}
-                {isAdmin && !slug && (
-                  <>
-                    <span className="text-gray-600 text-sm">·</span>
-                    <span className="text-gray-500 text-xs font-mono">Use ?slug= to manage a consultant</span>
+                    <span className={`text-sm font-semibold ${isAdmin ? "text-amber-400" : "text-green-400"}`} data-testid="text-role-label">
+                      {isAdmin ? "Admin Mode" : "Consultant"}
+                    </span>
+                    <span className="text-gray-400 text-sm">·</span>
+                    <span className="text-gray-300 text-sm font-mono" data-testid="text-display-name">{displayName || profile?.name || slug}</span>
+                    {slug && !isAdmin && (
+                      <>
+                        <span className="text-gray-600 text-sm">·</span>
+                        <span className="text-gray-500 text-xs font-mono">Managing your profile only</span>
+                      </>
+                    )}
                   </>
                 )}
               </div>
@@ -1783,6 +1828,18 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {overrideSlug ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLocation("/admin")}
+                className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10 text-xs"
+                data-testid="button-back-to-admin"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+                Back to Admin
+              </Button>
+            ) : null}
             {slug && (
               <a
                 href={`/c/${slug}`}
@@ -1810,12 +1867,12 @@ export default function Dashboard() {
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/" className="text-green-400/60 hover:text-green-400 transition-colors" data-testid="link-back-directory">
+          <Link href={overrideSlug ? "/admin" : "/"} className="text-green-400/60 hover:text-green-400 transition-colors" data-testid="link-back-directory">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <h1 className="text-2xl font-display font-bold text-white" data-testid="text-dashboard-title">
-              {isAdmin ? "Admin Dashboard" : "My Dashboard"}
+              {overrideSlug ? `Editing: ${profile?.name || overrideSlug}` : isAdmin ? "My Dashboard" : "My Dashboard"}
             </h1>
             <p className="text-green-400/60 text-sm font-mono">{profile?.name || displayName || slug}</p>
           </div>
@@ -1869,5 +1926,6 @@ export default function Dashboard() {
         </Tabs>
       </div>
     </div>
+    </AdminSlugContext.Provider>
   );
 }
