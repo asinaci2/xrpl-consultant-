@@ -37,6 +37,16 @@ import { SchedulingTab } from "@/components/admin/SchedulingTab";
 import { TestimonialsTab } from "@/components/admin/TestimonialsTab";
 import { MatrixRain } from "@/components/MatrixRain";
 
+const TRIGGER_CLASS = "w-full justify-start text-sm px-3 py-2 h-auto data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded";
+
+function SidebarGroup({ label }: { label: string }) {
+  return (
+    <p className="px-2 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-600 select-none">
+      {label}
+    </p>
+  );
+}
+
 export default function Admin() {
   const { user, logout, matrixUserId } = useAuth();
   const [, setLocation] = useLocation();
@@ -51,8 +61,7 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-black text-white relative">
       <MatrixRain className="fixed inset-0 w-full h-full opacity-15 pointer-events-none" />
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
-        {/* Identity Banner */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
         <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 flex items-center justify-between gap-4 flex-wrap" data-testid="banner-admin-identity">
           <div className="flex items-center gap-3 min-w-0">
             <Shield className="w-4 h-4 text-amber-400 shrink-0" />
@@ -105,158 +114,117 @@ export default function Admin() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="icon" className="text-green-400 hover:bg-green-500/10" data-testid="button-back-home">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-green-400 font-mono" data-testid="text-admin-title">
-                Admin Dashboard
-              </h1>
-              <p className="text-gray-500 text-sm">Full site management</p>
-            </div>
+        <div className="flex items-center gap-4 mb-8">
+          <Link href="/">
+            <Button variant="ghost" size="icon" className="text-green-400 hover:bg-green-500/10" data-testid="button-back-home">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-green-400 font-mono" data-testid="text-admin-title">
+              Admin Dashboard
+            </h1>
+            <p className="text-gray-500 text-sm">Full site management</p>
           </div>
         </div>
 
-        <Tabs defaultValue="media" className="space-y-6">
-          <TabsList className="bg-black/60 border border-green-500/20 p-1">
-            <TabsTrigger
-              value="media"
-              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
-              data-testid="tab-media"
-            >
-              <Image className="w-4 h-4 mr-2" />
+        <Tabs defaultValue="media" orientation="vertical" className="flex items-start gap-6">
+          <TabsList className="flex flex-col h-auto w-44 shrink-0 bg-black/60 border border-green-500/20 p-2 rounded-lg sticky top-6 self-start">
+            <SidebarGroup label="Content" />
+            <TabsTrigger value="media" className={TRIGGER_CLASS} data-testid="tab-media">
+              <Image className="w-4 h-4 mr-2 shrink-0" />
               Media
             </TabsTrigger>
-            <TabsTrigger
-              value="projects"
-              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
-              data-testid="tab-projects"
-            >
-              <Briefcase className="w-4 h-4 mr-2" />
+            <TabsTrigger value="projects" className={TRIGGER_CLASS} data-testid="tab-projects">
+              <Briefcase className="w-4 h-4 mr-2 shrink-0" />
               Projects
             </TabsTrigger>
-            <TabsTrigger
-              value="stories"
-              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
-              data-testid="tab-stories"
-            >
-              <BookOpen className="w-4 h-4 mr-2" />
+            <TabsTrigger value="stories" className={TRIGGER_CLASS} data-testid="tab-stories">
+              <BookOpen className="w-4 h-4 mr-2 shrink-0" />
               Stories
             </TabsTrigger>
-            <TabsTrigger
-              value="inquiries"
-              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
-              data-testid="tab-inquiries"
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              Inquiries
-            </TabsTrigger>
-            <TabsTrigger
-              value="tweets"
-              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
-              data-testid="tab-tweets"
-            >
-              <Twitter className="w-4 h-4 mr-2" />
+            <TabsTrigger value="tweets" className={TRIGGER_CLASS} data-testid="tab-tweets">
+              <Twitter className="w-4 h-4 mr-2 shrink-0" />
               Tweets
             </TabsTrigger>
-            <TabsTrigger
-              value="contact"
-              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
-              data-testid="tab-contact"
-            >
-              <Phone className="w-4 h-4 mr-2" />
-              Contact
-            </TabsTrigger>
-            <TabsTrigger
-              value="chat-profile"
-              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
-              data-testid="tab-chat-profile"
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Chat Profile
-            </TabsTrigger>
-            <TabsTrigger
-              value="consultants"
-              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
-              data-testid="tab-consultants"
-            >
-              <User className="w-4 h-4 mr-2" />
+
+            <div className="border-t border-green-500/10 mx-2 my-1" />
+            <SidebarGroup label="People" />
+            <TabsTrigger value="consultants" className={TRIGGER_CLASS} data-testid="tab-consultants">
+              <User className="w-4 h-4 mr-2 shrink-0" />
               Consultants
             </TabsTrigger>
-            <TabsTrigger
-              value="sync"
-              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
-              data-testid="tab-sync"
-            >
-              <Activity className="w-4 h-4 mr-2" />
-              Sync
-            </TabsTrigger>
-            <TabsTrigger
-              value="analytics"
-              className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400"
-              data-testid="tab-analytics"
-            >
-              <BarChart2 className="w-4 h-4 mr-2" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger
-              value="scheduling"
-              className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-gray-400"
-              data-testid="tab-scheduling"
-            >
-              <Calendar className="w-4 h-4 mr-2" />
+            <TabsTrigger value="scheduling" className={TRIGGER_CLASS} data-testid="tab-scheduling">
+              <Calendar className="w-4 h-4 mr-2 shrink-0" />
               Scheduling
             </TabsTrigger>
-            <TabsTrigger
-              value="testimonials"
-              className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white text-gray-400"
-              data-testid="tab-testimonials"
-            >
-              <Quote className="w-4 h-4 mr-2" />
+            <TabsTrigger value="testimonials" className={TRIGGER_CLASS} data-testid="tab-testimonials">
+              <Quote className="w-4 h-4 mr-2 shrink-0" />
               Testimonials
+            </TabsTrigger>
+            <TabsTrigger value="inquiries" className={TRIGGER_CLASS} data-testid="tab-inquiries">
+              <Mail className="w-4 h-4 mr-2 shrink-0" />
+              Inquiries
+            </TabsTrigger>
+
+            <div className="border-t border-green-500/10 mx-2 my-1" />
+            <SidebarGroup label="Config" />
+            <TabsTrigger value="chat-profile" className={TRIGGER_CLASS} data-testid="tab-chat-profile">
+              <MessageCircle className="w-4 h-4 mr-2 shrink-0" />
+              Chat Profile
+            </TabsTrigger>
+            <TabsTrigger value="contact" className={TRIGGER_CLASS} data-testid="tab-contact">
+              <Phone className="w-4 h-4 mr-2 shrink-0" />
+              Contact
+            </TabsTrigger>
+            <TabsTrigger value="sync" className={TRIGGER_CLASS} data-testid="tab-sync">
+              <Activity className="w-4 h-4 mr-2 shrink-0" />
+              Sync
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className={TRIGGER_CLASS} data-testid="tab-analytics">
+              <BarChart2 className="w-4 h-4 mr-2 shrink-0" />
+              Analytics
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="media">
-            <MediaTab />
-          </TabsContent>
-          <TabsContent value="projects">
-            <ProjectsTab />
-          </TabsContent>
-          <TabsContent value="stories">
-            <StoriesTab />
-          </TabsContent>
-          <TabsContent value="inquiries">
-            <InquiriesTab />
-          </TabsContent>
-          <TabsContent value="tweets">
-            <TweetsTab />
-          </TabsContent>
-          <TabsContent value="contact">
-            <ContactTab />
-          </TabsContent>
-          <TabsContent value="chat-profile">
-            <ChatProfileTab />
-          </TabsContent>
-          <TabsContent value="consultants">
-            <ConsultantsTab />
-          </TabsContent>
-          <TabsContent value="sync">
-            <SyncTab />
-          </TabsContent>
-          <TabsContent value="analytics">
-            <AnalyticsTab />
-          </TabsContent>
-          <TabsContent value="scheduling">
-            <SchedulingTab />
-          </TabsContent>
-          <TabsContent value="testimonials">
-            <TestimonialsTab />
-          </TabsContent>
+          <div className="flex-1 min-w-0">
+            <TabsContent value="media" className="mt-0">
+              <MediaTab />
+            </TabsContent>
+            <TabsContent value="projects" className="mt-0">
+              <ProjectsTab />
+            </TabsContent>
+            <TabsContent value="stories" className="mt-0">
+              <StoriesTab />
+            </TabsContent>
+            <TabsContent value="inquiries" className="mt-0">
+              <InquiriesTab />
+            </TabsContent>
+            <TabsContent value="tweets" className="mt-0">
+              <TweetsTab />
+            </TabsContent>
+            <TabsContent value="contact" className="mt-0">
+              <ContactTab />
+            </TabsContent>
+            <TabsContent value="chat-profile" className="mt-0">
+              <ChatProfileTab />
+            </TabsContent>
+            <TabsContent value="consultants" className="mt-0">
+              <ConsultantsTab />
+            </TabsContent>
+            <TabsContent value="sync" className="mt-0">
+              <SyncTab />
+            </TabsContent>
+            <TabsContent value="analytics" className="mt-0">
+              <AnalyticsTab />
+            </TabsContent>
+            <TabsContent value="scheduling" className="mt-0">
+              <SchedulingTab />
+            </TabsContent>
+            <TabsContent value="testimonials" className="mt-0">
+              <TestimonialsTab />
+            </TabsContent>
+          </div>
         </Tabs>
       </div>
     </div>
