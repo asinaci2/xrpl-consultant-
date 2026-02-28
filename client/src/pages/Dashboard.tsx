@@ -19,7 +19,7 @@ import {
   MessageSquare, Heart, Radio, Gamepad2, Star, Zap,
   Shield, Code, Users, Rocket, Award, Target, Link2, AlertCircle, CheckCircle2, Hash,
   CalendarDays, Quote, Wallet, BookmarkPlus, BookmarkCheck, Copy,
-  ChevronDown, ChevronUp, LayoutDashboard,
+  ChevronDown, ChevronUp,
   type LucideIcon,
 } from "lucide-react";
 import { SiInstagram, SiTiktok, SiX, SiSnapchat } from "react-icons/si";

@@ -10,7 +10,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [, setLocation] = useLocation();
-  const { isAdmin, isConsultant, isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -22,7 +22,7 @@ export default function Login() {
     } else if (errParam === "auth_failed") {
       setError("Authentication failed. Please try again.");
     } else if (errParam === "no_role") {
-      setError("Your XRPL wallet is not registered as a consultant or admin on this network. Contact your network administrator to be added.");
+      setError("Authentication succeeded but your session could not be established. Please try again.");
     }
   }, []);
 
