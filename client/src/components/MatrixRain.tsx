@@ -36,10 +36,14 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
     const draw = () => {
       const day = isDayMode();
 
-      ctx.fillStyle = day
-        ? "rgba(245, 240, 255, 0.18)"
-        : "rgba(0, 0, 0, 0.05)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (day) {
+        // Clear completely each frame — no trail buildup that washes out the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      } else {
+        // Dark mode: black trail for the classic fade effect
+        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
 
       ctx.font = `${fontSize}px monospace`;
 
@@ -48,11 +52,14 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
         const x = i * fontSize;
         const y = drops[i] * fontSize;
 
-        const alpha = Math.max(0.15, 1 - (y / canvas.height) * 0.5);
+        const progress = y / canvas.height;
+        const alpha = day
+          ? Math.max(0.5, 1 - progress * 0.4)   // day: 0.6–1.0, always bold
+          : Math.max(0.2, 1 - progress * 0.5);   // dark: 0.2–1.0, classic fade
 
         ctx.fillStyle = day
-          ? `rgba(88, 28, 135, ${alpha})`
-          : `rgba(147, 51, 234, ${alpha})`;
+          ? `rgba(88, 28, 135, ${alpha})`          // purple-900 — dark, high contrast on white
+          : `rgba(147, 51, 234, ${alpha})`;         // purple-600 — bright on black
 
         ctx.fillText(text, x, y);
 

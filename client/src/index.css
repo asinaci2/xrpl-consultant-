@@ -206,7 +206,7 @@
 
 /* ── MatrixRain canvas — visible in day mode with theme-aware colors ── */
 [data-theme="day"] canvas {
-  opacity: 0.4;
+  opacity: 0.7 !important;
 }
 
 /* ── Footer ── */
