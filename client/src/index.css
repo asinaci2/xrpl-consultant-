@@ -270,7 +270,7 @@
 [data-theme="day"] [class*="bg-green-5"] {
   background-color: transparent !important;
   background-image: linear-gradient(135deg, #9333EA 0%, #EA580C 100%) !important;
-  color: #000000 !important;
+  color: #ffffff !important;
 }
 
 /* translucent tint backgrounds (e.g. bg-green-500/10, bg-green-400/20) */
