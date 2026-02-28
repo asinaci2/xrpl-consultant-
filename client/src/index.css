@@ -164,6 +164,21 @@
   box-shadow: none;
 }
 
+/* ── Tailwind gray-800/900/950 → light (covers dashboard & card backgrounds) ── */
+[data-theme="day"] [class*="bg-gray-9"],
+[data-theme="day"] [class*="bg-gray-8"] {
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+/* Inner sub-panels using gray-900 — slightly recessed */
+[data-theme="day"] [class*="bg-gray-900/4"],
+[data-theme="day"] [class*="bg-gray-900/5"],
+[data-theme="day"] [class*="bg-gray-900/6"] {
+  background-color: #f1f5f9 !important;
+  box-shadow: none;
+}
+
 /* ── Arbitrary hex dark backgrounds (e.g. from-[#0a0a0a], bg-[#0d1f0d]) ── */
 [data-theme="day"] [class*="bg-[#0"],
 [data-theme="day"] [class*="bg-[#1"] {
