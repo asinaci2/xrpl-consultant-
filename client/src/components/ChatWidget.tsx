@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
+import { GRADIENTS, BRAND_COLORS } from "@/lib/constants";
 
 interface ChatMessage {
   id: number;
@@ -330,14 +331,14 @@ export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
             className="fixed bottom-24 right-6 w-80 sm:w-96 rounded-lg shadow-2xl z-50 flex flex-col overflow-hidden border border-green-500/30"
             style={{ 
               maxHeight: "500px",
-              background: "linear-gradient(180deg, #0a0a0a 0%, #0d1f0d 100%)",
+              background: GRADIENTS.CHAT_BG,
               boxShadow: "0 0 30px rgba(0, 255, 100, 0.15), 0 0 60px rgba(0, 255, 100, 0.05)"
             }}
             data-testid="chat-widget-container"
           >
             <div 
               className="p-4 flex items-center justify-between gap-2 border-b border-green-500/30"
-              style={{ background: "linear-gradient(90deg, #0a1a0a 0%, #0d2010 100%)" }}
+              style={{ background: GRADIENTS.CHAT_HEADER }}
             >
               <div className="flex items-center gap-3">
                 <div className="relative shrink-0">
@@ -383,7 +384,7 @@ export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
                 <div className="p-6 flex flex-col flex-1 items-center justify-center" data-testid="section-auto-connecting">
                   <div 
                     className="w-16 h-16 rounded-full border-2 border-green-500/50 flex items-center justify-center relative mb-4"
-                    style={{ background: "linear-gradient(135deg, #0a1a0a 0%, #0d2010 100%)", boxShadow: "0 0 20px rgba(0, 255, 100, 0.2)" }}
+                    style={{ background: GRADIENTS.CHAT_HEADER, boxShadow: "0 0 20px rgba(0, 255, 100, 0.2)" }}
                   >
                     {host.avatarUrl ? (
                       <img src={host.avatarUrl} alt={host.displayName} className="w-full h-full rounded-full object-cover" />
@@ -403,7 +404,7 @@ export function ChatWidget({ consultantSlug }: ChatWidgetProps = {}) {
                   <div 
                     className="w-16 h-16 rounded-full border-2 border-green-500/50 flex items-center justify-center relative mb-2"
                     style={{ 
-                      background: "linear-gradient(135deg, #0a1a0a 0%, #0d2010 100%)",
+                      background: GRADIENTS.CHAT_HEADER,
                       boxShadow: "0 0 20px rgba(0, 255, 100, 0.2)"
                     }}
                   >

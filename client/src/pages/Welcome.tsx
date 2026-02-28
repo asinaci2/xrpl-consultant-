@@ -3,6 +3,7 @@ import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
+import { TEXTRP_APP_URL } from "@/lib/constants";
 import {
   Shield,
   User,
@@ -253,7 +254,7 @@ export default function Welcome() {
 
         {/* TextRP — shown for all authenticated users */}
         <a
-          href="https://app.textrp.io"
+          href={TEXTRP_APP_URL}
           target="_blank"
           rel="noopener noreferrer"
           data-testid="card-nav-textrp"

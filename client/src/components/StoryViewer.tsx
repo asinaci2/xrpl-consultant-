@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { SiInstagram, SiTiktok, SiX, SiSnapchat } from "react-icons/si";
+import { BRAND_COLORS } from "@/lib/constants";
 
 interface Story {
   id: number;
@@ -153,7 +154,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
           exit={{ scale: 0.9, opacity: 0 }}
           className="relative w-full max-w-md h-[85vh] max-h-[750px] rounded-2xl overflow-hidden border border-green-500/30 select-none cursor-pointer"
           style={{
-            background: "linear-gradient(to bottom, #0d1f0d, #0a0a0a)",
+            background: `linear-gradient(to bottom, ${BRAND_COLORS.BG_MATRIX}, ${BRAND_COLORS.BG_DEEP})`,
             boxShadow: "0 0 40px rgba(74,222,128,0.2), 0 0 80px rgba(74,222,128,0.1)",
             touchAction: "none",
           }}
@@ -215,7 +216,7 @@ export default function StoryViewer({ stories, startIndex, onClose }: StoryViewe
                   {currentStory.authorImage ? (
                     <img src={currentStory.authorImage} alt={currentStory.authorName} className="w-full h-full rounded-full object-cover" />
                   ) : (
-                    <div className="w-full h-full rounded-full flex items-center justify-center" style={{ background: "#0a0a0a" }}>
+                    <div className="w-full h-full rounded-full flex items-center justify-center" style={{ background: BRAND_COLORS.BG_DEEP }}>
                       <span className="font-mono font-bold text-sm" style={{ color: "#4ade80" }}>
                         {currentStory.authorName.charAt(0).toUpperCase()}
                       </span>

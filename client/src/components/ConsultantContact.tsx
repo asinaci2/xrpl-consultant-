@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, CalendarDays, ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { CUBES_TEXTURE_URL } from "@/lib/constants";
 
 interface Consultant {
   name: string;
@@ -49,7 +50,7 @@ export function ConsultantContact({ consultant, slug }: { consultant: Consultant
 
   return (
     <section id="contact" className="section-padding bg-black/85 backdrop-blur-sm text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5" />
+      <div className="absolute inset-0 opacity-5" style={{ backgroundImage: `url(${CUBES_TEXTURE_URL})` }} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16">
           <div>

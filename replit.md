@@ -45,6 +45,11 @@ Development philosophy: Keep code modular — split concerns into components, ho
 -   **Consultant Dashboard**: Self-service portal for consultants to manage their profile, projects, stories, media, and chat settings.
 -   **Authentication**: SSO via Matrix homeserver and Xumm (XRPL wallet), with role-based access control (Admin, Consultant, Visitor).
 
+### File Structure
+-   **Shared constants**: `client/src/lib/constants.ts` — all URLs, refetch intervals, brand colors, and gradients live here.
+-   **Dashboard tabs**: `client/src/components/dashboard/` — each tab is its own file (`ProfileTab.tsx`, `ProjectsTab.tsx`, `StoriesTab.tsx`, `MediaTab.tsx`, `ChatWidgetTab.tsx`, `TestimonialsTab.tsx`, `ContactInfoTab.tsx`, `WalletTab.tsx`, `VisitorContactsTab.tsx`, `VisitorTestimonialsTab.tsx`). Shared context in `context.ts`, types in `types.ts`, constants in `constants.ts`.
+-   **Admin tabs**: `client/src/components/admin/` — each tab is its own file (`ConsultantsTab.tsx`, `MediaTab.tsx`, `StoriesTab.tsx`, `InquiriesTab.tsx`, `TweetsTab.tsx`, `ProjectsTab.tsx`, `ChatProfileTab.tsx`, `ContactTab.tsx`, `SyncTab.tsx`). Types in `types.ts`.
+
 ### UI/UX and Visual Theme
 -   **Design System**: Tailwind CSS with shadcn/ui components for a consistent and accessible interface.
 -   **Theming**: Dark theme with green accents, white headings, and gray body text. Includes a full-page Matrix rain effect for a distinctive cyberpunk aesthetic. Day mode is also supported.

@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { TEXTRP_APP_URL } from "@/lib/constants";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop";
 
@@ -159,7 +160,7 @@ export function ConsultantHero({ consultant, slug }: { consultant: Consultant; s
 
             {consultant.matrixUserId && (
               <a
-                href={`https://app.textrp.io/#/user/${consultant.matrixUserId}`}
+                href={`${TEXTRP_APP_URL}/#/user/${consultant.matrixUserId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-testid="link-textrp-profile"

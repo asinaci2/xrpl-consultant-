@@ -5,6 +5,8 @@ import { Heart, Repeat2, MessageCircle, ExternalLink } from "lucide-react";
 import { SiX } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 
+import { REFETCH_INTERVALS, BRAND_COLORS } from "@/lib/constants";
+
 interface Tweet {
   id: string;
   text: string;
@@ -26,7 +28,7 @@ export function MatrixTweets() {
   
   const { data: tweets = [], isLoading, error } = useQuery<Tweet[]>({
     queryKey: ["/api/twitter/tweets?count=20"],
-    refetchInterval: 60000,
+    refetchInterval: REFETCH_INTERVALS.TWEETS,
   });
 
   const matrixChars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンXRPLEDGER0123456789";
@@ -96,7 +98,7 @@ export function MatrixTweets() {
             ctx.shadowBlur = 10;
           } else {
             ctx.fillStyle = `rgba(0, 255, 100, ${alpha})`;
-            ctx.shadowColor = "#00ff00";
+            ctx.shadowColor = BRAND_COLORS.MATRIX_RAIN;
             ctx.shadowBlur = 5;
           }
           ctx.fillText(char, x, y);
@@ -122,7 +124,7 @@ export function MatrixTweets() {
     
     const interval = setInterval(() => {
       setActiveTweetIndex((prev) => (prev + 1) % tweets.length);
-    }, 5000);
+    }, REFETCH_INTERVALS.TWEET_ROTATION);
     
     return () => clearInterval(interval);
   }, [tweets.length]);

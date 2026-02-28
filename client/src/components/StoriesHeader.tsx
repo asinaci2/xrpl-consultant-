@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 
+import { REFETCH_INTERVALS } from "@/lib/constants";
+
 interface Story {
   id: number;
   content: string | null;
@@ -21,7 +23,7 @@ interface StoriesHeaderProps {
 export default function StoriesHeader({ onStoryClick }: StoriesHeaderProps) {
   const { data: stories = [], isLoading } = useQuery<Story[]>({
     queryKey: ["/api/stories"],
-    refetchInterval: 60000,
+    refetchInterval: REFETCH_INTERVALS.NAV_STORIES,
   });
 
   if (isLoading) {

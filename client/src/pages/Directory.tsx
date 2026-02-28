@@ -5,6 +5,7 @@ import { ArrowRight, Hexagon, LayoutDashboard, LogIn, Shield, Users, X, External
 import { MatrixRain } from "@/components/MatrixRain";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import { TEXTRP_APP_URL } from "@/lib/constants";
 
 interface Consultant {
   id: number;
@@ -59,7 +60,7 @@ export default function Directory() {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <a
-                    href="https://app.textrp.io"
+                    href={TEXTRP_APP_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 text-xs text-green-400 hover:text-green-300 font-mono transition-colors border border-green-500/30 rounded-lg px-3 py-1.5 hover:bg-green-500/10"
@@ -245,7 +246,7 @@ export default function Directory() {
         {/* Footer */}
         <footer className="border-t border-green-500/20 py-8 text-center">
           <p className="text-gray-500 font-mono text-sm">
-            Powered by <span className="text-green-400">TextRP</span> &amp; XRPL · <a href="https://app.textrp.io" target="_blank" rel="noopener noreferrer" className="text-green-400/60 hover:text-green-400 transition-colors">app.textrp.io</a>
+            Powered by <span className="text-green-400">TextRP</span> &amp; XRPL · <a href={TEXTRP_APP_URL} target="_blank" rel="noopener noreferrer" className="text-green-400/60 hover:text-green-400 transition-colors">app.textrp.io</a>
           </p>
         </footer>
       </div>

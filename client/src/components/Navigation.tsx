@@ -6,6 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import StoryViewer from "./StoryViewer";
 import { Link as RouterLink } from "wouter";
 
+import { REFETCH_INTERVALS } from "@/lib/constants";
+
 interface Story {
   id: number;
   content: string | null;
@@ -31,7 +33,7 @@ function StoriesInNav() {
 
   const { data: stories = [] } = useQuery<Story[]>({
     queryKey: ["/api/stories"],
-    refetchInterval: 60000,
+    refetchInterval: REFETCH_INTERVALS.NAV_STORIES,
   });
 
   if (stories.length === 0) return null;
