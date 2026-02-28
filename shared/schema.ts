@@ -223,6 +223,9 @@ export const testimonials = pgTable("testimonials", {
   authorTitle: text("author_title").notNull().default(""),
   content: text("content").notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
+  status: text("status").notNull().default("approved"),
+  submittedByUserId: text("submitted_by_user_id"),
+  submittedByDisplayName: text("submitted_by_display_name"),
 });
 
 export const insertTestimonialSchema = createInsertSchema(testimonials).omit({ id: true });

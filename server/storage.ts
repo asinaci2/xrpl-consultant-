@@ -79,9 +79,13 @@ export interface IStorage {
   getChatHostConfigBySlug(slug: string): Promise<ChatHostConfig | undefined>;
   upsertChatHostConfigBySlug(slug: string, data: Partial<InsertChatHostConfig>): Promise<ChatHostConfig>;
   getTestimonialsBySlug(slug: string): Promise<Testimonial[]>;
+  getAllTestimonialsBySlug(slug: string): Promise<Testimonial[]>;
+  getPendingTestimonialsBySlug(slug: string): Promise<Testimonial[]>;
   createTestimonial(data: InsertTestimonial): Promise<Testimonial>;
   updateTestimonial(id: number, data: Partial<InsertTestimonial>): Promise<Testimonial | undefined>;
   deleteTestimonial(id: number): Promise<void>;
+  approveTestimonial(id: number): Promise<Testimonial | undefined>;
+  getTestimonialByVisitor(slug: string, userId: string): Promise<Testimonial | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -442,7 +446,23 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(testimonials)
+      .where(and(eq(testimonials.consultantSlug, slug), eq(testimonials.status, "approved")))
+      .orderBy(asc(testimonials.sortOrder));
+  }
+
+  async getAllTestimonialsBySlug(slug: string): Promise<Testimonial[]> {
+    return await db
+      .select()
+      .from(testimonials)
       .where(eq(testimonials.consultantSlug, slug))
+      .orderBy(asc(testimonials.status), asc(testimonials.sortOrder));
+  }
+
+  async getPendingTestimonialsBySlug(slug: string): Promise<Testimonial[]> {
+    return await db
+      .select()
+      .from(testimonials)
+      .where(and(eq(testimonials.consultantSlug, slug), eq(testimonials.status, "pending")))
       .orderBy(asc(testimonials.sortOrder));
   }
 
@@ -462,6 +482,23 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTestimonial(id: number): Promise<void> {
     await db.delete(testimonials).where(eq(testimonials.id, id));
+  }
+
+  async approveTestimonial(id: number): Promise<Testimonial | undefined> {
+    const [updated] = await db
+      .update(testimonials)
+      .set({ status: "approved" })
+      .where(eq(testimonials.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getTestimonialByVisitor(slug: string, userId: string): Promise<Testimonial | undefined> {
+    const [row] = await db
+      .select()
+      .from(testimonials)
+      .where(and(eq(testimonials.consultantSlug, slug), eq(testimonials.submittedByUserId, userId)));
+    return row;
   }
 }
 

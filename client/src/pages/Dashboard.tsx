@@ -1765,10 +1765,15 @@ function TestimonialsTab({ slug }: { slug: string }) {
   const sp = useSlugParam();
   const override = useAdminSlug();
 
-  const { data: testimonials = [], isLoading } = useQuery<{ id: number; authorName: string; authorTitle: string; content: string; sortOrder: number }[]>({
+  type TestimonialRecord = { id: number; authorName: string; authorTitle: string; content: string; sortOrder: number; status: string; submittedByUserId?: string | null; submittedByDisplayName?: string | null };
+
+  const { data: allTestimonials = [], isLoading } = useQuery<TestimonialRecord[]>({
     queryKey: ["/api/dashboard/testimonials", override],
     queryFn: () => fetch(`/api/dashboard/testimonials${sp}`, { credentials: "include" }).then(r => r.json()),
   });
+
+  const pending = allTestimonials.filter(t => t.status === "pending");
+  const approved = allTestimonials.filter(t => t.status === "approved");
 
   const [editing, setEditing] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
@@ -1779,43 +1784,37 @@ function TestimonialsTab({ slug }: { slug: string }) {
   const [addTitle, setAddTitle] = useState("");
   const [addContent, setAddContent] = useState("");
 
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/dashboard/testimonials", override] });
+    queryClient.invalidateQueries({ queryKey: ["/api/c/:slug/testimonials", override || slug] });
+  };
+
   const createMutation = useMutation({
     mutationFn: () => apiRequest("POST", `/api/dashboard/testimonials${sp}`, { authorName: addName, authorTitle: addTitle, content: addContent }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/testimonials", override] });
-      queryClient.invalidateQueries({ queryKey: ["/api/c/:slug/testimonials", override || slug] });
-      setAddName(""); setAddTitle(""); setAddContent("");
-      toast({ title: "Testimonial added" });
-    },
+    onSuccess: () => { invalidate(); setAddName(""); setAddTitle(""); setAddContent(""); toast({ title: "Testimonial added" }); },
     onError: () => toast({ title: "Error", description: "Failed to add testimonial.", variant: "destructive" }),
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("PATCH", `/api/dashboard/testimonials/${id}/approve${sp}`, {}),
+    onSuccess: () => { invalidate(); toast({ title: "Testimonial approved", description: "It's now visible on your public profile." }); },
+    onError: () => toast({ title: "Error", description: "Failed to approve testimonial.", variant: "destructive" }),
   });
 
   const updateMutation = useMutation({
     mutationFn: (id: number) => apiRequest("PATCH", `/api/dashboard/testimonials/${id}${sp}`, { authorName: editName, authorTitle: editTitle, content: editContent }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/testimonials", override] });
-      queryClient.invalidateQueries({ queryKey: ["/api/c/:slug/testimonials", override || slug] });
-      setEditing(null);
-      toast({ title: "Testimonial updated" });
-    },
+    onSuccess: () => { invalidate(); setEditing(null); toast({ title: "Testimonial updated" }); },
     onError: () => toast({ title: "Error", description: "Failed to update testimonial.", variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiRequest("DELETE", `/api/dashboard/testimonials/${id}${sp}`, {}),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/testimonials", override] });
-      queryClient.invalidateQueries({ queryKey: ["/api/c/:slug/testimonials", override || slug] });
-      toast({ title: "Testimonial deleted" });
-    },
-    onError: () => toast({ title: "Error", description: "Failed to delete testimonial.", variant: "destructive" }),
+    onSuccess: () => { invalidate(); toast({ title: "Testimonial removed" }); },
+    onError: () => toast({ title: "Error", description: "Failed to remove testimonial.", variant: "destructive" }),
   });
 
-  function startEdit(t: { id: number; authorName: string; authorTitle: string; content: string }) {
-    setEditing(t.id);
-    setEditName(t.authorName);
-    setEditTitle(t.authorTitle);
-    setEditContent(t.content);
+  function startEdit(t: TestimonialRecord) {
+    setEditing(t.id); setEditName(t.authorName); setEditTitle(t.authorTitle); setEditContent(t.content);
   }
 
   if (isLoading) return <p className="text-gray-400 p-4">Loading...</p>;
@@ -1828,16 +1827,68 @@ function TestimonialsTab({ slug }: { slug: string }) {
         iconColor="text-yellow-400"
         borderColor="border-yellow-500"
         section="Testimonials Section"
-        description="Add client testimonials that appear on your public profile page, displayed as quote cards above the contact section."
+        description="Manage testimonials from clients and visitors. Visitor submissions require your approval before they appear publicly."
         slug={slug}
       />
 
-      {/* Add new */}
+      {/* Pending Approvals */}
+      {pending.length > 0 && (
+        <Card className="bg-black/60 border-yellow-500/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-yellow-400 text-base flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              Pending Approvals
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 text-xs font-bold">{pending.length}</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {pending.map(t => (
+              <div key={t.id} className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4" data-testid={`card-pending-testimonial-${t.id}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-300 italic text-sm mb-2">"{t.content}"</p>
+                    <p className="text-white font-semibold text-sm">{t.authorName}</p>
+                    {t.authorTitle && <p className="text-gray-500 text-xs">{t.authorTitle}</p>}
+                    {t.submittedByDisplayName && (
+                      <p className="text-gray-600 text-xs mt-1">Submitted by: {t.submittedByDisplayName}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <Button
+                      size="sm"
+                      onClick={() => approveMutation.mutate(t.id)}
+                      disabled={approveMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                      data-testid={`button-approve-testimonial-${t.id}`}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => deleteMutation.mutate(t.id)}
+                      disabled={deleteMutation.isPending}
+                      className="border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs"
+                      data-testid={`button-reject-testimonial-${t.id}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5 mr-1" />
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Add new manually */}
       <Card className="bg-black/60 border-green-500/20">
         <CardHeader className="pb-3">
           <CardTitle className="text-green-400 text-base flex items-center gap-2">
             <Plus className="w-4 h-4" />
-            Add Testimonial
+            Add Testimonial Manually
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -1867,32 +1918,33 @@ function TestimonialsTab({ slug }: { slug: string }) {
         </CardContent>
       </Card>
 
-      {/* List */}
-      {testimonials.length === 0 ? (
-        <Card className="bg-black/40 border-green-500/10">
-          <CardContent className="py-10 text-center text-gray-500">
-            No testimonials yet — add one above.
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {testimonials.map(t => (
-            <Card key={t.id} className="bg-black/60 border-green-500/20" data-testid={`card-testimonial-item-${t.id}`}>
-              <CardContent className="pt-4 space-y-3">
-                {editing === t.id ? (
-                  <>
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      <Input value={editName} onChange={e => setEditName(e.target.value)} className="bg-black/40 border-green-500/20 text-white" placeholder="Client Name" data-testid={`input-edit-name-${t.id}`} />
-                      <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} className="bg-black/40 border-green-500/20 text-white" placeholder="Title / Company" data-testid={`input-edit-title-${t.id}`} />
-                    </div>
-                    <Textarea value={editContent} onChange={e => setEditContent(e.target.value)} rows={3} className="bg-black/40 border-green-500/20 text-white" data-testid={`input-edit-content-${t.id}`} />
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => updateMutation.mutate(t.id)} disabled={updateMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white" data-testid={`button-save-testimonial-${t.id}`}>Save</Button>
-                      <Button size="sm" variant="outline" onClick={() => setEditing(null)} className="border-gray-600 text-gray-400" data-testid={`button-cancel-edit-${t.id}`}>Cancel</Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
+      {/* Approved list */}
+      <div>
+        <h3 className="text-gray-400 text-sm font-semibold uppercase tracking-wide mb-3">Approved ({approved.length})</h3>
+        {approved.length === 0 ? (
+          <Card className="bg-black/40 border-green-500/10">
+            <CardContent className="py-8 text-center text-gray-500 text-sm">
+              No approved testimonials yet — add one above or approve a visitor submission.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {approved.map(t => (
+              <Card key={t.id} className="bg-black/60 border-green-500/20" data-testid={`card-testimonial-item-${t.id}`}>
+                <CardContent className="pt-4 space-y-3">
+                  {editing === t.id ? (
+                    <>
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <Input value={editName} onChange={e => setEditName(e.target.value)} className="bg-black/40 border-green-500/20 text-white" placeholder="Client Name" data-testid={`input-edit-name-${t.id}`} />
+                        <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} className="bg-black/40 border-green-500/20 text-white" placeholder="Title / Company" data-testid={`input-edit-title-${t.id}`} />
+                      </div>
+                      <Textarea value={editContent} onChange={e => setEditContent(e.target.value)} rows={3} className="bg-black/40 border-green-500/20 text-white" data-testid={`input-edit-content-${t.id}`} />
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => updateMutation.mutate(t.id)} disabled={updateMutation.isPending} className="bg-green-600 hover:bg-green-700 text-white" data-testid={`button-save-testimonial-${t.id}`}>Save</Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditing(null)} className="border-gray-600 text-gray-400" data-testid={`button-cancel-edit-${t.id}`}>Cancel</Button>
+                      </div>
+                    </>
+                  ) : (
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
                         <p className="text-gray-300 italic text-sm">"{t.content}"</p>
@@ -1908,13 +1960,13 @@ function TestimonialsTab({ slug }: { slug: string }) {
                         </Button>
                       </div>
                     </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

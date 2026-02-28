@@ -8,7 +8,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { createChatRoom, sendMatrixMessage, getNewReplies, uploadFileToMatrix, uploadMediaToMatrix } from "./matrix";
 import { getUserTweets, searchTweets } from "./twitter";
 import { resolveMediaUrl, refreshMediaEntry, detectPlatform } from "./media";
-import { getSSORedirectUrl, exchangeLoginToken, requireAdmin, requireConsultant, makeRequireVerifiedConsultant } from "./auth";
+import { getSSORedirectUrl, exchangeLoginToken, requireAdmin, requireConsultant, requireAuth, makeRequireVerifiedConsultant } from "./auth";
 const requireVerifiedConsultant = makeRequireVerifiedConsultant(storage);
 import multer from "multer";
 
@@ -1230,7 +1230,7 @@ export async function registerRoutes(
     }
   });
 
-  // Testimonials — public read
+  // Testimonials — public read (approved only)
   app.get("/api/c/:slug/testimonials", async (req, res) => {
     try {
       const data = await storage.getTestimonialsBySlug(req.params.slug);
@@ -1240,12 +1240,51 @@ export async function registerRoutes(
     }
   });
 
-  // Testimonials — dashboard CRUD
+  // Testimonials — visitor submission (any logged-in user)
+  app.post("/api/c/:slug/testimonials", requireAuth, async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const userId = req.session.userId!;
+      const displayName = req.session.displayName || userId;
+      const existing = await storage.getTestimonialByVisitor(slug, userId);
+      if (existing) {
+        res.status(409).json({ message: "You have already submitted a testimonial for this consultant." });
+        return;
+      }
+      const { authorName, authorTitle, content } = req.body;
+      if (!content?.trim()) { res.status(400).json({ message: "Content is required" }); return; }
+      const created = await storage.createTestimonial({
+        consultantSlug: slug,
+        authorName: authorName?.trim() || displayName,
+        authorTitle: authorTitle?.trim() ?? "",
+        content: content.trim(),
+        sortOrder: 0,
+        status: "pending",
+        submittedByUserId: userId,
+        submittedByDisplayName: displayName,
+      });
+      res.status(201).json(created);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to submit testimonial" });
+    }
+  });
+
+  // Testimonials — check if current user already submitted
+  app.get("/api/c/:slug/testimonials/my-submission", requireAuth, async (req, res) => {
+    try {
+      const existing = await storage.getTestimonialByVisitor(req.params.slug, req.session.userId!);
+      res.json({ submitted: !!existing, status: existing?.status ?? null });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to check submission" });
+    }
+  });
+
+  // Testimonials — dashboard CRUD (all statuses for consultant)
   app.get("/api/dashboard/testimonials", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
-      const data = await storage.getTestimonialsBySlug(slug);
+      const data = await storage.getAllTestimonialsBySlug(slug);
       res.json(data);
     } catch (err) {
       res.status(500).json({ message: "Failed to fetch testimonials" });
@@ -1257,10 +1296,20 @@ export async function registerRoutes(
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
       const { authorName, authorTitle, content, sortOrder } = req.body;
-      const created = await storage.createTestimonial({ consultantSlug: slug, authorName, authorTitle: authorTitle ?? "", content, sortOrder: sortOrder ?? 0 });
+      const created = await storage.createTestimonial({ consultantSlug: slug, authorName, authorTitle: authorTitle ?? "", content, sortOrder: sortOrder ?? 0, status: "approved" });
       res.status(201).json(created);
     } catch (err) {
       res.status(500).json({ message: "Failed to create testimonial" });
+    }
+  });
+
+  app.patch("/api/dashboard/testimonials/:id/approve", requireVerifiedConsultant, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.approveTestimonial(id);
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to approve testimonial" });
     }
   });
 
