@@ -266,6 +266,11 @@
   background-color: #9333EA !important;
 }
 
+/* Impact label — white in day mode */
+[data-theme="day"] .impact-label {
+  color: #ffffff !important;
+}
+
 /* primary CTA buttons in day mode: purple→orange gradient */
 [data-theme="day"] [class*="bg-green-5"] {
   background-color: transparent !important;

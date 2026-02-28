@@ -85,7 +85,7 @@ export function ConsultantProjects({ slug }: { slug: string }) {
 
                     <div className="bg-green-500/5 border border-green-500/15 rounded-lg p-3 mb-4">
                       <p className="text-green-400/90 text-xs font-medium leading-relaxed">
-                        <span className="text-green-400 font-bold">Impact: </span>{project.impact}
+                        <span className="text-green-400 font-bold impact-label">Impact: </span>{project.impact}
                       </p>
                     </div>
 
