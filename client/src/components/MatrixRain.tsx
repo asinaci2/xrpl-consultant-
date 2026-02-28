@@ -15,6 +15,10 @@ interface Trail {
   alpha: number;
 }
 
+const PANEL_SELECTOR = "nav, footer, section, [data-testid^='card-']";
+const EXCLUSION_PADDING = 8;
+const RECT_REFRESH_INTERVAL = 90;
+
 export function MatrixRain({ className = "" }: MatrixRainProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -33,6 +37,27 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
     let drops: number[];
     let trails: Trail[] = [];
     let animationId: number;
+    let frameCount = 0;
+    let exclusionRects: DOMRect[] = [];
+
+    const refreshExclusionRects = () => {
+      const panels = document.querySelectorAll(PANEL_SELECTOR);
+      exclusionRects = Array.from(panels).map(el => el.getBoundingClientRect());
+    };
+
+    const isBlocked = (x: number, y: number): boolean => {
+      for (const r of exclusionRects) {
+        if (
+          x >= r.left - EXCLUSION_PADDING &&
+          x <= r.right + EXCLUSION_PADDING &&
+          y >= r.top - EXCLUSION_PADDING &&
+          y <= r.bottom + EXCLUSION_PADDING
+        ) {
+          return true;
+        }
+      }
+      return false;
+    };
 
     const resize = () => {
       canvas.width = canvas.offsetWidth;
@@ -40,26 +65,32 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
       columns = Math.floor(canvas.width / fontSize);
       drops = Array(columns).fill(1);
       trails = [];
+      refreshExclusionRects();
     };
 
     const draw = () => {
       const day = isDayMode();
+      frameCount++;
+
+      if (frameCount % RECT_REFRESH_INTERVAL === 0) {
+        refreshExclusionRects();
+      }
 
       if (day) {
-        // Transparent canvas — clear each frame, draw fading trails manually
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Decay and draw existing trails
+        // Decay and draw existing trails — skip drawing if inside a panel
         trails = trails.filter(t => t.alpha > 0.03);
+        ctx.font = `${fontSize}px monospace`;
         for (const t of trails) {
-          ctx.font = `${fontSize}px monospace`;
-          ctx.fillStyle = `rgba(234, 88, 12, ${t.alpha})`;
-          ctx.fillText(t.char, t.x, t.y);
           t.alpha *= 0.75;
+          if (!isBlocked(t.x, t.y)) {
+            ctx.fillStyle = `rgba(234, 88, 12, ${t.alpha})`;
+            ctx.fillText(t.char, t.x, t.y);
+          }
         }
 
         // Draw new characters on active columns
-        ctx.font = `${fontSize}px monospace`;
         for (let i = 0; i < drops.length; i++) {
           if (Math.random() > 0.55) {
             drops[i]++;
@@ -70,12 +101,14 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
           const x = i * fontSize;
           const y = drops[i] * fontSize;
 
-          // Push to trail so it fades out over subsequent frames
+          // Always push to trail (so it fades naturally if it drifts into a panel)
           trails.push({ x, y, char, alpha: 0.45 });
 
-          // Draw the fresh character at full alpha
-          ctx.fillStyle = `rgba(234, 88, 12, 0.45)`;
-          ctx.fillText(char, x, y);
+          // Only draw if outside all panel exclusion zones
+          if (!isBlocked(x, y)) {
+            ctx.fillStyle = `rgba(234, 88, 12, 0.45)`;
+            ctx.fillText(char, x, y);
+          }
 
           if (y > canvas.height && Math.random() > 0.975) {
             drops[i] = 0;
@@ -83,7 +116,7 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
           drops[i]++;
         }
       } else {
-        // Dark mode — classic black fill trail
+        // Dark mode — classic black fill trail, no exclusion needed
         ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
