@@ -22,6 +22,7 @@ interface Consultant {
   avatarUrl: string | null;
   specialties: string[];
   twitterUsername: string | null;
+  matrixUserId: string | null;
   email: string;
   phone: string;
   location: string;

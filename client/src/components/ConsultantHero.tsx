@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-scroll";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 
@@ -19,6 +19,7 @@ interface Consultant {
   bio: string;
   specialties: string[];
   avatarUrl: string | null;
+  matrixUserId: string | null;
 }
 
 export function ConsultantHero({ consultant, slug }: { consultant: Consultant; slug: string }) {
@@ -85,6 +86,19 @@ export function ConsultantHero({ consultant, slug }: { consultant: Consultant; s
                 </div>
               ))}
             </div>
+
+            {consultant.matrixUserId && (
+              <a
+                href={`https://app.textrp.io/#/user/${consultant.matrixUserId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="link-textrp-profile"
+                className="inline-flex items-center gap-2 text-sm text-green-400 hover:text-green-300 transition-colors font-mono mt-4"
+              >
+                <ExternalLink className="w-4 h-4" />
+                View TextRP Profile
+              </a>
+            )}
           </motion.div>
 
           <motion.div
