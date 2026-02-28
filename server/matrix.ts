@@ -280,6 +280,7 @@ export async function getRoomInvitedMembers(roomId: string): Promise<string[]> {
       return [];
     }
     const data = await res.json() as { chunk: Array<{ state_key: string }> };
+    console.log(`[matrix] getRoomInvitedMembers: found ${(data.chunk ?? []).length} pending invite(s) in ${roomId}`);
     return (data.chunk ?? []).map(e => e.state_key).filter(Boolean);
   } catch (err) {
     console.warn("[matrix] getRoomInvitedMembers error:", err);

@@ -1230,8 +1230,8 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/sync-status", requireAdmin, (_req, res) => {
-    const { getSyncStatus } = require("./sync");
+  app.get("/api/admin/sync-status", requireAdmin, async (_req, res) => {
+    const { getSyncStatus } = await import("./sync");
     res.json(getSyncStatus());
   });
 
