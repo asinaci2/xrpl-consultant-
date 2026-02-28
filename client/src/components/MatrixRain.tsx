@@ -42,7 +42,7 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
         const y = drops[i] * fontSize;
 
         const alpha = Math.max(0.1, 1 - (y / canvas.height) * 0.5);
-        ctx.fillStyle = `rgba(0, 255, 0, ${alpha})`;
+        ctx.fillStyle = `rgba(147, 51, 234, ${alpha})`;
         ctx.fillText(text, x, y);
 
         if (y > canvas.height && Math.random() > 0.975) {
