@@ -37,7 +37,7 @@ function VisitorDashboard() {
             <Wallet className="w-4 h-4 text-green-400 shrink-0" />
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-semibold text-green-400">Visitor</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-green-600 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">Visitor</span>
                 <span className="text-white/40 text-sm">·</span>
                 <span className="text-white text-sm font-mono">{displayName}</span>
               </div>
