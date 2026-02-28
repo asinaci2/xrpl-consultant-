@@ -12,9 +12,10 @@ interface CachedMedia {
 }
 
 export function About() {
-  const { data: media = [], isLoading } = useQuery<CachedMedia[]>({
-    queryKey: ["/api/media/about"],
+  const { data: allMedia = [], isLoading } = useQuery<CachedMedia[]>({
+    queryKey: ["/api/media"],
   });
+  const media = allMedia.filter(m => m.section === "about");
 
   const aboutImage = media.length > 0 ? media[0] : null;
   const imageSrc = aboutImage?.imageUrl || FALLBACK_IMAGE;

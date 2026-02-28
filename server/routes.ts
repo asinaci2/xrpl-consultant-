@@ -89,8 +89,8 @@ export async function registerRoutes(
     }
   }
 
-  // Start polling every 3 seconds
-  setInterval(pollMatrixReplies, 3000);
+  // Start polling every 8 seconds (reduced from 3s to cut Matrix API calls by ~60%)
+  setInterval(pollMatrixReplies, 8000);
 
   app.get("/api/auth/sso-redirect", (req, res) => {
     const host = req.get("host") || "localhost:5000";
@@ -1403,6 +1403,9 @@ export async function registerRoutes(
 
   // ── Visitor routes (any logged-in user) ───────────────────────────────────────
 
+  const xrplWalletCache = new Map<string, { data: object; expiresAt: number }>();
+  const XRPL_CACHE_TTL = 3 * 60 * 1000;
+
   // XRPL wallet info (derive address from Matrix user ID localpart)
   app.get("/api/visitor/wallet", requireAuth, async (req, res) => {
     try {
@@ -1413,6 +1416,13 @@ export async function registerRoutes(
         return;
       }
       const xrplAddress = localpart;
+
+      const cached = xrplWalletCache.get(xrplAddress);
+      if (cached && cached.expiresAt > Date.now()) {
+        res.json(cached.data);
+        return;
+      }
+
       const [infoRes, nftRes] = await Promise.allSettled([
         fetch("https://xrplcluster.com/", {
           method: "POST",
@@ -1430,7 +1440,9 @@ export async function registerRoutes(
       const nftData = nftRes.status === "fulfilled" ? nftRes.value : null;
 
       if (info?.result?.error === "actNotFound" || info?.result?.account_data === undefined) {
-        res.json({ xrplAddress, unfunded: true });
+        const payload = { xrplAddress, unfunded: true };
+        xrplWalletCache.set(xrplAddress, { data: payload, expiresAt: Date.now() + XRPL_CACHE_TTL });
+        res.json(payload);
         return;
       }
 
@@ -1441,7 +1453,9 @@ export async function registerRoutes(
       const sequence = acct?.Sequence ?? 0;
       const nftCount = nftData?.result?.account_nfts?.length ?? 0;
 
-      res.json({ xrplAddress, xrpBalance, drops, ownerCount, nftCount, sequence, unfunded: false });
+      const payload = { xrplAddress, xrpBalance, drops, ownerCount, nftCount, sequence, unfunded: false };
+      xrplWalletCache.set(xrplAddress, { data: payload, expiresAt: Date.now() + XRPL_CACHE_TTL });
+      res.json(payload);
     } catch (err) {
       res.status(500).json({ message: "Failed to fetch wallet data" });
     }

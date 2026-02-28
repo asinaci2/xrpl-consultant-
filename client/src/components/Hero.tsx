@@ -14,9 +14,10 @@ interface CachedMedia {
 }
 
 export function Hero() {
-  const { data: media = [], isLoading } = useQuery<CachedMedia[]>({
-    queryKey: ["/api/media/hero"],
+  const { data: allMedia = [], isLoading } = useQuery<CachedMedia[]>({
+    queryKey: ["/api/media"],
   });
+  const media = allMedia.filter(m => m.section === "hero");
 
   const heroImage = media.length > 0 ? media[0] : null;
   const imageSrc = heroImage?.imageUrl || FALLBACK_IMAGE;
