@@ -56,6 +56,7 @@ export const chatSessions = pgTable("chat_sessions", {
   matrixRoomId: text("matrix_room_id"),
   visitorName: text("visitor_name"),
   visitorEmail: text("visitor_email"),
+  consultantSlug: text("consultant_slug"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -74,6 +75,7 @@ export const insertChatSessionSchema = createInsertSchema(chatSessions).pick({
   sessionId: true,
   visitorName: true,
   visitorEmail: true,
+  consultantSlug: true,
 });
 
 export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
