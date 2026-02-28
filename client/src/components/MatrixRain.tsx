@@ -36,14 +36,11 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
     const draw = () => {
       const day = isDayMode();
 
-      if (day) {
-        // Clear completely each frame — no trail buildup that washes out the canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      } else {
-        // Dark mode: black trail for the classic fade effect
-        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
+      // Trail fill: fades old characters so rain columns persist visibly
+      ctx.fillStyle = day
+        ? "rgba(255, 255, 255, 0.25)" // Day: white fade — canvas stays white, chars stay bold
+        : "rgba(0, 0, 0, 0.05)";      // Dark: black fade — classic rain trail
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.font = `${fontSize}px monospace`;
 
