@@ -17,7 +17,8 @@ import {
   ArrowLeft,
   Shield,
   ExternalLink,
-  LogOut
+  LogOut,
+  BarChart2
 } from "lucide-react";
 
 import { MediaTab } from "@/components/admin/MediaTab";
