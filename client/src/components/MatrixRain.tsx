@@ -4,6 +4,10 @@ interface MatrixRainProps {
   className?: string;
 }
 
+function isDayMode() {
+  return document.documentElement.getAttribute("data-theme") === "day";
+}
+
 export function MatrixRain({ className = "" }: MatrixRainProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -17,7 +21,6 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
     const characters = "$TXT$XRP$BWTCK$COPE";
     const letters = characters.split("");
     const fontSize = 14;
-    const backgroundColor = "rgba(0, 0, 0, 0.05)";
 
     let columns: number;
     let drops: number[];
@@ -31,7 +34,11 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
     };
 
     const draw = () => {
-      ctx.fillStyle = backgroundColor;
+      const day = isDayMode();
+
+      ctx.fillStyle = day
+        ? "rgba(245, 240, 255, 0.18)"
+        : "rgba(0, 0, 0, 0.05)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.font = `${fontSize}px monospace`;
@@ -41,8 +48,12 @@ export function MatrixRain({ className = "" }: MatrixRainProps) {
         const x = i * fontSize;
         const y = drops[i] * fontSize;
 
-        const alpha = Math.max(0.1, 1 - (y / canvas.height) * 0.5);
-        ctx.fillStyle = `rgba(147, 51, 234, ${alpha})`;
+        const alpha = Math.max(0.15, 1 - (y / canvas.height) * 0.5);
+
+        ctx.fillStyle = day
+          ? `rgba(88, 28, 135, ${alpha})`
+          : `rgba(147, 51, 234, ${alpha})`;
+
         ctx.fillText(text, x, y);
 
         if (y > canvas.height && Math.random() > 0.975) {

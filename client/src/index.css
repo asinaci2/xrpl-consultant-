@@ -204,9 +204,9 @@
   box-shadow: 0 2px 14px rgba(147,51,234,0.08) !important;
 }
 
-/* ── MatrixTweets canvas wrapper ── */
+/* ── MatrixRain canvas — visible in day mode with theme-aware colors ── */
 [data-theme="day"] canvas {
-  opacity: 0.06;
+  opacity: 0.4;
 }
 
 /* ── Footer ── */

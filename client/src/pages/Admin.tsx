@@ -29,6 +29,7 @@ import { ContactTab } from "@/components/admin/ContactTab";
 import { ChatProfileTab } from "@/components/admin/ChatProfileTab";
 import { ConsultantsTab } from "@/components/admin/ConsultantsTab";
 import { SyncTab } from "@/components/admin/SyncTab";
+import { MatrixRain } from "@/components/MatrixRain";
 
 export default function Admin() {
   const { user, logout, matrixUserId } = useAuth();
@@ -42,8 +43,9 @@ export default function Admin() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-black text-white relative">
+      <MatrixRain className="fixed opacity-15 pointer-events-none" />
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
         {/* Identity Banner */}
         <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 flex items-center justify-between gap-4 flex-wrap" data-testid="banner-admin-identity">
           <div className="flex items-center gap-3 min-w-0">

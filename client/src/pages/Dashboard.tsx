@@ -21,16 +21,14 @@ import { WalletTab } from "@/components/dashboard/WalletTab";
 import { VisitorContactsTab } from "@/components/dashboard/VisitorContactsTab";
 import { VisitorTestimonialsTab } from "@/components/dashboard/VisitorTestimonialsTab";
 import { ConsultantProfile } from "@/components/dashboard/types";
+import { MatrixRain } from "@/components/MatrixRain";
 
 function VisitorDashboard() {
   const { displayName, matrixUserId, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-950 text-white relative">
-      <div className="fixed inset-0 opacity-10 pointer-events-none" style={{
-        backgroundImage: "linear-gradient(rgba(168,85,247,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.15) 1px, transparent 1px)",
-        backgroundSize: "40px 40px",
-      }} />
+      <MatrixRain className="fixed opacity-15 pointer-events-none" />
       <div className="relative z-10 max-w-3xl mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap rounded-xl border border-green-500/20 bg-green-500/5 px-4 py-3">
           <div className="flex items-center gap-3">
@@ -100,10 +98,7 @@ export default function Dashboard() {
   return (
     <AdminSlugContext.Provider value={overrideSlug}>
       <div className="min-h-screen bg-black text-white relative">
-        <div className="fixed inset-0 opacity-5 pointer-events-none" style={{
-          backgroundImage: "linear-gradient(rgba(34,197,94,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(34,197,94,0.1) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }} />
+        <MatrixRain className="fixed opacity-15 pointer-events-none" />
 
         <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
           <div className={`mb-6 rounded-xl border px-4 py-3 flex items-center justify-between gap-4 flex-wrap ${overrideSlug ? "border-blue-500/30 bg-blue-500/5" : isAdmin ? "border-amber-500/30 bg-amber-500/5" : "border-green-500/20 bg-green-500/5"}`} data-testid="banner-identity">
