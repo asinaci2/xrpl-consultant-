@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Edit2, X } from "lucide-react";
-import { ProjectEntry } from "./types";
+import { Plus, Trash2, Edit2, X, Briefcase, CheckCircle2, Users, Link as LinkIcon } from "lucide-react";
+import { ProjectEntry, ConsultantEntry } from "./types";
 
 const ICON_OPTIONS = [
   "MessageSquare", "Heart", "Radio", "Gamepad2", "Briefcase",
@@ -40,11 +40,59 @@ export function ProjectsTab() {
   const [color, setColor] = useState("bg-green-500");
   const [tagsInput, setTagsInput] = useState("");
   const [displayOrder, setDisplayOrder] = useState("0");
+  const [consultantSlug, setConsultantSlug] = useState<string>("");
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [filterSlug, setFilterSlug] = useState<string>("all");
+
+  const { data: consultants = [] } = useQuery<ConsultantEntry[]>({
+    queryKey: ["/api/consultants"],
+  });
 
   const { data: projectsList = [], isLoading } = useQuery<ProjectEntry[]>({
     queryKey: ["/api/projects/all"],
   });
+
+  const stats = useMemo(() => {
+    const total = projectsList.length;
+    const active = projectsList.filter(p => p.isActive).length;
+    const uniqueConsultants = new Set(projectsList.map(p => p.consultantSlug).filter(Boolean)).size;
+    const withLinks = projectsList.filter(p => p.link).length;
+
+    return [
+      { label: "Total Projects", value: total, icon: Briefcase, color: "text-blue-400" },
+      { label: "Active Projects", value: active, icon: CheckCircle2, color: "text-green-400" },
+      { label: "Consultants with Projects", value: uniqueConsultants, icon: Users, color: "text-purple-400" },
+      { label: "Projects with External Links", value: withLinks, icon: LinkIcon, color: "text-orange-400" },
+    ];
+  }, [projectsList]);
+
+  const filteredProjects = useMemo(() => {
+    if (filterSlug === "all") return projectsList;
+    return projectsList.filter(p => p.consultantSlug === filterSlug);
+  }, [projectsList, filterSlug]);
+
+  const groupedProjects = useMemo(() => {
+    const groups: Record<string, ProjectEntry[]> = {};
+    filteredProjects.forEach(project => {
+      const slug = project.consultantSlug || "unassigned";
+      if (!groups[slug]) groups[slug] = [];
+      groups[slug].push(project);
+    });
+
+    return Object.entries(groups)
+      .map(([slug, projects]) => ({
+        slug,
+        consultantName: consultants.find(c => c.slug === slug)?.name || (slug === "unassigned" ? "Unassigned" : slug),
+        projects: projects.sort((a, b) => a.displayOrder - b.displayOrder),
+      }))
+      .filter(group => group.projects.length > 0)
+      .sort((a, b) => a.consultantName.localeCompare(b.consultantName));
+  }, [filteredProjects, consultants]);
+
+  const consultantsWithProjects = useMemo(() => {
+    const slugs = new Set(projectsList.map(p => p.consultantSlug).filter(Boolean));
+    return consultants.filter(c => slugs.has(c.slug));
+  }, [projectsList, consultants]);
 
   const createMutation = useMutation({
     mutationFn: (data: object) => apiRequest("POST", "/api/projects", data),
@@ -101,6 +149,7 @@ export function ProjectsTab() {
     setColor("bg-green-500");
     setTagsInput("");
     setDisplayOrder("0");
+    setConsultantSlug("");
     setEditingId(null);
   };
 
@@ -114,6 +163,7 @@ export function ProjectsTab() {
     setColor(project.color);
     setTagsInput(project.tags.join(", "));
     setDisplayOrder(String(project.displayOrder));
+    setConsultantSlug(project.consultantSlug || "");
     setEditingId(project.id);
   };
 
@@ -130,6 +180,7 @@ export function ProjectsTab() {
       color,
       tags,
       displayOrder: parseInt(displayOrder) || 0,
+      consultantSlug: consultantSlug || null,
     };
     if (editingId) {
       updateMutation.mutate({ id: editingId, data });
@@ -142,6 +193,22 @@ export function ProjectsTab() {
 
   return (
     <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((stat) => (
+          <Card key={stat.label} className="bg-black/60 border-green-500/20">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className={`p-2 rounded-lg bg-black/40 border border-green-500/10 ${stat.color}`}>
+                <stat.icon className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-gray-500 text-xs font-mono">{stat.label}</p>
+                <p className="text-xl font-bold text-white font-mono">{stat.value}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
       <Card className="bg-black/60 border-green-500/20">
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <CardTitle className="text-green-400 text-lg">
@@ -164,6 +231,19 @@ export function ProjectsTab() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
+                <label className="text-sm text-gray-400">Consultant</label>
+                <Select value={consultantSlug} onValueChange={setConsultantSlug} required>
+                  <SelectTrigger className="bg-black/40 border-green-500/20 text-white" data-testid="select-project-consultant">
+                    <SelectValue placeholder="Select consultant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {consultants.map((c) => (
+                      <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <label className="text-sm text-gray-400">Title</label>
                 <Input
                   value={title}
@@ -173,6 +253,8 @@ export function ProjectsTab() {
                   data-testid="input-project-title"
                 />
               </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm text-gray-400">Subtitle</label>
                 <Input
@@ -181,6 +263,16 @@ export function ProjectsTab() {
                   placeholder="Brief tagline"
                   className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600"
                   data-testid="input-project-subtitle"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-gray-400">Project URL (optional)</label>
+                <Input
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  placeholder="https://..."
+                  className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600"
+                  data-testid="input-project-link"
                 />
               </div>
             </div>
@@ -204,27 +296,15 @@ export function ProjectsTab() {
                 data-testid="input-project-impact"
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm text-gray-400">Project URL (optional)</label>
-                <Input
-                  value={link}
-                  onChange={(e) => setLink(e.target.value)}
-                  placeholder="https://..."
-                  className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600"
-                  data-testid="input-project-link"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm text-gray-400">Tags (comma-separated)</label>
-                <Input
-                  value={tagsInput}
-                  onChange={(e) => setTagsInput(e.target.value)}
-                  placeholder="GameFi, NFT, Community"
-                  className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600"
-                  data-testid="input-project-tags"
-                />
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm text-gray-400">Tags (comma-separated)</label>
+              <Input
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                placeholder="GameFi, NFT, Community"
+                className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600"
+                data-testid="input-project-tags"
+              />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
@@ -271,7 +351,7 @@ export function ProjectsTab() {
             </div>
             <Button
               type="submit"
-              disabled={isPending || !title || !subtitle || !description || !impact}
+              disabled={isPending || !title || !subtitle || !description || !impact || !consultantSlug}
               className="bg-green-600 hover:bg-green-700 text-white"
               data-testid="button-save-project"
             >
@@ -282,9 +362,33 @@ export function ProjectsTab() {
         </CardContent>
       </Card>
 
+      <div className="flex flex-wrap gap-2 mb-4">
+        <Button
+          variant={filterSlug === "all" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilterSlug("all")}
+          className={filterSlug === "all" ? "bg-green-600" : "border-green-500/20 text-gray-400"}
+          data-testid="pill-filter-all"
+        >
+          All
+        </Button>
+        {consultantsWithProjects.map((c) => (
+          <Button
+            key={c.slug}
+            variant={filterSlug === c.slug ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilterSlug(c.slug)}
+            className={filterSlug === c.slug ? "bg-green-600" : "border-green-500/20 text-gray-400"}
+            data-testid={`pill-filter-${c.slug}`}
+          >
+            {c.name}
+          </Button>
+        ))}
+      </div>
+
       <Card className="bg-black/60 border-green-500/20">
         <CardHeader>
-          <CardTitle className="text-green-400 text-lg">All Projects</CardTitle>
+          <CardTitle className="text-green-400 text-lg">Projects Registry</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -292,80 +396,94 @@ export function ProjectsTab() {
           ) : projectsList.length === 0 ? (
             <p className="text-gray-400">No projects yet.</p>
           ) : (
-            <div className="space-y-3">
-              {projectsList.map((project) => (
-                <div
-                  key={project.id}
-                  className="p-4 rounded-lg border border-green-500/10 bg-black/30"
-                  data-testid={`card-admin-project-${project.id}`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className={`w-8 h-8 rounded-lg ${project.color} flex items-center justify-center flex-shrink-0`}>
-                          <span className="text-white text-xs font-bold">
-                            {project.icon.substring(0, 2)}
-                          </span>
-                        </span>
-                        <div>
-                          <span className="text-white font-medium" data-testid={`text-admin-project-title-${project.id}`}>
-                            {project.title}
-                          </span>
-                          <p className="text-green-400 text-xs">{project.subtitle}</p>
+            <div className="space-y-8">
+              {groupedProjects.map((group) => (
+                <div key={group.slug} className="space-y-3">
+                  <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm p-2 -mx-2 flex items-center justify-between border-b border-green-500/10">
+                    <h3 className="text-green-400 font-bold flex items-center gap-2">
+                      {group.consultantName}
+                      <Badge variant="secondary" className="bg-green-500/10 text-green-400 border-green-500/20">
+                        {group.projects.length}
+                      </Badge>
+                    </h3>
+                  </div>
+                  <div className="grid gap-3">
+                    {group.projects.map((project) => (
+                      <div
+                        key={project.id}
+                        className="p-4 rounded-lg border border-green-500/10 bg-black/30"
+                        data-testid={`card-admin-project-${project.id}`}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span className={`w-8 h-8 rounded-lg ${project.color} flex items-center justify-center flex-shrink-0`}>
+                                <span className="text-white text-xs font-bold">
+                                  {project.icon.substring(0, 2)}
+                                </span>
+                              </span>
+                              <div>
+                                <span className="text-white font-medium" data-testid={`text-admin-project-title-${project.id}`}>
+                                  {project.title}
+                                </span>
+                                <p className="text-green-400 text-xs">{project.subtitle}</p>
+                              </div>
+                              {project.link && (
+                                <a
+                                  href={project.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-gray-500 text-xs hover:text-green-400 truncate max-w-[200px]"
+                                  data-testid={`link-admin-project-${project.id}`}
+                                >
+                                  {project.link}
+                                </a>
+                              )}
+                              {!project.isActive && (
+                                <Badge variant="outline" className="border-red-500/30 text-red-400 text-xs">
+                                  Inactive
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-gray-400 text-sm mt-2 line-clamp-2">{project.description}</p>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {project.tags.map((tag, i) => (
+                                <Badge key={i} variant="secondary" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <Switch
+                              checked={project.isActive ?? true}
+                              onCheckedChange={(checked) =>
+                                toggleMutation.mutate({ id: project.id, isActive: checked })
+                              }
+                              data-testid={`switch-project-active-${project.id}`}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => loadForEdit(project)}
+                              className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                              data-testid={`button-edit-project-${project.id}`}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteMutation.mutate(project.id)}
+                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              data-testid={`button-delete-project-${project.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
-                        {project.link && (
-                          <a
-                            href={project.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-gray-500 text-xs hover:text-green-400 truncate max-w-[200px]"
-                            data-testid={`link-admin-project-${project.id}`}
-                          >
-                            {project.link}
-                          </a>
-                        )}
-                        {!project.isActive && (
-                          <Badge variant="outline" className="border-red-500/30 text-red-400 text-xs">
-                            Inactive
-                          </Badge>
-                        )}
                       </div>
-                      <p className="text-gray-400 text-sm mt-2 line-clamp-2">{project.description}</p>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {project.tags.map((tag, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <Switch
-                        checked={project.isActive ?? true}
-                        onCheckedChange={(checked) =>
-                          toggleMutation.mutate({ id: project.id, isActive: checked })
-                        }
-                        data-testid={`switch-project-active-${project.id}`}
-                      />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => loadForEdit(project)}
-                        className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
-                        data-testid={`button-edit-project-${project.id}`}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteMutation.mutate(project.id)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                        data-testid={`button-delete-project-${project.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    ))}
                   </div>
                 </div>
               ))}

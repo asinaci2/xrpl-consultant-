@@ -11,6 +11,7 @@ export type CachedMedia = {
   displayOrder: number;
   fetchedAt: string;
   createdAt: string;
+  consultantSlug: string | null;
 };
 
 export type Story = {
@@ -58,6 +59,7 @@ export type ProjectEntry = {
   displayOrder: number;
   isActive: boolean;
   createdAt: string;
+  consultantSlug: string | null;
 };
 
 export type ConsultantEntry = {

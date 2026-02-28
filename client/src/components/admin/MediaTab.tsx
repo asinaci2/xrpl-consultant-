@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Image as ImageIcon, CheckCircle2, Layout, GalleryHorizontal } from "lucide-react";
 import { CachedMedia } from "./types";
+import { Consultant } from "@shared/schema";
 
 export function MediaTab() {
   const { toast } = useToast();
@@ -19,10 +20,55 @@ export function MediaTab() {
   const [section, setSection] = useState("hero");
   const [altText, setAltText] = useState("");
   const [displayOrder, setDisplayOrder] = useState("0");
+  const [consultantSlug, setConsultantSlug] = useState<string>("");
+  const [filterSlug, setFilterSlug] = useState<string>("all");
+
+  const { data: consultants = [] } = useQuery<Consultant[]>({
+    queryKey: ["/api/consultants"],
+  });
 
   const { data: media = [], isLoading } = useQuery<CachedMedia[]>({
     queryKey: ["/api/media"],
   });
+
+  const stats = useMemo(() => {
+    return [
+      { 
+        label: "Total Media Items", 
+        value: media.length, 
+        icon: ImageIcon, 
+        color: "text-blue-400" 
+      },
+      { 
+        label: "Active Items", 
+        value: media.filter(m => m.isActive).length, 
+        icon: CheckCircle2, 
+        color: "text-green-400" 
+      },
+      { 
+        label: "Hero Images", 
+        value: media.filter(m => m.section === "hero").length, 
+        icon: Layout, 
+        color: "text-purple-400" 
+      },
+      { 
+        label: "About / Gallery", 
+        value: media.filter(m => m.section !== "hero").length, 
+        icon: GalleryHorizontal, 
+        color: "text-orange-400" 
+      },
+    ];
+  }, [media]);
+
+  const consultantsWithMedia = useMemo(() => {
+    const slugs = new Set(media.map(m => m.consultantSlug).filter(Boolean));
+    return consultants.filter(c => slugs.has(c.slug));
+  }, [media, consultants]);
+
+  const filteredMedia = useMemo(() => {
+    if (filterSlug === "all") return media;
+    return media.filter(m => m.consultantSlug === filterSlug);
+  }, [media, filterSlug]);
 
   const createMutation = useMutation({
     mutationFn: (data: object) => apiRequest("POST", "/api/media", data),
@@ -33,6 +79,7 @@ export function MediaTab() {
       setSourceUrl("");
       setAltText("");
       setDisplayOrder("0");
+      setConsultantSlug("");
       toast({ title: "Media added" });
     },
     onError: (err: Error) => {
@@ -68,17 +115,52 @@ export function MediaTab() {
       section,
       altText: altText || null,
       displayOrder: parseInt(displayOrder) || 0,
+      consultantSlug: consultantSlug || null,
     });
+  };
+
+  const getConsultantName = (slug: string | null) => {
+    if (!slug) return "—";
+    return consultants.find(c => c.slug === slug)?.name || slug;
   };
 
   return (
     <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((stat) => (
+          <Card key={stat.label} className="bg-black/60 border-green-500/20">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className={`p-2 rounded-lg bg-black/40 border border-green-500/10 ${stat.color}`}>
+                <stat.icon className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-gray-500 text-xs font-mono">{stat.label}</p>
+                <p className="text-xl font-bold text-white font-mono">{stat.value}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
       <Card className="bg-black/60 border-green-500/20">
         <CardHeader>
           <CardTitle className="text-green-400 text-lg">Add Media</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm text-gray-400">Consultant</label>
+              <Select value={consultantSlug} onValueChange={setConsultantSlug} required>
+                <SelectTrigger className="bg-black/40 border-green-500/20 text-white" data-testid="select-media-consultant">
+                  <SelectValue placeholder="Select Consultant" />
+                </SelectTrigger>
+                <SelectContent>
+                  {consultants.map(c => (
+                    <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <label className="text-sm text-gray-400">Source</label>
               <Select value={source} onValueChange={setSource}>
@@ -106,7 +188,7 @@ export function MediaTab() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2 md:col-span-2">
+            <div className="space-y-2">
               <label className="text-sm text-gray-400">Source URL</label>
               <Input
                 value={sourceUrl}
@@ -114,6 +196,7 @@ export function MediaTab() {
                 placeholder="https://..."
                 className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600"
                 data-testid="input-media-url"
+                required
               />
             </div>
             <div className="space-y-2">
@@ -139,7 +222,7 @@ export function MediaTab() {
             <div className="md:col-span-2">
               <Button
                 type="submit"
-                disabled={createMutation.isPending || !sourceUrl}
+                disabled={createMutation.isPending || !sourceUrl || !consultantSlug}
                 className="bg-green-600 hover:bg-green-700 text-white"
                 data-testid="button-add-media"
               >
@@ -151,6 +234,30 @@ export function MediaTab() {
         </CardContent>
       </Card>
 
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={filterSlug === "all" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilterSlug("all")}
+          className={filterSlug === "all" ? "bg-green-600 hover:bg-green-700" : "border-green-500/20 text-green-400"}
+          data-testid="pill-filter-all"
+        >
+          All
+        </Button>
+        {consultantsWithMedia.map((c) => (
+          <Button
+            key={c.id}
+            variant={filterSlug === c.slug ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilterSlug(c.slug)}
+            className={filterSlug === c.slug ? "bg-green-600 hover:bg-green-700" : "border-green-500/20 text-green-400"}
+            data-testid={`pill-filter-${c.slug}`}
+          >
+            {c.name}
+          </Button>
+        ))}
+      </div>
+
       <Card className="bg-black/60 border-green-500/20">
         <CardHeader>
           <CardTitle className="text-green-400 text-lg">Media Library</CardTitle>
@@ -158,8 +265,8 @@ export function MediaTab() {
         <CardContent>
           {isLoading ? (
             <p className="text-gray-400">Loading...</p>
-          ) : media.length === 0 ? (
-            <p className="text-gray-400">No media entries yet.</p>
+          ) : filteredMedia.length === 0 ? (
+            <p className="text-gray-400">No media entries found.</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -167,6 +274,7 @@ export function MediaTab() {
                   <TableRow className="border-green-500/20 hover:bg-transparent">
                     <TableHead className="text-green-400">Preview</TableHead>
                     <TableHead className="text-green-400">Source</TableHead>
+                    <TableHead className="text-green-400">Consultant</TableHead>
                     <TableHead className="text-green-400">Section</TableHead>
                     <TableHead className="text-green-400">Alt Text</TableHead>
                     <TableHead className="text-green-400">Order</TableHead>
@@ -175,7 +283,7 @@ export function MediaTab() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {media.map((item) => (
+                  {filteredMedia.map((item) => (
                     <TableRow key={item.id} className="border-green-500/10 hover:bg-green-500/5" data-testid={`row-media-${item.id}`}>
                       <TableCell>
                         <img
@@ -189,6 +297,9 @@ export function MediaTab() {
                         <Badge variant="outline" className="border-green-500/30 text-green-400">
                           {item.source}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-gray-300 font-mono text-xs">
+                        {getConsultantName(item.consultantSlug)}
                       </TableCell>
                       <TableCell className="text-gray-300">{item.section}</TableCell>
                       <TableCell className="text-gray-300 max-w-[150px] truncate">{item.altText || "—"}</TableCell>
