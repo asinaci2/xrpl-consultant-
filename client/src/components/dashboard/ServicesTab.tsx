@@ -136,9 +136,14 @@ export function ServicesTab({ slug }: { slug: string }) {
   return (
     <div className="space-y-6">
       <SectionBanner
-        title="Services & Expertise"
+        icon={Wrench}
+        iconBg="bg-green-500/10"
+        iconColor="text-green-400"
+        borderColor="border-green-500"
+        section="Services & Expertise"
         description="Define your ecosystem positioning, expertise statement, and the specific service offerings you provide to clients."
-        icon={<Wrench className="w-5 h-5" />}
+        slug={slug}
+        anchor="services"
       />
 
       {/* Ecosystem Alignment */}
