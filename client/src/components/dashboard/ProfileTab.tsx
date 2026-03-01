@@ -7,12 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
-  User, Sparkles, FileText, AtSign, Camera, Zap, Phone, Mail, MapPin, Globe, Eye, UserCircle, CalendarDays
+  User, Sparkles, FileText, AtSign, Camera, Phone, Mail, MapPin, Globe, Eye, UserCircle, CalendarDays
 } from "lucide-react";
 import { SectionBanner } from "./SectionBanner";
 import { FieldLabel } from "./FieldLabel";
 import { useAdminSlug, useSlugParam } from "./context";
-import { EXPERTISE_OPTIONS } from "./constants";
 import { ConsultantProfile } from "./types";
 
 export function ProfileTab({ slug }: { slug: string }) {
@@ -28,7 +27,6 @@ export function ProfileTab({ slug }: { slug: string }) {
   const [tagline, setTagline] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
-  const [specialties, setSpecialties] = useState<string[]>([]);
   const [contactHeadline, setContactHeadline] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -43,7 +41,6 @@ export function ProfileTab({ slug }: { slug: string }) {
       setTagline(profile.tagline);
       setBio(profile.bio);
       setAvatarUrl(profile.avatarUrl ?? "");
-      setSpecialties(profile.specialties ?? []);
       setContactHeadline(profile.contactHeadline);
       setEmail(profile.email);
       setPhone(profile.phone);
@@ -54,18 +51,11 @@ export function ProfileTab({ slug }: { slug: string }) {
     }
   }, [profile]);
 
-  const toggleExpertise = (opt: string) => {
-    setSpecialties(prev =>
-      prev.includes(opt) ? prev.filter(s => s !== opt) : [...prev, opt]
-    );
-  };
-
   const saveMutation = useMutation({
     mutationFn: () =>
       apiRequest("PATCH", `/api/dashboard/profile${sp}`, {
         name, tagline, bio,
         avatarUrl: avatarUrl || null,
-        specialties,
         contactHeadline,
         email, phone, location, locationLine2,
         twitterUsername: twitterUsername || null,
@@ -161,42 +151,6 @@ export function ProfileTab({ slug }: { slug: string }) {
             </CardContent>
           </Card>
 
-          {/* Expertise */}
-          <Card className="bg-black/60 border-green-500/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-green-400 text-base flex items-center gap-2">
-                <Zap className="w-4 h-4" />
-                Expertise & Skills
-              </CardTitle>
-              <p className="text-gray-500 text-xs">Click to toggle. Selected badges appear on your profile and directory card.</p>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2" data-testid="expertise-selector">
-                {EXPERTISE_OPTIONS.map(opt => {
-                  const selected = specialties.includes(opt);
-                  return (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => toggleExpertise(opt)}
-                      data-testid={`expertise-${opt.replace(/\s+/g, "-").toLowerCase()}`}
-                      className={`px-3 py-1.5 rounded-full text-sm font-mono transition-all duration-150 border ${
-                        selected
-                          ? "bg-green-500/20 border-green-400 text-green-300 shadow-[0_0_8px_rgba(0,255,100,0.2)]"
-                          : "bg-black/40 border-green-500/20 text-gray-400 hover:border-green-500/50 hover:text-gray-300"
-                      }`}
-                    >
-                      {selected && <span className="mr-1">✓</span>}{opt}
-                    </button>
-                  );
-                })}
-              </div>
-              {specialties.length > 0 && (
-                <p className="text-green-500/60 text-xs font-mono mt-3">{specialties.length} selected</p>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Contact details */}
           <Card className="bg-black/60 border-green-500/20">
             <CardHeader className="pb-3">
@@ -269,16 +223,6 @@ export function ProfileTab({ slug }: { slug: string }) {
               {bio && (
                 <p className="text-gray-400 text-xs line-clamp-3 leading-relaxed px-1">{bio}</p>
               )}
-              {specialties.length > 0 && (
-                <div className="flex flex-wrap gap-1 justify-center pt-1">
-                  {specialties.slice(0, 5).map(s => (
-                    <span key={s} className="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs">{s}</span>
-                  ))}
-                  {specialties.length > 5 && (
-                    <span className="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs">+{specialties.length - 5} more</span>
-                  )}
-                </div>
-              )}
             </div>
           </div>
 
@@ -307,16 +251,6 @@ export function ProfileTab({ slug }: { slug: string }) {
                   <p className="text-white font-semibold text-sm">{name || "Your Name"}</p>
                   <p className="text-green-400/60 text-xs mt-0.5 line-clamp-2">{tagline || "Your tagline"}</p>
                 </div>
-                {specialties.length > 0 && (
-                  <div className="flex flex-wrap gap-1 justify-center">
-                    {specialties.slice(0, 4).map(s => (
-                      <span key={s} className="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs">{s}</span>
-                    ))}
-                    {specialties.length > 4 && (
-                      <span className="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs">+{specialties.length - 4}</span>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           </div>

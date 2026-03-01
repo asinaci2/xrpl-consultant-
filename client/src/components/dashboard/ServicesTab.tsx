@@ -8,11 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, Edit2, X, Wrench, Globe2, FileText } from "lucide-react";
+import { Trash2, Plus, Edit2, X, Wrench, Globe2, FileText, Star } from "lucide-react";
 import { SectionBanner } from "./SectionBanner";
 import { FieldLabel } from "./FieldLabel";
 import { useAdminSlug, useSlugParam } from "./context";
-import { ICON_MAP, ICON_NAMES } from "./constants";
+import { ICON_MAP, ICON_NAMES, EXPERTISE_OPTIONS } from "./constants";
 import { ECOSYSTEM_CATEGORIES, ALIGNMENT_PILL } from "@/lib/constants";
 import type { ConsultantService } from "@shared/schema";
 import type { ConsultantProfile } from "./types";
@@ -24,6 +24,7 @@ export function ServicesTab({ slug }: { slug: string }) {
 
   const [expertiseStatement, setExpertiseStatement] = useState("");
   const [ecosystemAlignments, setEcosystemAlignments] = useState<string[]>([]);
+  const [specialties, setSpecialties] = useState<string[]>([]);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -43,6 +44,7 @@ export function ServicesTab({ slug }: { slug: string }) {
     if (profile) {
       setExpertiseStatement(profile.expertiseStatement ?? "");
       setEcosystemAlignments(profile.ecosystemAlignments ?? []);
+      setSpecialties(profile.specialties ?? []);
     }
   }, [profile]);
 
@@ -52,11 +54,18 @@ export function ServicesTab({ slug }: { slug: string }) {
     );
   };
 
+  const toggleSpecialty = (opt: string) => {
+    setSpecialties(prev =>
+      prev.includes(opt) ? prev.filter(s => s !== opt) : [...prev, opt]
+    );
+  };
+
   const profileMutation = useMutation({
     mutationFn: () =>
       apiRequest("PATCH", `/api/dashboard/profile${sp}`, {
         expertiseStatement,
         ecosystemAlignments,
+        specialties,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/profile", override] });
@@ -207,6 +216,44 @@ export function ServicesTab({ slug }: { slug: string }) {
             data-testid="textarea-expertise-statement"
           />
           <p className="text-gray-600 text-xs mt-2 font-mono">{expertiseStatement.length} characters</p>
+        </CardContent>
+      </Card>
+
+      {/* Core Expertise */}
+      <Card className="bg-black/60 border-green-500/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-green-400 text-base flex items-center gap-2">
+            <Star className="w-4 h-4" />
+            Core Expertise
+          </CardTitle>
+          <p className="text-gray-500 text-xs">
+            Skills and specialties shown as badges on your profile. When no custom service entries are set, these also determine the fallback service category cards.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2" data-testid="specialty-selector">
+            {EXPERTISE_OPTIONS.map(opt => {
+              const selected = specialties.includes(opt);
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => toggleSpecialty(opt)}
+                  data-testid={`chip-specialty-${opt.replace(/\s+/g, "-").toLowerCase()}`}
+                  className={`px-3 py-1.5 rounded-full text-sm font-mono transition-all duration-150 border ${
+                    selected
+                      ? "bg-green-500/20 border-green-400 text-green-300 shadow-[0_0_8px_rgba(0,255,100,0.2)]"
+                      : "bg-black/40 border-green-500/20 text-gray-400 hover:border-green-500/50 hover:text-gray-300"
+                  }`}
+                >
+                  {selected && <span className="mr-1">✓</span>}{opt}
+                </button>
+              );
+            })}
+          </div>
+          {specialties.length > 0 && (
+            <p className="text-green-500/60 text-xs font-mono mt-3">{specialties.length} selected</p>
+          )}
         </CardContent>
       </Card>
 
