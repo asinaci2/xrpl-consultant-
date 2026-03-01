@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, Edit2, X, Wrench, Globe2, FileText, Star } from "lucide-react";
+import { Trash2, Plus, Edit2, X, Wrench, Globe2, Star } from "lucide-react";
 import { SectionBanner } from "./SectionBanner";
 import { FieldLabel } from "./FieldLabel";
 import { useAdminSlug, useSlugParam } from "./context";
@@ -163,7 +163,7 @@ export function ServicesTab({ slug }: { slug: string }) {
             Ecosystem Alignment
           </CardTitle>
           <p className="text-gray-500 text-xs">
-            Which areas of the XRPL ecosystem do you work in? These map to the XRPL Ecosystem Directory categories and appear as clickable badges on your profile.
+            Which areas of the XRPL ecosystem do you work in? These appear as clickable badges on your profile and map to the XRPL Ecosystem Directory. Add a tagline below to describe your focus.
           </p>
         </CardHeader>
         <CardContent>
@@ -193,29 +193,17 @@ export function ServicesTab({ slug }: { slug: string }) {
               {ecosystemAlignments.length} area{ecosystemAlignments.length !== 1 ? "s" : ""} selected
             </p>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Expertise Statement */}
-      <Card className="bg-black/60 border-green-500/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-green-400 text-base flex items-center gap-2">
-            <FileText className="w-4 h-4" />
-            Expertise Statement
-          </CardTitle>
-          <p className="text-gray-500 text-xs">
-            A focused statement about your Web3/XRPL expertise — appears as the description in your Services section on your public profile.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            value={expertiseStatement}
-            onChange={e => setExpertiseStatement(e.target.value)}
-            placeholder="e.g. I specialise in building DeFi liquidity solutions on the XRP Ledger, with hands-on experience deploying AMM pools, cross-border payment corridors, and tokenised real-world asset frameworks."
-            className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600 min-h-[100px] resize-none"
-            data-testid="textarea-expertise-statement"
-          />
-          <p className="text-gray-600 text-xs mt-2 font-mono">{expertiseStatement.length} characters</p>
+          <div className="border-t border-green-500/10 mt-4 pt-4">
+            <p className="text-gray-500 text-xs mb-2">Profile tagline — appears as the description in your public Services section.</p>
+            <Textarea
+              value={expertiseStatement}
+              onChange={e => setExpertiseStatement(e.target.value)}
+              placeholder="e.g. I specialise in building DeFi liquidity solutions on the XRP Ledger, with hands-on experience deploying AMM pools, cross-border payment corridors, and tokenised real-world asset frameworks."
+              className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600 min-h-[100px] resize-none"
+              data-testid="textarea-expertise-statement"
+            />
+            <p className="text-gray-600 text-xs mt-2 font-mono">{expertiseStatement.length} characters</p>
+          </div>
         </CardContent>
       </Card>
 
