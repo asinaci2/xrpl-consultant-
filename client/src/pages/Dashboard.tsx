@@ -24,6 +24,7 @@ import { VisitorContactsTab } from "@/components/dashboard/VisitorContactsTab";
 import { RecommendationsTab } from "@/components/dashboard/RecommendationsTab";
 import { VisitorTestimonialsTab } from "@/components/dashboard/VisitorTestimonialsTab";
 import { ConsultantProfile } from "@/components/dashboard/types";
+import { SetupChecklist } from "@/components/dashboard/SetupChecklist";
 import { MatrixRain } from "@/components/MatrixRain";
 
 const TRIGGER_CLASS = "w-full justify-start text-sm px-3 py-2 h-auto data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded";
@@ -115,6 +116,7 @@ export default function Dashboard() {
   const { logout, consultantSlug, isAdmin, matrixUserId, displayName, isAuthenticated, isConsultant } = useAuth();
   const [showMatrixId, setShowMatrixId] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
   const search = useSearch();
   const [, setLocation] = useLocation();
 
@@ -210,7 +212,11 @@ export default function Dashboard() {
             {walletOpen && <div className="mt-2"><WalletTab /></div>}
           </div>
 
-          <Tabs defaultValue="profile" orientation="vertical" className="flex items-start gap-6">
+          {!overrideSlug && (
+            <SetupChecklist profile={profile} onNavigate={setActiveTab} />
+          )}
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="flex items-start gap-6">
             <TabsList className="flex flex-col h-auto w-44 shrink-0 bg-black/60 border border-green-500/20 p-2 rounded-lg sticky top-6 self-start">
               <SidebarGroup label="Identity" />
               <TabsTrigger value="profile" className={TRIGGER_CLASS} data-testid="tab-profile">
