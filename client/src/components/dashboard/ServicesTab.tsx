@@ -194,7 +194,7 @@ export function ServicesTab({ slug }: { slug: string }) {
             </p>
           )}
           <div className="border-t border-green-500/10 mt-4 pt-4">
-            <p className="text-gray-500 text-xs mb-2">Profile tagline — appears as the description in your public Services section.</p>
+            <p className="text-gray-500 text-xs mb-2">Service description — appears as the intro text at the top of your public Services section.</p>
             <Textarea
               value={expertiseStatement}
               onChange={e => setExpertiseStatement(e.target.value)}
