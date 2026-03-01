@@ -255,6 +255,7 @@ export const ecosystemProjects = pgTable("ecosystem_projects", {
   xHandle: text("x_handle"),
   token: text("token"),
   xrplFeatures: text("xrpl_features").array().notNull().default([]),
+  consultantSlugs: text("consultant_slugs").array().notNull().default([]),
   status: text("status").notNull().default("Live"),
   displayOrder: integer("display_order").default(0),
   isActive: boolean("is_active").default(true),
