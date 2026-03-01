@@ -11,6 +11,7 @@ import {
   testimonials,
   visitorContacts,
   ecosystemProjects,
+  consultantServices,
   type InsertInquiry, 
   type Inquiry,
   type InsertChatSession,
@@ -34,6 +35,8 @@ import {
   type VisitorContact,
   type InsertEcosystemProject,
   type EcosystemProject,
+  type InsertConsultantService,
+  type ConsultantService,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, gt, lt, and, asc, desc, isNull, isNotNull, or } from "drizzle-orm";
@@ -101,6 +104,11 @@ export interface IStorage {
   createEcosystemProject(data: InsertEcosystemProject): Promise<EcosystemProject>;
   updateEcosystemProject(id: number, data: Partial<InsertEcosystemProject>): Promise<EcosystemProject | undefined>;
   deleteEcosystemProject(id: number): Promise<void>;
+  getServicesBySlug(slug: string): Promise<ConsultantService[]>;
+  getAllServicesBySlug(slug: string): Promise<ConsultantService[]>;
+  createService(data: InsertConsultantService): Promise<ConsultantService>;
+  updateService(id: number, data: Partial<InsertConsultantService>): Promise<ConsultantService | undefined>;
+  deleteService(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -601,6 +609,43 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEcosystemProject(id: number): Promise<void> {
     await db.delete(ecosystemProjects).where(eq(ecosystemProjects.id, id));
+  }
+
+  async getServicesBySlug(slug: string): Promise<ConsultantService[]> {
+    return await db
+      .select()
+      .from(consultantServices)
+      .where(and(eq(consultantServices.consultantSlug, slug), eq(consultantServices.isActive, true)))
+      .orderBy(asc(consultantServices.displayOrder));
+  }
+
+  async getAllServicesBySlug(slug: string): Promise<ConsultantService[]> {
+    return await db
+      .select()
+      .from(consultantServices)
+      .where(eq(consultantServices.consultantSlug, slug))
+      .orderBy(asc(consultantServices.displayOrder));
+  }
+
+  async createService(data: InsertConsultantService): Promise<ConsultantService> {
+    const [created] = await db
+      .insert(consultantServices)
+      .values(data)
+      .returning();
+    return created;
+  }
+
+  async updateService(id: number, data: Partial<InsertConsultantService>): Promise<ConsultantService | undefined> {
+    const [updated] = await db
+      .update(consultantServices)
+      .set(data)
+      .where(eq(consultantServices.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteService(id: number): Promise<void> {
+    await db.delete(consultantServices).where(eq(consultantServices.id, id));
   }
 }
 

@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Hexagon, LayoutDashboard, LogIn, Shield, Users, X, ExternalLink, Code, Lightbulb, Share2, TrendingUp, Layers, Globe } from "lucide-react";
 import { MatrixRain } from "@/components/MatrixRain";
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useMemo } from "react";
-import { TEXTRP_APP_URL, SPECIALTY_CATEGORIES, CATEGORY_ORDER, CATEGORY_COLORS } from "@/lib/constants";
+import { useState, useMemo, useEffect } from "react";
+import { TEXTRP_APP_URL, SPECIALTY_CATEGORIES, CATEGORY_ORDER, CATEGORY_COLORS, ECOSYSTEM_CATEGORIES, ALIGNMENT_PILL } from "@/lib/constants";
 import { EcosystemDirectory } from "@/components/EcosystemDirectory";
 
 const CATEGORY_ICONS: Record<string, any> = {
@@ -23,6 +23,7 @@ interface Consultant {
   bio: string;
   avatarUrl: string | null;
   specialties: string[];
+  ecosystemAlignments: string[];
   email: string;
   location: string;
   isActive: boolean;
@@ -40,21 +41,37 @@ export default function Directory() {
   const [view, setView] = useState<"consultants" | "ecosystem">("consultants");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeSpecialty, setActiveSpecialty] = useState<string | null>(null);
+  const [activeEcosystemCat, setActiveEcosystemCat] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    if (params.get("view") === "ecosystem") setView("ecosystem");
+    const cat = params.get("cat");
+    if (cat && (ECOSYSTEM_CATEGORIES as readonly string[]).includes(cat)) {
+      setActiveEcosystemCat(cat);
+    }
+  }, []);
 
   const filteredConsultants = useMemo(() => {
+    if (activeEcosystemCat) {
+      return consultants.filter(c =>
+        (c.ecosystemAlignments ?? []).includes(activeEcosystemCat)
+      );
+    }
     if (activeSpecialty) {
       return consultants.filter(c => c.specialties.includes(activeSpecialty));
     }
     if (activeCategory) {
       const categorySpecialties = SPECIALTY_CATEGORIES[activeCategory] || [];
-      return consultants.filter(c => 
+      return consultants.filter(c =>
         c.specialties.some(s => categorySpecialties.includes(s))
       );
     }
     return consultants;
-  }, [consultants, activeCategory, activeSpecialty]);
+  }, [consultants, activeCategory, activeSpecialty, activeEcosystemCat]);
 
   const handleCategoryClick = (category: string) => {
+    setActiveEcosystemCat(null);
     if (activeCategory === category) {
       setActiveCategory(null);
       setActiveSpecialty(null);
@@ -65,13 +82,23 @@ export default function Directory() {
   };
 
   const handleSpecialtyClick = (specialty: string) => {
+    setActiveEcosystemCat(null);
     setActiveSpecialty(activeSpecialty === specialty ? null : specialty);
+  };
+
+  const handleEcosystemCatClick = (cat: string) => {
+    setActiveCategory(null);
+    setActiveSpecialty(null);
+    setActiveEcosystemCat(activeEcosystemCat === cat ? null : cat);
   };
 
   const clearFilters = () => {
     setActiveCategory(null);
     setActiveSpecialty(null);
+    setActiveEcosystemCat(null);
   };
+
+  const hasAnyAlignments = consultants.some(c => (c.ecosystemAlignments ?? []).length > 0);
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
@@ -251,8 +278,8 @@ export default function Directory() {
               <button
                 onClick={clearFilters}
                 className={`px-4 py-2 rounded-xl font-mono text-sm border transition-all duration-200 ${
-                  !activeCategory 
-                    ? "bg-green-500/20 border-green-500/50 text-green-400" 
+                  !activeCategory && !activeEcosystemCat
+                    ? "bg-green-500/20 border-green-500/50 text-green-400"
                     : "bg-black/40 border-green-500/10 text-gray-500 hover:border-green-500/30 hover:text-green-400/70"
                 }`}
                 data-testid="button-filter-all"
@@ -314,6 +341,35 @@ export default function Directory() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Ecosystem Focus Filter */}
+            {hasAnyAlignments && (
+              <div className="pt-4 border-t border-purple-500/10">
+                <p className="text-[10px] font-semibold uppercase tracking-widest mb-2 select-none"
+                  style={{ color: "#a855f7" }}>
+                  Ecosystem Focus
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {ECOSYSTEM_CATEGORIES.map(cat => {
+                    const isActive = activeEcosystemCat === cat;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => handleEcosystemCatClick(cat)}
+                        className={`px-3 py-1 rounded-full text-xs font-mono border transition-all duration-200 ${
+                          isActive
+                            ? `${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`
+                            : `${ALIGNMENT_PILL.unselected.bg} ${ALIGNMENT_PILL.unselected.border} ${ALIGNMENT_PILL.unselected.text} hover:border-purple-400/40 hover:text-gray-300`
+                        }`}
+                        data-testid={`filter-ecosystem-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
+                      >
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {isLoading ? (

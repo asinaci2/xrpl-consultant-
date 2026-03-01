@@ -1,0 +1,284 @@
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
+import { Trash2, Plus, Edit2, X, Wrench } from "lucide-react";
+import { SectionBanner } from "./SectionBanner";
+import { FieldLabel } from "./FieldLabel";
+import { useAdminSlug, useSlugParam } from "./context";
+import { ICON_MAP, ICON_NAMES } from "./constants";
+import type { ConsultantService } from "@shared/schema";
+
+export function ServicesTab({ slug }: { slug: string }) {
+  const { toast } = useToast();
+  const sp = useSlugParam();
+  const override = useAdminSlug();
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [icon, setIcon] = useState("Briefcase");
+  const [displayOrder, setDisplayOrder] = useState("0");
+  const [isActive, setIsActive] = useState(true);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [showForm, setShowForm] = useState(false);
+
+  const { data: servicesList = [], isLoading } = useQuery<ConsultantService[]>({
+    queryKey: ["/api/dashboard/services", override],
+    queryFn: () =>
+      fetch(`/api/dashboard/services${sp}`, { credentials: "include" }).then(r => r.json()),
+  });
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/dashboard/services", override] });
+    queryClient.invalidateQueries({ queryKey: ["/api/c", slug, "services"] });
+  };
+
+  const createMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", `/api/dashboard/services${sp}`, data),
+    onSuccess: () => { invalidate(); resetForm(); toast({ title: "Service added" }); },
+    onError: () => toast({ title: "Error", description: "Failed to add service", variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) =>
+      apiRequest("PATCH", `/api/dashboard/services/${id}${sp}`, data),
+    onSuccess: () => { invalidate(); resetForm(); toast({ title: "Service updated" }); },
+    onError: () => toast({ title: "Error", description: "Failed to update service", variant: "destructive" }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/dashboard/services/${id}${sp}`),
+    onSuccess: () => { invalidate(); toast({ title: "Service deleted" }); },
+    onError: () => toast({ title: "Error", description: "Failed to delete service", variant: "destructive" }),
+  });
+
+  const resetForm = () => {
+    setTitle(""); setDescription(""); setIcon("Briefcase");
+    setDisplayOrder("0"); setIsActive(true); setEditingId(null); setShowForm(false);
+  };
+
+  const startEdit = (s: ConsultantService) => {
+    setEditingId(s.id);
+    setTitle(s.title);
+    setDescription(s.description ?? "");
+    setIcon(s.icon ?? "Briefcase");
+    setDisplayOrder(String(s.displayOrder ?? 0));
+    setIsActive(s.isActive ?? true);
+    setShowForm(true);
+  };
+
+  const handleSubmit = () => {
+    if (!title.trim()) {
+      toast({ title: "Title is required", variant: "destructive" });
+      return;
+    }
+    const data = {
+      title: title.trim(),
+      description: description.trim(),
+      icon,
+      displayOrder: parseInt(displayOrder) || 0,
+      isActive,
+    };
+    if (editingId !== null) {
+      updateMutation.mutate({ id: editingId, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  return (
+    <div className="space-y-6">
+      <SectionBanner
+        title="Services"
+        description="Define the specific services you offer to clients. These replace the auto-generated service cards on your public profile."
+        icon={<Wrench className="w-5 h-5" />}
+      />
+
+      {!showForm && (
+        <Button
+          onClick={() => setShowForm(true)}
+          className="bg-green-600 hover:bg-green-700 text-white gap-2"
+          data-testid="button-add-service"
+        >
+          <Plus className="w-4 h-4" />
+          Add Service
+        </Button>
+      )}
+
+      {showForm && (
+        <Card className="border-green-500/20 bg-black/60">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white text-base font-display">
+              {editingId !== null ? "Edit Service" : "New Service"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <FieldLabel required>Title</FieldLabel>
+              <Input
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder="e.g. XRPL Integration"
+                className="bg-black/60 border-green-500/20 text-white"
+                data-testid="input-service-title"
+              />
+            </div>
+
+            <div>
+              <FieldLabel>Description</FieldLabel>
+              <Textarea
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                placeholder="Brief description of this service offering..."
+                rows={3}
+                className="bg-black/60 border-green-500/20 text-white resize-none"
+                data-testid="input-service-description"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <FieldLabel>Icon</FieldLabel>
+                <Select value={icon} onValueChange={setIcon}>
+                  <SelectTrigger
+                    className="bg-black/60 border-green-500/20 text-white"
+                    data-testid="select-service-icon"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-green-500/20">
+                    {ICON_NAMES.map(name => {
+                      const IconComp = ICON_MAP[name];
+                      return (
+                        <SelectItem key={name} value={name} className="text-white hover:bg-green-500/10">
+                          <span className="flex items-center gap-2">
+                            {IconComp && <IconComp className="w-4 h-4" />}
+                            {name}
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <FieldLabel>Display Order</FieldLabel>
+                <Input
+                  type="number"
+                  value={displayOrder}
+                  onChange={e => setDisplayOrder(e.target.value)}
+                  className="bg-black/60 border-green-500/20 text-white"
+                  data-testid="input-service-order"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={isActive}
+                onCheckedChange={setIsActive}
+                data-testid="toggle-service-active"
+              />
+              <span className="text-sm text-gray-400">Active (visible on profile)</span>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                onClick={handleSubmit}
+                disabled={isPending}
+                className="bg-green-600 hover:bg-green-700 text-white"
+                data-testid="button-save-service"
+              >
+                {isPending ? "Saving..." : editingId !== null ? "Update Service" : "Add Service"}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={resetForm}
+                className="text-gray-400 hover:text-white"
+                data-testid="button-cancel-service"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-16 rounded-xl bg-green-900/20 animate-pulse" />
+          ))}
+        </div>
+      ) : servicesList.length === 0 ? (
+        <div className="text-center py-12 rounded-xl border border-green-500/10 bg-black/40">
+          <p className="text-gray-500 text-sm font-mono">No services yet. Add one above to get started.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {servicesList.map(s => {
+            const IconComp = ICON_MAP[s.icon ?? "Briefcase"] ?? ICON_MAP["Briefcase"];
+            return (
+              <div
+                key={s.id}
+                className="flex items-start gap-4 rounded-xl border border-green-500/10 bg-black/40 hover:border-green-500/20 transition-colors p-4"
+                data-testid={`row-service-${s.id}`}
+              >
+                <div className="w-9 h-9 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center shrink-0">
+                  <IconComp className="w-4 h-4 text-green-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-white font-semibold text-sm">{s.title}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono border ${
+                      s.isActive
+                        ? "bg-green-500/10 border-green-500/30 text-green-400"
+                        : "bg-gray-700/30 border-gray-600/30 text-gray-500"
+                    }`}>
+                      {s.isActive ? "Active" : "Hidden"}
+                    </span>
+                    <span className="text-gray-600 text-[10px] font-mono">order: {s.displayOrder}</span>
+                  </div>
+                  {s.description && (
+                    <p className="text-gray-500 text-xs mt-0.5 truncate">{s.description}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => startEdit(s)}
+                    className="text-gray-400 hover:text-green-400 h-8 w-8 p-0"
+                    data-testid={`button-edit-service-${s.id}`}
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteMutation.mutate(s.id)}
+                    disabled={deleteMutation.isPending}
+                    className="text-gray-400 hover:text-red-400 h-8 w-8 p-0"
+                    data-testid={`button-delete-service-${s.id}`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

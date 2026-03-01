@@ -960,6 +960,15 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/c/:slug/services", async (req, res) => {
+    try {
+      const data = await storage.getServicesBySlug(req.params.slug);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch services" });
+    }
+  });
+
   app.get("/api/c/:slug/stories", async (req, res) => {
     try {
       const data = await storage.getActiveStoriesBySlug(req.params.slug);
@@ -1064,6 +1073,55 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ message: "Failed to delete project" });
+    }
+  });
+
+  // Services
+  app.get("/api/dashboard/services", requireVerifiedConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const data = await storage.getAllServicesBySlug(slug);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch services" });
+    }
+  });
+
+  app.post("/api/dashboard/services", requireVerifiedConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
+      const created = await storage.createService({ ...req.body, consultantSlug: slug });
+      res.status(201).json(created);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create service" });
+    }
+  });
+
+  app.patch("/api/dashboard/services/:id", requireVerifiedConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      const id = parseInt(req.params.id);
+      const all = await storage.getAllServicesBySlug(slug!);
+      if (!all.find(s => s.id === id)) { res.status(403).json({ message: "Forbidden" }); return; }
+      const updated = await storage.updateService(id, req.body);
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update service" });
+    }
+  });
+
+  app.delete("/api/dashboard/services/:id", requireVerifiedConsultant, async (req, res) => {
+    try {
+      const slug = getDashboardSlug(req);
+      const id = parseInt(req.params.id);
+      const all = await storage.getAllServicesBySlug(slug!);
+      if (!all.find(s => s.id === id)) { res.status(403).json({ message: "Forbidden" }); return; }
+      await storage.deleteService(id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete service" });
     }
   });
 

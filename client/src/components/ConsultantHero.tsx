@@ -186,13 +186,14 @@ export function ConsultantHero({ consultant, slug }: { consultant: Consultant; s
                 {consultant.ecosystemAlignments && consultant.ecosystemAlignments.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {consultant.ecosystemAlignments.map(cat => (
-                      <span
+                      <a
                         key={cat}
+                        href={`/?view=ecosystem&cat=${encodeURIComponent(cat)}`}
                         data-testid={`badge-alignment-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
-                        className={`px-2.5 py-1 rounded-full text-xs font-mono border ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
+                        className={`px-2.5 py-1 rounded-full text-xs font-mono border transition-opacity hover:opacity-80 ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
                       >
                         {cat}
-                      </span>
+                      </a>
                     ))}
                   </div>
                 )}

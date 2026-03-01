@@ -187,6 +187,25 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 
+export const consultantServices = pgTable("consultant_services", {
+  id: serial("id").primaryKey(),
+  consultantSlug: text("consultant_slug").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  icon: text("icon").notNull().default("Briefcase"),
+  displayOrder: integer("display_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertConsultantServiceSchema = createInsertSchema(consultantServices).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertConsultantService = z.infer<typeof insertConsultantServiceSchema>;
+export type ConsultantService = typeof consultantServices.$inferSelect;
+
 export const contactInfo = pgTable("contact_info", {
   id: serial("id").primaryKey(),
   consultantSlug: text("consultant_slug"),

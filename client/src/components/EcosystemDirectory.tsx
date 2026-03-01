@@ -10,6 +10,7 @@ interface Consultant {
   slug: string;
   name: string;
   avatarUrl: string | null;
+  ecosystemAlignments?: string[];
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -129,6 +130,9 @@ export function EcosystemDirectory() {
         <div className="space-y-10">
           {visibleCategories.map(category => {
             const items = grouped.get(category) ?? [];
+            const alignedConsultants = consultants.filter(c =>
+              (c.ecosystemAlignments ?? []).includes(category)
+            );
             return (
               <section key={category} data-testid={`section-ecosystem-${category.toLowerCase().replace(/[^a-z0-9]/g, "-")}`}>
                 <div className="flex items-center gap-3 mb-4">
@@ -219,6 +223,58 @@ export function EcosystemDirectory() {
                     );
                   })}
                 </div>
+
+                {alignedConsultants.length > 0 && (
+                  <div
+                    className="mt-4 pt-3 border-t border-purple-500/10"
+                    data-testid={`strip-aligned-consultants-${category.replace(/[\s/()]+/g, "-").toLowerCase()}`}
+                  >
+                    <p className="text-[10px] font-mono font-semibold uppercase tracking-widest mb-2"
+                      style={{ color: "#a855f7" }}>
+                      Consultants active in this space
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {alignedConsultants.map(c => (
+                        <a
+                          key={c.slug}
+                          href={`/c/${c.slug}`}
+                          title={c.name}
+                          data-testid={`avatar-aligned-${c.slug}`}
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-colors"
+                          style={{
+                            background: "rgba(168,85,247,0.08)",
+                            borderColor: "rgba(168,85,247,0.25)",
+                            color: "#c084fc",
+                          }}
+                          onMouseEnter={e => {
+                            (e.currentTarget as HTMLElement).style.background = "rgba(168,85,247,0.18)";
+                            (e.currentTarget as HTMLElement).style.borderColor = "rgba(168,85,247,0.5)";
+                          }}
+                          onMouseLeave={e => {
+                            (e.currentTarget as HTMLElement).style.background = "rgba(168,85,247,0.08)";
+                            (e.currentTarget as HTMLElement).style.borderColor = "rgba(168,85,247,0.25)";
+                          }}
+                        >
+                          {c.avatarUrl ? (
+                            <img
+                              src={c.avatarUrl}
+                              alt={c.name}
+                              className="w-4 h-4 rounded-full object-cover shrink-0"
+                            />
+                          ) : (
+                            <span
+                              className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
+                              style={{ background: "rgba(168,85,247,0.3)" }}
+                            >
+                              {c.name.charAt(0)}
+                            </span>
+                          )}
+                          <span className="text-[10px] font-mono">{c.name}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </section>
             );
           })}

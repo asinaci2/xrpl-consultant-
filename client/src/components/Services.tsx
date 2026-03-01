@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -8,6 +9,8 @@ import {
   getCategoryForSpecialty,
   ALIGNMENT_PILL,
 } from "@/lib/constants";
+import { ICON_MAP } from "@/components/dashboard/constants";
+import type { ConsultantService } from "@shared/schema";
 
 const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   Technical:   "XRPL and Web3 technical implementation, integration, and architecture.",
@@ -29,8 +32,12 @@ interface ServicesConsultant {
   ecosystemAlignments: string[];
 }
 
-export function Services({ consultant }: { consultant: ServicesConsultant }) {
+export function Services({ consultant, slug }: { consultant: ServicesConsultant; slug: string }) {
   const shouldReduceMotion = useReducedMotion();
+
+  const { data: serviceEntries = [] } = useQuery<ConsultantService[]>({
+    queryKey: ["/api/c", slug, "services"],
+  });
 
   const description = consultant.expertiseStatement?.trim()
     || "Specialist in XRPL strategy, Web3 development, and blockchain consulting.";
@@ -46,6 +53,7 @@ export function Services({ consultant }: { consultant: ServicesConsultant }) {
 
   const hasSpecialties = consultant.specialties?.length > 0;
   const hasAlignments = consultant.ecosystemAlignments?.length > 0;
+  const hasServiceEntries = serviceEntries.length > 0;
 
   return (
     <section id="services" className="section-padding bg-black/80 backdrop-blur-sm" data-testid="section-services">
@@ -62,8 +70,42 @@ export function Services({ consultant }: { consultant: ServicesConsultant }) {
           </p>
         </div>
 
-        {/* Service area cards */}
-        {hasSpecialties ? (
+        {/* Service cards — real entries take priority, fallback to specialty categories */}
+        {hasServiceEntries ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 mb-20">
+            {serviceEntries.map((s, index) => {
+              const IconComp = ICON_MAP[s.icon ?? "Briefcase"] ?? ICON_MAP["Briefcase"];
+              return (
+                <motion.div
+                  key={s.id}
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                  whileInView={shouldReduceMotion ? false : { opacity: 1, y: 0 }}
+                  transition={shouldReduceMotion ? {} : { duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <Card
+                    className="h-full hover-elevate border border-green-500/20 bg-black/60"
+                    data-testid={`card-service-${s.id}`}
+                  >
+                    <CardContent className="p-8">
+                      <div className="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center mb-5">
+                        <IconComp className="w-6 h-6 text-green-400" />
+                      </div>
+                      <h4 className="text-xl font-display font-bold mb-2 text-white">
+                        {s.title}
+                      </h4>
+                      {s.description && (
+                        <p className="text-gray-400 text-sm leading-relaxed">
+                          {s.description}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : hasSpecialties ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 mb-20">
             {serviceCards.map(({ category, specialties }, index) => {
               const colors = CATEGORY_COLORS[category];
@@ -150,13 +192,14 @@ export function Services({ consultant }: { consultant: ServicesConsultant }) {
               <h4 className="text-lg font-display font-semibold text-purple-300 mb-4">Ecosystem Focus</h4>
               <div className="flex flex-wrap justify-center gap-2">
                 {(consultant.ecosystemAlignments ?? []).map(cat => (
-                  <span
+                  <a
                     key={cat}
+                    href={`/?view=ecosystem&cat=${encodeURIComponent(cat)}`}
                     data-testid={`badge-ecosystem-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
-                    className={`px-3 py-1.5 rounded-full text-xs font-mono border ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
+                    className={`px-3 py-1.5 rounded-full text-xs font-mono border transition-opacity hover:opacity-80 ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
                   >
                     {cat}
-                  </span>
+                  </a>
                 ))}
               </div>
             </div>

@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, User, MessageCircle, ExternalLink, LogOut, Shield,
   UserCircle, Briefcase, Clock, Mail, Layout, Quote, Wallet,
-  ChevronDown, ChevronUp, Calendar, Network, Users, Star, Layers
+  ChevronDown, ChevronUp, Calendar, Network, Users, Star, Layers, Wrench
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminSlugContext } from "@/components/dashboard/context";
 import { ProfileTab } from "@/components/dashboard/ProfileTab";
 import { ProjectsTab } from "@/components/dashboard/ProjectsTab";
+import { ServicesTab } from "@/components/dashboard/ServicesTab";
 import { StoriesTab } from "@/components/dashboard/StoriesTab";
 import { SchedulingTab } from "@/components/dashboard/SchedulingTab";
 import { MediaTab } from "@/components/dashboard/MediaTab";
@@ -236,6 +237,10 @@ export default function Dashboard() {
                 <Briefcase className="w-4 h-4 mr-2 shrink-0" />
                 Projects
               </TabsTrigger>
+              <TabsTrigger value="services" className={TRIGGER_CLASS} data-testid="tab-services">
+                <Wrench className="w-4 h-4 mr-2 shrink-0" />
+                Services
+              </TabsTrigger>
               <TabsTrigger value="stories" className={TRIGGER_CLASS} data-testid="tab-stories">
                 <Clock className="w-4 h-4 mr-2 shrink-0" />
                 Stories
@@ -261,6 +266,7 @@ export default function Dashboard() {
               <TabsContent value="profile" className="mt-0"><ProfileTab slug={slug} /></TabsContent>
               <TabsContent value="expertise" className="mt-0"><ExpertiseTab slug={slug} /></TabsContent>
               <TabsContent value="projects" className="mt-0"><ProjectsTab slug={slug} /></TabsContent>
+              <TabsContent value="services" className="mt-0"><ServicesTab slug={slug} /></TabsContent>
               <TabsContent value="stories" className="mt-0"><StoriesTab slug={slug} /></TabsContent>
               <TabsContent value="scheduling" className="mt-0"><SchedulingTab slug={slug} /></TabsContent>
               <TabsContent value="media" className="mt-0"><MediaTab slug={slug} /></TabsContent>
