@@ -176,30 +176,6 @@ export function ConsultantHero({ consultant, slug }: { consultant: Consultant; s
               ))}
             </div>
 
-            {(consultant.expertiseStatement || (consultant.ecosystemAlignments && consultant.ecosystemAlignments.length > 0)) && (
-              <div className="mt-6 rounded-xl border border-purple-500/20 bg-purple-500/5 p-4 space-y-3" data-testid="section-ecosystem-expertise">
-                {consultant.expertiseStatement && (
-                  <p className="text-gray-300 text-sm leading-relaxed" data-testid="text-expertise-statement">
-                    {consultant.expertiseStatement}
-                  </p>
-                )}
-                {consultant.ecosystemAlignments && consultant.ecosystemAlignments.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {consultant.ecosystemAlignments.map(cat => (
-                      <a
-                        key={cat}
-                        href={`/?view=ecosystem&cat=${encodeURIComponent(cat)}`}
-                        data-testid={`badge-alignment-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
-                        className={`px-2.5 py-1 rounded-full text-xs font-mono border transition-opacity hover:opacity-80 ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
-                      >
-                        {cat}
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
             {consultant.matrixUserId && (
               <a
                 href={`${TEXTRP_APP_URL}/#/user/${consultant.matrixUserId}`}
