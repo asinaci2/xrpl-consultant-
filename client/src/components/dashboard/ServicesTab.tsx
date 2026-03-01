@@ -215,7 +215,7 @@ export function ServicesTab({ slug }: { slug: string }) {
             Core Expertise
           </CardTitle>
           <p className="text-gray-500 text-xs">
-            Skills and specialties shown as badges on your profile. When no custom service entries are set, these also determine the fallback service category cards.
+            Select skills to determine the fallback service category cards shown on your profile when no custom service entries have been added.
           </p>
         </CardHeader>
         <CardContent>

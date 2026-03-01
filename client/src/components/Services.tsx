@@ -1,12 +1,10 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   SPECIALTY_CATEGORIES,
   CATEGORY_COLORS,
   CATEGORY_ORDER,
-  getCategoryForSpecialty,
   ALIGNMENT_PILL,
 } from "@/lib/constants";
 import { ICON_MAP } from "@/components/dashboard/constants";
@@ -153,58 +151,31 @@ export function Services({ consultant, slug }: { consultant: ServicesConsultant;
           </div>
         )}
 
-        {/* Core Expertise badges */}
-        <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-          whileInView={shouldReduceMotion ? false : { opacity: 1, y: 0 }}
-          transition={shouldReduceMotion ? {} : { duration: 0.5 }}
-          viewport={{ once: true }}
-          className="text-center"
-        >
-          <h3 className="text-2xl font-display font-bold text-white mb-8" data-testid="text-skills-title">
-            Core Expertise
-          </h3>
-
-          {hasSpecialties ? (
-            <div className="flex flex-wrap justify-center gap-3 mb-10" data-testid="container-skills">
-              {(consultant.specialties ?? []).map(specialty => {
-                const category = getCategoryForSpecialty(specialty);
-                const colors = category ? CATEGORY_COLORS[category] : CATEGORY_COLORS.Technical;
-                return (
-                  <Badge
-                    key={specialty}
-                    variant="secondary"
-                    className={`flex items-center gap-1.5 px-3 py-1.5 border font-mono text-xs ${colors.bg} ${colors.border} ${colors.text} bg-opacity-100`}
-                    data-testid={`badge-skill-${specialty.replace(/\s+/g, "-").toLowerCase()}`}
-                  >
-                    {specialty}
-                  </Badge>
-                );
-              })}
+        {/* Ecosystem Focus */}
+        {hasAlignments && (
+          <motion.div
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+            whileInView={shouldReduceMotion ? false : { opacity: 1, y: 0 }}
+            transition={shouldReduceMotion ? {} : { duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center"
+            data-testid="container-ecosystem-focus"
+          >
+            <h3 className="text-2xl font-display font-bold text-purple-300 mb-6">Ecosystem Focus</h3>
+            <div className="flex flex-wrap justify-center gap-2">
+              {(consultant.ecosystemAlignments ?? []).map(cat => (
+                <a
+                  key={cat}
+                  href={`/?view=ecosystem&cat=${encodeURIComponent(cat)}`}
+                  data-testid={`badge-ecosystem-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
+                  className={`px-3 py-1.5 rounded-full text-sm font-mono border transition-opacity hover:opacity-80 ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
+                >
+                  {cat}
+                </a>
+              ))}
             </div>
-          ) : (
-            <p className="text-gray-600 text-sm font-mono mb-10">No specialties selected yet.</p>
-          )}
-
-          {/* Ecosystem Focus */}
-          {hasAlignments && (
-            <div data-testid="container-ecosystem-focus" className="mt-10">
-              <h4 className="text-lg font-display font-semibold text-purple-300 mb-4">Ecosystem Focus</h4>
-              <div className="flex flex-wrap justify-center gap-2">
-                {(consultant.ecosystemAlignments ?? []).map(cat => (
-                  <a
-                    key={cat}
-                    href={`/?view=ecosystem&cat=${encodeURIComponent(cat)}`}
-                    data-testid={`badge-ecosystem-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
-                    className={`px-3 py-1.5 rounded-full text-xs font-mono border transition-opacity hover:opacity-80 ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
-                  >
-                    {cat}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-        </motion.div>
+          </motion.div>
+        )}
 
       </div>
     </section>
