@@ -77,29 +77,6 @@ export function ExpertiseTab({ slug }: { slug: string }) {
         description="Describe your XRPL/Web3 depth and declare which areas of the ecosystem you work in. This enriches how you appear when linked to ecosystem projects in the directory."
       />
 
-      {/* Expertise Statement */}
-      <Card className="bg-black/60 border-green-500/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-green-400 text-base flex items-center gap-2">
-            <FileText className="w-4 h-4" />
-            Expertise Statement
-          </CardTitle>
-          <p className="text-gray-500 text-xs">
-            A focused statement about your Web3/XRPL expertise — distinct from your general bio. Appears on your public profile and helps connect you to ecosystem projects.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            value={expertiseStatement}
-            onChange={e => setExpertiseStatement(e.target.value)}
-            placeholder="e.g. I specialize in building DeFi liquidity solutions on the XRP Ledger, with hands-on experience deploying AMM pools, cross-border payment corridors, and tokenized real-world asset frameworks for institutional clients."
-            className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600 min-h-[120px] resize-none"
-            data-testid="textarea-expertise-statement"
-          />
-          <p className="text-gray-600 text-xs mt-2 font-mono">{expertiseStatement.length} characters</p>
-        </CardContent>
-      </Card>
-
       {/* Ecosystem Alignment */}
       <Card className="bg-black/60 border-green-500/20">
         <CardHeader className="pb-3">
@@ -136,6 +113,29 @@ export function ExpertiseTab({ slug }: { slug: string }) {
           {ecosystemAlignments.length > 0 && (
             <p className="text-purple-400/60 text-xs font-mono mt-3">{ecosystemAlignments.length} area{ecosystemAlignments.length !== 1 ? "s" : ""} selected</p>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Expertise Statement */}
+      <Card className="bg-black/60 border-green-500/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-green-400 text-base flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Expertise Statement
+          </CardTitle>
+          <p className="text-gray-500 text-xs">
+            A focused statement about your Web3/XRPL expertise — distinct from your general bio. Appears on your public profile and helps connect you to ecosystem projects.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            value={expertiseStatement}
+            onChange={e => setExpertiseStatement(e.target.value)}
+            placeholder="e.g. I specialize in building DeFi liquidity solutions on the XRP Ledger, with hands-on experience deploying AMM pools, cross-border payment corridors, and tokenized real-world asset frameworks for institutional clients."
+            className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600 min-h-[120px] resize-none"
+            data-testid="textarea-expertise-statement"
+          />
+          <p className="text-gray-600 text-xs mt-2 font-mono">{expertiseStatement.length} characters</p>
         </CardContent>
       </Card>
 
