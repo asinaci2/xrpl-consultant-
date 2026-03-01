@@ -237,10 +237,28 @@ export function ConsultantHero({ consultant, slug }: { consultant: Consultant; s
                     <div className="text-xs text-gray-400">Verified Consultant</div>
                   </div>
                 </div>
-                <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div className="h-full w-full bg-green-500 animate-[shimmer_2s_infinite]" />
-                </div>
-                <div className="flex justify-between mt-2 text-xs font-medium">
+                {consultant.expertiseStatement && (
+                  <p className="text-xs text-gray-300 leading-relaxed mb-3">
+                    {consultant.expertiseStatement}
+                  </p>
+                )}
+                {consultant.ecosystemAlignments && consultant.ecosystemAlignments.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {consultant.ecosystemAlignments.slice(0, 3).map(cat => (
+                      <span
+                        key={cat}
+                        className={`px-2 py-0.5 rounded-full text-xs font-mono border ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
+                      >
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-2 bg-gray-800 rounded-full overflow-hidden mb-3">
+                    <div className="h-full w-full bg-green-500 animate-[shimmer_2s_infinite]" />
+                  </div>
+                )}
+                <div className="flex justify-between text-xs font-medium">
                   <span className="text-gray-400">Status</span>
                   <span className="text-green-400">Available</span>
                 </div>
