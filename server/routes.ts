@@ -1088,11 +1088,18 @@ export async function registerRoutes(
     }
   });
 
+  async function syncEcosystemAlignments(slug: string) {
+    const services = await storage.getAllServicesBySlug(slug);
+    const derived = [...new Set(services.flatMap(s => s.ecosystemAlignments ?? []))];
+    await storage.updateConsultant(slug, { ecosystemAlignments: derived });
+  }
+
   app.post("/api/dashboard/services", requireVerifiedConsultant, async (req, res) => {
     try {
       const slug = getDashboardSlug(req);
       if (!slug) { res.status(400).json({ message: "No consultant slug" }); return; }
       const created = await storage.createService({ ...req.body, consultantSlug: slug });
+      await syncEcosystemAlignments(slug);
       res.status(201).json(created);
     } catch (err) {
       res.status(500).json({ message: "Failed to create service" });
@@ -1106,6 +1113,7 @@ export async function registerRoutes(
       const all = await storage.getAllServicesBySlug(slug!);
       if (!all.find(s => s.id === id)) { res.status(403).json({ message: "Forbidden" }); return; }
       const updated = await storage.updateService(id, req.body);
+      await syncEcosystemAlignments(slug!);
       res.json(updated);
     } catch (err) {
       res.status(500).json({ message: "Failed to update service" });
@@ -1119,6 +1127,7 @@ export async function registerRoutes(
       const all = await storage.getAllServicesBySlug(slug!);
       if (!all.find(s => s.id === id)) { res.status(403).json({ message: "Forbidden" }); return; }
       await storage.deleteService(id);
+      await syncEcosystemAlignments(slug!);
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ message: "Failed to delete service" });

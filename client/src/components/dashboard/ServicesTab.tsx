@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, Edit2, X, Wrench, Globe2, Star } from "lucide-react";
+import { Trash2, Plus, Edit2, X, Wrench, Star, FileText } from "lucide-react";
 import { SectionBanner } from "./SectionBanner";
 import { FieldLabel } from "./FieldLabel";
 import { useAdminSlug, useSlugParam } from "./context";
@@ -23,7 +23,6 @@ export function ServicesTab({ slug }: { slug: string }) {
   const override = useAdminSlug();
 
   const [expertiseStatement, setExpertiseStatement] = useState("");
-  const [ecosystemAlignments, setEcosystemAlignments] = useState<string[]>([]);
   const [specialties, setSpecialties] = useState<string[]>([]);
 
   const [title, setTitle] = useState("");
@@ -44,16 +43,9 @@ export function ServicesTab({ slug }: { slug: string }) {
   useEffect(() => {
     if (profile) {
       setExpertiseStatement(profile.expertiseStatement ?? "");
-      setEcosystemAlignments(profile.ecosystemAlignments ?? []);
       setSpecialties(profile.specialties ?? []);
     }
   }, [profile]);
-
-  const toggleAlignment = (cat: string) => {
-    setEcosystemAlignments(prev =>
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-    );
-  };
 
   const toggleSpecialty = (opt: string) => {
     setSpecialties(prev =>
@@ -65,14 +57,13 @@ export function ServicesTab({ slug }: { slug: string }) {
     mutationFn: () =>
       apiRequest("PATCH", `/api/dashboard/profile${sp}`, {
         expertiseStatement,
-        ecosystemAlignments,
         specialties,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/profile", override] });
       queryClient.invalidateQueries({ queryKey: ["/api/consultants"] });
       queryClient.invalidateQueries({ queryKey: ["/api/consultants", slug] });
-      toast({ title: "Saved", description: "Ecosystem profile updated." });
+      toast({ title: "Saved" });
     },
     onError: () => toast({ title: "Error", description: "Could not save.", variant: "destructive" }),
   });
@@ -86,6 +77,9 @@ export function ServicesTab({ slug }: { slug: string }) {
   const invalidateServices = () => {
     queryClient.invalidateQueries({ queryKey: ["/api/dashboard/services", override] });
     queryClient.invalidateQueries({ queryKey: ["/api/c", slug, "services"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/dashboard/profile", override] });
+    queryClient.invalidateQueries({ queryKey: ["/api/consultants"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/consultants", slug] });
   };
 
   const createMutation = useMutation({
@@ -153,60 +147,31 @@ export function ServicesTab({ slug }: { slug: string }) {
         iconColor="text-green-400"
         borderColor="border-green-500"
         section="Services & Expertise"
-        description="Define your ecosystem positioning, expertise statement, and the specific service offerings you provide to clients."
+        description="Configure your service description, specialties, and individual service offerings. Ecosystem alignment is derived automatically from your service tags."
         slug={slug}
         anchor="services"
       />
 
-      {/* Ecosystem Alignment */}
+      {/* Service Description */}
       <Card className="bg-black/60 border-green-500/20">
         <CardHeader className="pb-3">
           <CardTitle className="text-green-400 text-base flex items-center gap-2">
-            <Globe2 className="w-4 h-4" />
-            Ecosystem Alignment
+            <FileText className="w-4 h-4" />
+            Service Description
           </CardTitle>
           <p className="text-gray-500 text-xs">
-            Which areas of the XRPL ecosystem do you work in? These appear as clickable badges on your profile and map to the XRPL Ecosystem Directory. Add a tagline below to describe your focus.
+            Appears as the intro paragraph at the top of your public Services section.
           </p>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-2" data-testid="alignment-selector">
-            {ECOSYSTEM_CATEGORIES.map(cat => {
-              const selected = ecosystemAlignments.includes(cat);
-              const styles = selected ? ALIGNMENT_PILL.selected : ALIGNMENT_PILL.unselected;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => toggleAlignment(cat)}
-                  data-testid={`chip-alignment-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
-                  className={`px-3 py-1.5 rounded-full text-sm font-mono transition-all duration-150 border ${styles.bg} ${styles.border} ${styles.text} ${
-                    selected
-                      ? "shadow-[0_0_8px_rgba(168,85,247,0.25)]"
-                      : "hover:border-purple-500/40 hover:text-gray-300"
-                  }`}
-                >
-                  {selected && <span className="mr-1">✓</span>}{cat}
-                </button>
-              );
-            })}
-          </div>
-          {ecosystemAlignments.length > 0 && (
-            <p className="text-purple-400/60 text-xs font-mono mt-3">
-              {ecosystemAlignments.length} area{ecosystemAlignments.length !== 1 ? "s" : ""} selected
-            </p>
-          )}
-          <div className="border-t border-green-500/10 mt-4 pt-4">
-            <p className="text-gray-500 text-xs mb-2">Service description — appears as the intro text at the top of your public Services section.</p>
-            <Textarea
-              value={expertiseStatement}
-              onChange={e => setExpertiseStatement(e.target.value)}
-              placeholder="e.g. I specialise in building DeFi liquidity solutions on the XRP Ledger, with hands-on experience deploying AMM pools, cross-border payment corridors, and tokenised real-world asset frameworks."
-              className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600 min-h-[100px] resize-none"
-              data-testid="textarea-expertise-statement"
-            />
-            <p className="text-gray-600 text-xs mt-2 font-mono">{expertiseStatement.length} characters</p>
-          </div>
+          <Textarea
+            value={expertiseStatement}
+            onChange={e => setExpertiseStatement(e.target.value)}
+            placeholder="e.g. I specialise in building DeFi liquidity solutions on the XRP Ledger, with hands-on experience deploying AMM pools, cross-border payment corridors, and tokenised real-world asset frameworks."
+            className="bg-black/40 border-green-500/20 text-white placeholder:text-gray-600 min-h-[100px] resize-none"
+            data-testid="textarea-expertise-statement"
+          />
+          <p className="text-gray-600 text-xs mt-2 font-mono">{expertiseStatement.length} characters</p>
         </CardContent>
       </Card>
 
@@ -254,7 +219,7 @@ export function ServicesTab({ slug }: { slug: string }) {
         className="bg-green-600 hover:bg-green-700 text-white font-mono"
         data-testid="button-save-expertise"
       >
-        {profileMutation.isPending ? "Saving…" : "Save Expertise & Alignment"}
+        {profileMutation.isPending ? "Saving…" : "Save"}
       </Button>
 
       <div className="border-t border-green-500/10 pt-2">
