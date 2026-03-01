@@ -62,12 +62,9 @@ export function Services({ consultant, slug }: { consultant: ServicesConsultant;
         {/* Section header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-green-400 font-semibold tracking-wide uppercase text-sm mb-3">Consultant Services</h2>
-          <h3 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
+          <h3 className="text-3xl md:text-5xl font-display font-bold text-white mb-0">
             XRPL & Web3 Expertise
           </h3>
-          <p className="text-lg text-gray-400" data-testid="text-services-description">
-            {description}
-          </p>
         </div>
 
         {/* Service cards — real entries take priority, fallback to specialty categories */}
@@ -187,21 +184,30 @@ export function Services({ consultant, slug }: { consultant: ServicesConsultant;
           )}
 
           {/* Ecosystem Focus */}
-          {hasAlignments && (
-            <div data-testid="container-ecosystem-focus">
-              <h4 className="text-lg font-display font-semibold text-purple-300 mb-4">Ecosystem Focus</h4>
-              <div className="flex flex-wrap justify-center gap-2">
-                {(consultant.ecosystemAlignments ?? []).map(cat => (
-                  <a
-                    key={cat}
-                    href={`/?view=ecosystem&cat=${encodeURIComponent(cat)}`}
-                    data-testid={`badge-ecosystem-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
-                    className={`px-3 py-1.5 rounded-full text-xs font-mono border transition-opacity hover:opacity-80 ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
-                  >
-                    {cat}
-                  </a>
-                ))}
-              </div>
+          {(hasAlignments || consultant.expertiseStatement?.trim()) && (
+            <div data-testid="container-ecosystem-focus" className="mt-10">
+              {consultant.expertiseStatement?.trim() && (
+                <p className="text-lg text-gray-400 mb-6 max-w-2xl mx-auto" data-testid="text-services-description">
+                  {consultant.expertiseStatement.trim()}
+                </p>
+              )}
+              {hasAlignments && (
+                <>
+                  <h4 className="text-lg font-display font-semibold text-purple-300 mb-4">Ecosystem Focus</h4>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {(consultant.ecosystemAlignments ?? []).map(cat => (
+                      <a
+                        key={cat}
+                        href={`/?view=ecosystem&cat=${encodeURIComponent(cat)}`}
+                        data-testid={`badge-ecosystem-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-mono border transition-opacity hover:opacity-80 ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
+                      >
+                        {cat}
+                      </a>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
         </motion.div>
