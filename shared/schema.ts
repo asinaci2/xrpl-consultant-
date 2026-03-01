@@ -195,6 +195,7 @@ export const consultantServices = pgTable("consultant_services", {
   icon: text("icon").notNull().default("Briefcase"),
   displayOrder: integer("display_order").default(0),
   isActive: boolean("is_active").default(true),
+  ecosystemAlignments: text("ecosystem_alignments").array().notNull().default([]),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

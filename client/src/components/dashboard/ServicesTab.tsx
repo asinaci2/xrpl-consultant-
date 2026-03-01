@@ -31,6 +31,7 @@ export function ServicesTab({ slug }: { slug: string }) {
   const [icon, setIcon] = useState("Briefcase");
   const [displayOrder, setDisplayOrder] = useState("0");
   const [isActive, setIsActive] = useState(true);
+  const [serviceAlignments, setServiceAlignments] = useState<string[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
 
@@ -108,7 +109,7 @@ export function ServicesTab({ slug }: { slug: string }) {
 
   const resetForm = () => {
     setTitle(""); setDescription(""); setIcon("Briefcase");
-    setDisplayOrder("0"); setIsActive(true); setEditingId(null); setShowForm(false);
+    setDisplayOrder("0"); setIsActive(true); setServiceAlignments([]); setEditingId(null); setShowForm(false);
   };
 
   const startEdit = (s: ConsultantService) => {
@@ -118,6 +119,7 @@ export function ServicesTab({ slug }: { slug: string }) {
     setIcon(s.icon ?? "Briefcase");
     setDisplayOrder(String(s.displayOrder ?? 0));
     setIsActive(s.isActive ?? true);
+    setServiceAlignments(s.ecosystemAlignments ?? []);
     setShowForm(true);
   };
 
@@ -132,6 +134,7 @@ export function ServicesTab({ slug }: { slug: string }) {
       icon,
       displayOrder: parseInt(displayOrder) || 0,
       isActive,
+      ecosystemAlignments: serviceAlignments,
     };
     if (editingId !== null) {
       updateMutation.mutate({ id: editingId, data });
@@ -347,6 +350,33 @@ export function ServicesTab({ slug }: { slug: string }) {
                   data-testid="toggle-service-active"
                 />
                 <span className="text-sm text-gray-400">Active (visible on profile)</span>
+              </div>
+
+              <div>
+                <FieldLabel>Ecosystem Tags</FieldLabel>
+                <p className="text-gray-600 text-xs mb-2">Tag this service with the XRPL ecosystem areas it addresses.</p>
+                <div className="flex flex-wrap gap-2" data-testid="service-alignment-selector">
+                  {ECOSYSTEM_CATEGORIES.map(cat => {
+                    const selected = serviceAlignments.includes(cat);
+                    const styles = selected ? ALIGNMENT_PILL.selected : ALIGNMENT_PILL.unselected;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setServiceAlignments(prev =>
+                          prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+                        )}
+                        data-testid={`chip-service-alignment-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-mono transition-all duration-150 border ${styles.bg} ${styles.border} ${styles.text}`}
+                      >
+                        {selected && <span className="mr-1">✓</span>}{cat}
+                      </button>
+                    );
+                  })}
+                </div>
+                {serviceAlignments.length > 0 && (
+                  <p className="text-purple-400/60 text-xs font-mono mt-2">{serviceAlignments.length} tag{serviceAlignments.length !== 1 ? "s" : ""} selected</p>
+                )}
               </div>
 
               <div className="flex gap-3 pt-2">

@@ -27,7 +27,6 @@ const CATEGORY_ICONS: Record<string, string> = {
 interface ServicesConsultant {
   specialties: string[];
   expertiseStatement: string;
-  ecosystemAlignments: string[];
 }
 
 export function Services({ consultant, slug }: { consultant: ServicesConsultant; slug: string }) {
@@ -50,7 +49,6 @@ export function Services({ consultant, slug }: { consultant: ServicesConsultant;
     .filter(({ specialties }) => specialties.length > 0);
 
   const hasSpecialties = consultant.specialties?.length > 0;
-  const hasAlignments = consultant.ecosystemAlignments?.length > 0;
   const hasServiceEntries = serviceEntries.length > 0;
 
   return (
@@ -96,6 +94,20 @@ export function Services({ consultant, slug }: { consultant: ServicesConsultant;
                         <p className="text-gray-400 text-sm leading-relaxed">
                           {s.description}
                         </p>
+                      )}
+                      {s.ecosystemAlignments?.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-4">
+                          {s.ecosystemAlignments.map(cat => (
+                            <a
+                              key={cat}
+                              href={`/?view=ecosystem&cat=${encodeURIComponent(cat)}`}
+                              data-testid={`badge-service-ecosystem-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
+                              className={`px-2.5 py-1 rounded-full text-xs font-mono border transition-opacity hover:opacity-80 ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
+                            >
+                              {cat}
+                            </a>
+                          ))}
+                        </div>
                       )}
                     </CardContent>
                   </Card>
@@ -151,31 +163,6 @@ export function Services({ consultant, slug }: { consultant: ServicesConsultant;
           </div>
         )}
 
-        {/* Ecosystem Focus */}
-        {hasAlignments && (
-          <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-            whileInView={shouldReduceMotion ? false : { opacity: 1, y: 0 }}
-            transition={shouldReduceMotion ? {} : { duration: 0.5 }}
-            viewport={{ once: true }}
-            className="text-center"
-            data-testid="container-ecosystem-focus"
-          >
-            <h3 className="text-2xl font-display font-bold text-purple-300 mb-6">Ecosystem Focus</h3>
-            <div className="flex flex-wrap justify-center gap-2">
-              {(consultant.ecosystemAlignments ?? []).map(cat => (
-                <a
-                  key={cat}
-                  href={`/?view=ecosystem&cat=${encodeURIComponent(cat)}`}
-                  data-testid={`badge-ecosystem-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
-                  className={`px-3 py-1.5 rounded-full text-sm font-mono border transition-opacity hover:opacity-80 ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
-                >
-                  {cat}
-                </a>
-              ))}
-            </div>
-          </motion.div>
-        )}
 
       </div>
     </section>
