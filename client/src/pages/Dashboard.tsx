@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, User, MessageCircle, ExternalLink, LogOut, Shield,
   UserCircle, Briefcase, Clock, Mail, Layout, Quote, Wallet,
-  ChevronDown, ChevronUp, Calendar, Network, Users, Star
+  ChevronDown, ChevronUp, Calendar, Network, Users, Star, Layers
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminSlugContext } from "@/components/dashboard/context";
@@ -18,6 +18,7 @@ import { MediaTab } from "@/components/dashboard/MediaTab";
 import { ChatWidgetTab } from "@/components/dashboard/ChatWidgetTab";
 import { TestimonialsTab } from "@/components/dashboard/TestimonialsTab";
 import { SynergiesTab } from "@/components/dashboard/SynergiesTab";
+import { ExpertiseTab } from "@/components/dashboard/ExpertiseTab";
 import { WalletTab } from "@/components/dashboard/WalletTab";
 import { VisitorContactsTab } from "@/components/dashboard/VisitorContactsTab";
 import { RecommendationsTab } from "@/components/dashboard/RecommendationsTab";
@@ -216,6 +217,10 @@ export default function Dashboard() {
                 <UserCircle className="w-4 h-4 mr-2 shrink-0" />
                 Profile
               </TabsTrigger>
+              <TabsTrigger value="expertise" className={TRIGGER_CLASS} data-testid="tab-expertise">
+                <Layers className="w-4 h-4 mr-2 shrink-0" />
+                Expertise
+              </TabsTrigger>
               <TabsTrigger value="scheduling" className={TRIGGER_CLASS} data-testid="tab-scheduling">
                 <Calendar className="w-4 h-4 mr-2 shrink-0" />
                 Scheduling
@@ -254,6 +259,7 @@ export default function Dashboard() {
 
             <div className="flex-1 min-w-0">
               <TabsContent value="profile" className="mt-0"><ProfileTab slug={slug} /></TabsContent>
+              <TabsContent value="expertise" className="mt-0"><ExpertiseTab slug={slug} /></TabsContent>
               <TabsContent value="projects" className="mt-0"><ProjectsTab slug={slug} /></TabsContent>
               <TabsContent value="stories" className="mt-0"><StoriesTab slug={slug} /></TabsContent>
               <TabsContent value="scheduling" className="mt-0"><SchedulingTab slug={slug} /></TabsContent>

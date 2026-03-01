@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { TEXTRP_APP_URL } from "@/lib/constants";
+import { TEXTRP_APP_URL, ALIGNMENT_PILL } from "@/lib/constants";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop";
 
@@ -24,6 +24,8 @@ interface Consultant {
   specialties: string[];
   avatarUrl: string | null;
   matrixUserId: string | null;
+  expertiseStatement?: string;
+  ecosystemAlignments?: string[];
 }
 
 export function ConsultantHero({ consultant, slug }: { consultant: Consultant; slug: string }) {
@@ -173,6 +175,29 @@ export function ConsultantHero({ consultant, slug }: { consultant: Consultant; s
                 </div>
               ))}
             </div>
+
+            {(consultant.expertiseStatement || (consultant.ecosystemAlignments && consultant.ecosystemAlignments.length > 0)) && (
+              <div className="mt-6 rounded-xl border border-purple-500/20 bg-purple-500/5 p-4 space-y-3" data-testid="section-ecosystem-expertise">
+                {consultant.expertiseStatement && (
+                  <p className="text-gray-300 text-sm leading-relaxed" data-testid="text-expertise-statement">
+                    {consultant.expertiseStatement}
+                  </p>
+                )}
+                {consultant.ecosystemAlignments && consultant.ecosystemAlignments.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {consultant.ecosystemAlignments.map(cat => (
+                      <span
+                        key={cat}
+                        data-testid={`badge-alignment-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
+                        className={`px-2.5 py-1 rounded-full text-xs font-mono border ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
+                      >
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {consultant.matrixUserId && (
               <a

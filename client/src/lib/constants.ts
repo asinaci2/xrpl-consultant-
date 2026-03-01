@@ -148,6 +148,12 @@ export const ECOSYSTEM_STATUS_COLORS: Record<string, { bg: string; border: strin
   "Deprecated":  { bg: "bg-red-500/10",    border: "border-red-500/30",    text: "text-red-400"    },
 };
 
+// Pill token styles for ecosystem alignment chips (purple = Fortuna DAO brand)
+export const ALIGNMENT_PILL = {
+  selected:   { bg: "bg-purple-500/20", border: "border-purple-400",    text: "text-purple-300" },
+  unselected: { bg: "bg-black/40",      border: "border-purple-500/20", text: "text-gray-400"   },
+} as const;
+
 // Returns a sorted list of consultants by how many of the target specialties they cover
 export function rankConsultantsByComplementCoverage<T extends { specialties: string[] }>(
   complementSpecialties: string[],

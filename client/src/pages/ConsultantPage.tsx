@@ -26,6 +26,8 @@ interface Consultant {
   twitterUsername: string | null;
   matrixUserId: string | null;
   calendarUrl: string | null;
+  expertiseStatement: string;
+  ecosystemAlignments: string[];
   email: string;
   phone: string;
   location: string;

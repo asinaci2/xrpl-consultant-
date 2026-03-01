@@ -14,6 +14,8 @@ export type ConsultantProfile = {
   contactHeadline: string;
   profileRoomId: string | null;
   calendarUrl: string | null;
+  expertiseStatement: string;
+  ecosystemAlignments: string[];
 };
 
 export type ProjectEntry = {

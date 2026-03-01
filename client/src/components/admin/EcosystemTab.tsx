@@ -14,9 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Edit2, X, ExternalLink, LayoutGrid, ChevronDown, ChevronRight, Import, User } from "lucide-react";
-import { ECOSYSTEM_CATEGORIES, ECOSYSTEM_STATUS_OPTIONS, ECOSYSTEM_STATUS_COLORS } from "@/lib/constants";
+import { ECOSYSTEM_CATEGORIES, ECOSYSTEM_STATUS_OPTIONS, ECOSYSTEM_STATUS_COLORS, ALIGNMENT_PILL } from "@/lib/constants";
 
-interface Consultant { id: number; slug: string; name: string; avatarUrl: string | null; }
+interface Consultant { id: number; slug: string; name: string; avatarUrl: string | null; ecosystemAlignments?: string[]; }
 interface Project {
   id: number; title: string; subtitle: string; description: string; impact: string;
   link: string | null; tags: string[]; consultantSlug: string | null; isActive: boolean;
@@ -230,6 +230,11 @@ export function EcosystemTab() {
                               {consultant.name}
                             </span>
                           )}
+                          {consultant && (consultant.ecosystemAlignments ?? []).slice(0, 2).map(a => (
+                            <span key={a} className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}>
+                              {a.split(" / ")[0].split(" (")[0]}
+                            </span>
+                          ))}
                           {!project.isActive && (
                             <span className="text-[10px] font-mono text-gray-500 border border-gray-700 px-1.5 py-0.5 rounded-full">Inactive</span>
                           )}
@@ -392,25 +397,40 @@ export function EcosystemTab() {
                     <div className="flex flex-wrap gap-2">
                       {consultants.map(c => {
                         const selected = selectedSlugs.includes(c.slug);
+                        const alignments = c.ecosystemAlignments ?? [];
                         return (
                           <button
                             key={c.slug}
                             type="button"
                             onClick={() => toggleConsultantSlug(c.slug)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono border transition-all duration-150 ${
+                            className={`flex flex-col items-start gap-0.5 px-3 py-2 rounded-xl text-xs font-mono border transition-all duration-150 ${
                               selected
                                 ? "bg-green-500/20 border-green-500/50 text-green-400"
                                 : "bg-black/40 border-green-500/15 text-gray-500 hover:border-green-500/30 hover:text-gray-300"
                             }`}
                             data-testid={`chip-consultant-${c.slug}`}
                           >
-                            {c.avatarUrl ? (
-                              <img src={c.avatarUrl} alt={c.name} className="w-4 h-4 rounded-full object-cover" />
-                            ) : (
-                              <span className="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center text-[9px] text-green-400 font-bold">{c.name.charAt(0)}</span>
+                            <div className="flex items-center gap-1.5">
+                              {c.avatarUrl ? (
+                                <img src={c.avatarUrl} alt={c.name} className="w-4 h-4 rounded-full object-cover" />
+                              ) : (
+                                <span className="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center text-[9px] text-green-400 font-bold">{c.name.charAt(0)}</span>
+                              )}
+                              {c.name}
+                              {selected && <X className="w-3 h-3 ml-0.5 opacity-60" />}
+                            </div>
+                            {alignments.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-0.5 pl-5">
+                                {alignments.slice(0, 2).map(a => (
+                                  <span key={a} className={`text-[9px] px-1.5 py-0 rounded-full border ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}>
+                                    {a.split(" / ")[0].split(" (")[0]}
+                                  </span>
+                                ))}
+                                {alignments.length > 2 && (
+                                  <span className="text-[9px] text-purple-400/50">+{alignments.length - 2}</span>
+                                )}
+                              </div>
                             )}
-                            {c.name}
-                            {selected && <X className="w-3 h-3 ml-0.5 opacity-60" />}
                           </button>
                         );
                       })}
