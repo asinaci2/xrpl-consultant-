@@ -97,7 +97,7 @@ export default function ConsultantPage() {
 
       <main className="flex-grow relative z-10">
         <ConsultantHero consultant={consultant} slug={slug} />
-        <Services />
+        <Services consultant={consultant} />
         <ConsultantProjects slug={slug} />
         <ConsultantComplements consultant={consultant} allConsultants={allConsultants} />
         {consultant.twitterUsername && <MatrixTweets />}

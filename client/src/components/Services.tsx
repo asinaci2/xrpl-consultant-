@@ -1,116 +1,117 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { 
-  Rocket, 
-  Users, 
-  Mic, 
-  Leaf, 
-  Wrench, 
-  TrendingUp,
-  Sparkles,
-  Target,
-  Gem,
-  MessageSquare,
-  Globe2,
-  Handshake,
-  Megaphone,
-  Heart
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  SPECIALTY_CATEGORIES,
+  CATEGORY_COLORS,
+  CATEGORY_ORDER,
+  getCategoryForSpecialty,
+  ALIGNMENT_PILL,
+} from "@/lib/constants";
 
-const services = [
-  {
-    icon: Rocket,
-    title: "XRPL Project Consulting & Strategy",
-    description: "Guidance on launching/building sustainable XRPL projects, from meme/NFT origins to full ecosystems with utility. Token-gating, rewards, and integrations like TextRP. Emphasis on \"more doers, less talkers\" and evolving memes into real products."
-  },
-  {
-    icon: Users,
-    title: "Web3 Community Building & Growth",
-    description: "Strategies for growing engaged XRPL communities, including token/NFT gating for chats/rooms, ambassador networks, and cross-project collaborations with Budzy, NexusWater, UgaLabz/GridXRPL, and more."
-  },
-  {
-    icon: Mic,
-    title: "Event & On-Ground Representation",
-    description: "\"Boots on the ground\" awareness for XRPL/Web3 projects at conferences like Ethereum Denver. Live Spaces hosting, promotion, and networking to connect builders with investors and opportunities."
-  },
-  {
-    icon: Leaf,
-    title: "Cannabis & RWA Tokenization Advisory",
-    description: "Specialized advice on tokenizing real-world assets (RWAs) in regulated spaces like cannabis. Fractional ownership, liquidity solutions, and bridging traditional industries to XRPL through the Budzy/cannapreneur network."
-  },
-  {
-    icon: Wrench,
-    title: "XRPL Integration & Tool Recommendations",
-    description: "Consulting on adopting XRPL-native tools—wallets like Xaman, messaging via TextRP, DeFi/NFT utilities—for projects seeking secure, scalable Web3 features without heavy custom development."
-  },
-  {
-    icon: TrendingUp,
-    title: "Brand & Ecosystem Development",
-    description: "Helping projects evolve from fun/speculative (memes/NFTs) to utility-driven brands. Merch, reward loops, and multi-layer ecosystems inspired by successes like UgaLabz → GridXRPL."
-  }
-];
+const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  Technical:   "XRPL and Web3 technical implementation, integration, and architecture.",
+  Innovative:  "Emerging Web3 strategies — NFTs, DAOs, token design, and crypto education.",
+  Community:   "Building and growing decentralised communities and ambassador networks.",
+  Growth:      "Marketing, content creation, social media, and ecosystem expansion.",
+};
 
-const skills = [
-  { icon: Gem, label: "XRPL & XRP Ledger Expertise" },
-  { icon: MessageSquare, label: "Web3 Community Management" },
-  { icon: Sparkles, label: "Tokenomics & Ecosystem Design" },
-  { icon: Target, label: "NFT & Meme-to-Utility Transitions" },
-  { icon: Globe2, label: "Real-World Asset Tokenization" },
-  { icon: Leaf, label: "Cannabis Industry Web3 Innovation" },
-  { icon: Mic, label: "Event Hosting & Representation" },
-  { icon: Handshake, label: "Strategic Networking & Partnerships" },
-  { icon: Megaphone, label: "Project Promotion & Growth" },
-  { icon: Heart, label: "Builder Support (Doers > Talkers)" }
-];
+const CATEGORY_ICONS: Record<string, string> = {
+  Technical:  "⚙️",
+  Innovative: "✨",
+  Community:  "🤝",
+  Growth:     "📈",
+};
 
-export function Services() {
+interface ServicesConsultant {
+  specialties: string[];
+  expertiseStatement: string;
+  ecosystemAlignments: string[];
+}
+
+export function Services({ consultant }: { consultant: ServicesConsultant }) {
   const shouldReduceMotion = useReducedMotion();
+
+  const description = consultant.expertiseStatement?.trim()
+    || "Specialist in XRPL strategy, Web3 development, and blockchain consulting.";
+
+  const serviceCards = CATEGORY_ORDER
+    .map(category => ({
+      category,
+      specialties: (consultant.specialties ?? []).filter(s =>
+        (SPECIALTY_CATEGORIES[category] ?? []).includes(s)
+      ),
+    }))
+    .filter(({ specialties }) => specialties.length > 0);
+
+  const hasSpecialties = consultant.specialties?.length > 0;
+  const hasAlignments = consultant.ecosystemAlignments?.length > 0;
+
   return (
     <section id="services" className="section-padding bg-black/80 backdrop-blur-sm" data-testid="section-services">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* Section header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-green-400 font-semibold tracking-wide uppercase text-sm mb-3">Consultant Services</h2>
           <h3 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
             XRPL & Web3 Expertise
           </h3>
-          <p className="text-lg text-gray-400">
-            From meme origins to full ecosystems—strategic guidance for builders who do more and talk less.
+          <p className="text-lg text-gray-400" data-testid="text-services-description">
+            {description}
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-          {services.map((service, index) => (
-            <motion.div
-              key={index}
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-              whileInView={shouldReduceMotion ? false : { opacity: 1, y: 0 }}
-              transition={shouldReduceMotion ? {} : { duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-            >
-              <Card 
-                className="h-full hover-elevate"
-                data-testid={`card-service-${index}`}
-              >
-                <CardContent className="p-8">
-                  <div className="w-14 h-14 rounded-xl bg-green-500/10 text-green-400 flex items-center justify-center mb-6">
-                    <service.icon className="w-7 h-7" />
-                  </div>
-                  <h4 
-                    className="text-xl font-display font-bold text-white mb-3"
-                    data-testid={`text-service-title-${index}`}
+        {/* Service area cards */}
+        {hasSpecialties ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 mb-20">
+            {serviceCards.map(({ category, specialties }, index) => {
+              const colors = CATEGORY_COLORS[category];
+              return (
+                <motion.div
+                  key={category}
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                  whileInView={shouldReduceMotion ? false : { opacity: 1, y: 0 }}
+                  transition={shouldReduceMotion ? {} : { duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <Card
+                    className={`h-full hover-elevate border ${colors.border} bg-black/60`}
+                    data-testid={`card-service-${category.toLowerCase()}`}
                   >
-                    {service.title}
-                  </h4>
-                  <p className="text-gray-400 leading-relaxed">
-                    {service.description}
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+                    <CardContent className="p-8">
+                      <div className={`w-12 h-12 rounded-xl ${colors.bg} flex items-center justify-center mb-5 text-2xl`}>
+                        {CATEGORY_ICONS[category]}
+                      </div>
+                      <h4 className={`text-xl font-display font-bold mb-2 ${colors.text}`}>
+                        {category}
+                      </h4>
+                      <p className="text-gray-500 text-sm mb-5 leading-relaxed">
+                        {CATEGORY_DESCRIPTIONS[category]}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {specialties.map(s => (
+                          <span
+                            key={s}
+                            className={`px-3 py-1 rounded-full text-xs font-mono border ${colors.bg} ${colors.border} ${colors.text}`}
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="mb-20 text-center py-12 rounded-xl border border-green-500/10 bg-black/40">
+            <p className="text-gray-500 text-sm font-mono">Service specialties not yet published.</p>
+          </div>
+        )}
 
+        {/* Core Expertise badges */}
         <motion.div
           initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           whileInView={shouldReduceMotion ? false : { opacity: 1, y: 0 }}
@@ -121,20 +122,47 @@ export function Services() {
           <h3 className="text-2xl font-display font-bold text-white mb-8" data-testid="text-skills-title">
             Core Expertise
           </h3>
-          <div className="flex flex-wrap justify-center gap-3" data-testid="container-skills">
-            {skills.map((skill, index) => (
-              <Badge 
-                key={index} 
-                variant="secondary" 
-                className="skill-badge flex items-center gap-2"
-                data-testid={`badge-skill-${index}`}
-              >
-                <skill.icon className="w-4 h-4" />
-                {skill.label}
-              </Badge>
-            ))}
-          </div>
+
+          {hasSpecialties ? (
+            <div className="flex flex-wrap justify-center gap-3 mb-10" data-testid="container-skills">
+              {(consultant.specialties ?? []).map(specialty => {
+                const category = getCategoryForSpecialty(specialty);
+                const colors = category ? CATEGORY_COLORS[category] : CATEGORY_COLORS.Technical;
+                return (
+                  <Badge
+                    key={specialty}
+                    variant="secondary"
+                    className={`flex items-center gap-1.5 px-3 py-1.5 border font-mono text-xs ${colors.bg} ${colors.border} ${colors.text} bg-opacity-100`}
+                    data-testid={`badge-skill-${specialty.replace(/\s+/g, "-").toLowerCase()}`}
+                  >
+                    {specialty}
+                  </Badge>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-gray-600 text-sm font-mono mb-10">No specialties selected yet.</p>
+          )}
+
+          {/* Ecosystem Focus */}
+          {hasAlignments && (
+            <div data-testid="container-ecosystem-focus">
+              <h4 className="text-lg font-display font-semibold text-purple-300 mb-4">Ecosystem Focus</h4>
+              <div className="flex flex-wrap justify-center gap-2">
+                {(consultant.ecosystemAlignments ?? []).map(cat => (
+                  <span
+                    key={cat}
+                    data-testid={`badge-ecosystem-${cat.replace(/[\s/()]+/g, "-").toLowerCase()}`}
+                    className={`px-3 py-1.5 rounded-full text-xs font-mono border ${ALIGNMENT_PILL.selected.bg} ${ALIGNMENT_PILL.selected.border} ${ALIGNMENT_PILL.selected.text}`}
+                  >
+                    {cat}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </motion.div>
+
       </div>
     </section>
   );
