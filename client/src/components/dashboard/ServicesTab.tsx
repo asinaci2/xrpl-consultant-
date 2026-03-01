@@ -249,13 +249,21 @@ export function ServicesTab({ slug }: { slug: string }) {
             <CardContent className="space-y-4">
               <div>
                 <FieldLabel required>Title</FieldLabel>
-                <Input
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  placeholder="e.g. XRPL Integration"
-                  className="bg-black/60 border-green-500/20 text-white"
-                  data-testid="input-service-title"
-                />
+                <Select value={title} onValueChange={setTitle}>
+                  <SelectTrigger
+                    className="bg-black/60 border-green-500/20 text-white"
+                    data-testid="select-service-title"
+                  >
+                    <SelectValue placeholder="Select a service area..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-green-500/20">
+                    {EXPERTISE_OPTIONS.map(opt => (
+                      <SelectItem key={opt} value={opt} className="text-white hover:bg-green-500/10">
+                        {opt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
